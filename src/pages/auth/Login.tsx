@@ -4,12 +4,13 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { Leaf } from "lucide-react";
+import { Leaf, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading } = useAuth();
+  const { signIn, isLoading, supabaseConnected } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +27,15 @@ export function Login() {
         <p className="text-gray-600">Sign in to your account</p>
       </div>
 
+      {!supabaseConnected && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Supabase is not connected. Please click the green "Supabase" button at the top of the page to connect.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -38,6 +48,7 @@ export function Login() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            disabled={!supabaseConnected}
           />
         </div>
 
@@ -57,10 +68,11 @@ export function Login() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            disabled={!supabaseConnected}
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button type="submit" className="w-full" disabled={isLoading || !supabaseConnected}>
           {isLoading ? "Signing in..." : "Sign in"}
         </Button>
 
