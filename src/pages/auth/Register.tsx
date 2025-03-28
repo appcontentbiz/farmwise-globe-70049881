@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { Leaf } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function Register() {
   const [email, setEmail] = useState("");
@@ -12,11 +13,13 @@ export function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [farmName, setFarmName] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const { signUp, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -28,7 +31,17 @@ export function Register() {
       return;
     }
 
-    await signUp(email, password, farmName);
+    try {
+      await signUp(email, password, farmName);
+      setSuccess("Account created! Please check your email for verification.");
+    } catch (err: any) {
+      // Handle rate limiting errors specifically
+      if (err.message && err.message.includes("request this after")) {
+        setError("Please wait a moment before trying again. " + err.message);
+      } else {
+        setError(err.message || "Failed to sign up. Please try again later.");
+      }
+    }
   };
 
   return (
@@ -43,9 +56,15 @@ export function Register() {
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
-          <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
-            {error}
-          </div>
+          <Alert variant="destructive" className="text-sm text-red-800 bg-red-100 border-red-200">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
+        {success && (
+          <Alert className="text-sm text-green-800 bg-green-100 border-green-200">
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
         )}
 
         <div className="space-y-2">

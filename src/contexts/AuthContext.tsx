@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       toast.success("Welcome back!");
     } catch (error: any) {
       toast.error(error.message || "Failed to sign in");
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -76,13 +77,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             created_at: new Date().toISOString() 
           }]);
           
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Failed to create farm profile:', profileError);
+          // Continue with signup even if profile creation fails
+          // We'll handle this case separately
+        }
       }
       
       toast.success("Account created! Please verify your email.");
       navigate('/login');
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast.error(error.message || "Failed to sign up");
+      throw error; // Rethrow for component-level handling
     } finally {
       setIsLoading(false);
     }
