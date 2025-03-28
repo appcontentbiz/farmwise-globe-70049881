@@ -1,19 +1,42 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { Leaf } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [message, setMessage] = useState<{text: string, type: "success" | "error"} | null>(null);
   const { signIn, isLoading } = useAuth();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if redirected from verification
+    const isVerified = location.search.includes('email_confirmed=true');
+    if (isVerified) {
+      setMessage({
+        text: "Email verified successfully! You can now log in.",
+        type: "success"
+      });
+    }
+  }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signIn(email, password);
+    setMessage(null);
+    
+    try {
+      await signIn(email, password);
+    } catch (error: any) {
+      setMessage({
+        text: error.message || "Failed to sign in. Please check your credentials.",
+        type: "error"
+      });
+    }
   };
 
   return (
@@ -25,6 +48,18 @@ export function Login() {
         <h1 className="text-2xl font-bold">Welcome to FarmWise</h1>
         <p className="text-gray-600">Sign in to your account</p>
       </div>
+
+      {message && (
+        <Alert 
+          variant={message.type === "error" ? "destructive" : "default"}
+          className={message.type === "error" 
+            ? "text-sm text-red-800 bg-red-100 border-red-200" 
+            : "text-sm text-green-800 bg-green-100 border-green-200"
+          }
+        >
+          <AlertDescription>{message.text}</AlertDescription>
+        </Alert>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">

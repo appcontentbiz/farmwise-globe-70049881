@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check active session
+    const handleAuthError = () => {
+      const url = new URL(window.location.href);
+      const errorParam = url.searchParams.get('error');
+      const errorDescription = url.searchParams.get('error_description');
+      
+      if (errorParam) {
+        console.error('Auth redirect error:', errorParam, errorDescription);
+        toast.error(errorDescription || 'Authentication error occurred');
+        navigate('/login', { replace: true });
+        return true;
+      }
+      return false;
+    };
+
+    const hasHandledError = handleAuthError();
+    if (hasHandledError) return;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -33,7 +48,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(false);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -41,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -62,13 +76,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Create user with Supabase auth
       const { data: { user }, error } = await supabase.auth.signUp({ email, password });
       
       if (error) throw error;
       
       if (user) {
-        // After signup, create a farm profile for the user
         const { error: profileError } = await supabase
           .from('farms')
           .insert([{ 
@@ -79,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           
         if (profileError) {
           console.error('Failed to create farm profile:', profileError);
+          toast.error("Failed to create farm profile");
           // Continue with signup even if profile creation fails
           // We'll handle this case separately
         }
