@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { Leaf, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -30,8 +30,14 @@ export function Login() {
       {!supabaseConnected && (
         <Alert variant="destructive" className="mb-4">
           <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Supabase Connection Required</AlertTitle>
           <AlertDescription>
-            Supabase is not connected. Please click the green "Supabase" button at the top of the page to connect.
+            <p>To use this application, please connect to Supabase:</p>
+            <ol className="list-decimal pl-5 mt-2 space-y-1">
+              <li>Click the green "Supabase" button at the top of this page</li>
+              <li>Follow the prompts to connect your Supabase project</li>
+              <li>Return to this page after connecting</li>
+            </ol>
           </AlertDescription>
         </Alert>
       )}
