@@ -68,7 +68,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       if (user) {
         // After signup, create a farm profile for the user
-        // We'll create the farms table in Supabase first
         const { error: profileError } = await supabase
           .from('farms')
           .insert([{ 

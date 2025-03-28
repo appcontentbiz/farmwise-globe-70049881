@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger 
 } from "./ui/dropdown-menu";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/integrations/supabase/client";
 
 interface FarmProfile {
   farm_name: string;
