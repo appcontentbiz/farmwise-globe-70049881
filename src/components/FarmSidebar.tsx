@@ -16,13 +16,15 @@ import {
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { useState } from "react";
 import { FarmNavigation, farmModules } from "./FarmNavigation";
 import { Leaf, MenuIcon, Settings } from "lucide-react";
+import { UserProfile } from "./UserProfile";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function FarmSidebar({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const handleMenuClick = (path: string) => {
     const module = farmModules.find(m => m.path === path);
@@ -75,10 +77,22 @@ export function FarmSidebar({ children }: { children: React.ReactNode }) {
             </SidebarGroup>
           </SidebarContent>
           <SidebarFooter className="p-6 border-t">
-            <Button variant="outline" className="w-full justify-start" size="sm">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Settings</span>
-            </Button>
+            {user ? (
+              <div className="flex items-center justify-between w-full">
+                <Button variant="outline" className="w-full justify-start" size="sm">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Button>
+                <div className="ml-2">
+                  <UserProfile />
+                </div>
+              </div>
+            ) : (
+              <Button variant="outline" className="w-full justify-start" size="sm">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </Button>
+            )}
           </SidebarFooter>
         </Sidebar>
         <div className="flex-1 flex flex-col min-h-screen overflow-hidden">
