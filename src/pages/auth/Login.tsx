@@ -4,13 +4,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { Leaf, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Leaf } from "lucide-react";
 
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading, supabaseConnected } = useAuth();
+  const { signIn, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,21 +26,6 @@ export function Login() {
         <p className="text-gray-600">Sign in to your account</p>
       </div>
 
-      {!supabaseConnected && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Supabase Connection Required</AlertTitle>
-          <AlertDescription>
-            <p>To use this application, please connect to Supabase:</p>
-            <ol className="list-decimal pl-5 mt-2 space-y-1">
-              <li>Click the green "Supabase" button at the top of this page</li>
-              <li>Follow the prompts to connect your Supabase project</li>
-              <li>Return to this page after connecting</li>
-            </ol>
-          </AlertDescription>
-        </Alert>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
           <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -54,7 +38,6 @@ export function Login() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={!supabaseConnected}
           />
         </div>
 
@@ -74,11 +57,10 @@ export function Login() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={!supabaseConnected}
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading || !supabaseConnected}>
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Signing in..." : "Sign in"}
         </Button>
 

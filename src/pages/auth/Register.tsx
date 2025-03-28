@@ -4,8 +4,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
-import { Leaf, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Leaf } from "lucide-react";
 
 export function Register() {
   const [email, setEmail] = useState("");
@@ -13,7 +12,7 @@ export function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [farmName, setFarmName] = useState("");
   const [error, setError] = useState("");
-  const { signUp, isLoading, supabaseConnected } = useAuth();
+  const { signUp, isLoading } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,21 +41,6 @@ export function Register() {
         <p className="text-gray-600">Start managing your farm efficiently</p>
       </div>
 
-      {!supabaseConnected && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Supabase Connection Required</AlertTitle>
-          <AlertDescription>
-            <p>To use this application, please connect to Supabase:</p>
-            <ol className="list-decimal pl-5 mt-2 space-y-1">
-              <li>Click the green "Supabase" button at the top of this page</li>
-              <li>Follow the prompts to connect your Supabase project</li>
-              <li>Return to this page after connecting</li>
-            </ol>
-          </AlertDescription>
-        </Alert>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="p-3 text-sm text-red-800 bg-red-100 rounded-md">
@@ -75,7 +59,6 @@ export function Register() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={!supabaseConnected}
           />
         </div>
 
@@ -90,7 +73,6 @@ export function Register() {
             required
             value={farmName}
             onChange={(e) => setFarmName(e.target.value)}
-            disabled={!supabaseConnected}
           />
         </div>
 
@@ -105,7 +87,6 @@ export function Register() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            disabled={!supabaseConnected}
           />
         </div>
 
@@ -120,11 +101,10 @@ export function Register() {
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            disabled={!supabaseConnected}
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading || !supabaseConnected}>
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Creating account..." : "Create account"}
         </Button>
 

@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, isSupabaseConnected } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
@@ -9,7 +9,6 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  supabaseConnected: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, farmName: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -21,15 +20,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [supabaseConnected, setSupabaseConnected] = useState(isSupabaseConnected());
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!supabaseConnected) {
-      setIsLoading(false);
-      return;
-    }
-
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -48,14 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => subscription.unsubscribe();
-  }, [supabaseConnected]);
+  }, []);
 
   const signIn = async (email: string, password: string) => {
-    if (!supabaseConnected) {
-      toast.error("Supabase is not connected. Please connect via the Supabase button at the top.");
-      return;
-    }
-
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -70,11 +58,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, farmName: string) => {
-    if (!supabaseConnected) {
-      toast.error("Supabase is not connected. Please connect via the Supabase button at the top.");
-      return;
-    }
-
     try {
       setIsLoading(true);
       
@@ -106,10 +89,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
-    if (!supabaseConnected) {
-      return;
-    }
-
     try {
       setIsLoading(true);
       const { error } = await supabase.auth.signOut();
@@ -123,7 +102,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isLoading, supabaseConnected, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isLoading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
