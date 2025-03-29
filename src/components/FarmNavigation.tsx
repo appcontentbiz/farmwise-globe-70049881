@@ -64,6 +64,27 @@ export const farmModules: FarmModule[] = [
     available: true
   },
   {
+    name: "Beginning Farming",
+    path: "/beginning",
+    icon: Sprout,
+    description: "Guidance for new farmers with structured protocols",
+    available: true
+  },
+  {
+    name: "Farming Types",
+    path: "/types",
+    icon: Tractor,
+    description: "Specialized tracking for different farming approaches",
+    available: true
+  },
+  {
+    name: "Health Insights",
+    path: "/health",
+    icon: User2,
+    description: "Farmer health education and tracking",
+    available: true
+  },
+  {
     name: "Regulations & Policy",
     path: "/regulations",
     icon: FileText,
@@ -82,27 +103,6 @@ export const farmModules: FarmModule[] = [
     path: "/workforce",
     icon: Users,
     description: "Manage labor and workforce requirements",
-    available: false
-  },
-  {
-    name: "Beginning Farming",
-    path: "/beginning",
-    icon: Sprout,
-    description: "Guidance for new farmers with structured protocols",
-    available: false
-  },
-  {
-    name: "Farming Types",
-    path: "/types",
-    icon: Tractor,
-    description: "Specialized tracking for different farming approaches",
-    available: false
-  },
-  {
-    name: "Health Insights",
-    path: "/health",
-    icon: User2,
-    description: "Farmer health education and tracking",
     available: false
   },
 ];

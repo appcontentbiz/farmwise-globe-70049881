@@ -26,6 +26,9 @@ import { ClimateModule } from "@/components/modules/ClimateModule";
 import { EconomicModule } from "@/components/modules/EconomicModule";
 import { TechModule } from "@/components/modules/TechModule";
 import { PestDiseaseModule } from "@/components/modules/PestDiseaseModule";
+import { BeginningFarmingModule } from "@/components/modules/BeginningFarmingModule";
+import { FarmingTypesModule } from "@/components/modules/FarmingTypesModule";
+import { HealthInsightsModule } from "@/components/modules/HealthInsightsModule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -59,6 +62,27 @@ const farmModules = [
     available: true
   },
   {
+    name: "Beginning Farming",
+    description: "Guidance for new farmers with structured protocols",
+    icon: Sprout,
+    path: "/beginning",
+    available: true
+  },
+  {
+    name: "Farming Types",
+    description: "Specialized tracking for different farming approaches",
+    icon: Tractor,
+    path: "/types",
+    available: true
+  },
+  {
+    name: "Health Insights",
+    description: "Farmer health education and tracking",
+    icon: User2,
+    path: "/health",
+    available: true
+  },
+  {
     name: "Regulations & Policy",
     description: "Stay updated on relevant policies and regulations",
     icon: FileText,
@@ -79,27 +103,6 @@ const farmModules = [
     path: "/workforce",
     available: false
   },
-  {
-    name: "Beginning Farming",
-    description: "Guidance for new farmers with structured protocols",
-    icon: Sprout,
-    path: "/beginning",
-    available: false
-  },
-  {
-    name: "Farming Types",
-    description: "Specialized tracking for different farming approaches",
-    icon: Tractor,
-    path: "/types",
-    available: false
-  },
-  {
-    name: "Health Insights",
-    description: "Farmer health education and tracking",
-    icon: User2,
-    path: "/health",
-    available: false
-  },
 ];
 
 const Dashboard = () => {
@@ -112,7 +115,7 @@ const Dashboard = () => {
     } else {
       toast({
         title: "Module Coming Soon",
-        description: "This module is under development. You can still use the Tech module to test tracking features.",
+        description: "This module is under development. You can still use the available modules to test tracking features.",
       });
     }
   };
@@ -245,6 +248,9 @@ const Index = () => {
       {path === "/economic" && <EconomicModule />}
       {path === "/tech" && <TechModule />}
       {path === "/pest" && <PestDiseaseModule />}
+      {path === "/beginning" && <BeginningFarmingModule />}
+      {path === "/types" && <FarmingTypesModule />}
+      {path === "/health" && <HealthInsightsModule />}
     </FarmSidebar>
   );
 };
