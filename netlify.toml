@@ -5,8 +5,8 @@
 [build]
   # Directory to publish (output of the build)
   publish = "dist"
-  # Build command
-  command = "npm run build"
+  # Build command with explicit dependency installation
+  command = "npm install && npm run build"
   # Base directory (where your package.json is located)
   base = "/"
 
