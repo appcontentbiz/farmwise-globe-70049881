@@ -27,7 +27,7 @@ export function HealthInsightsModule() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="personal">
+            <Tabs defaultValue="personal" className="w-full">
               <TabsList className="mb-4 w-full justify-start overflow-x-auto">
                 <TabsTrigger value="personal">Personal Health Tracking</TabsTrigger>
                 <TabsTrigger value="physical">Physical Health</TabsTrigger>
@@ -35,21 +35,23 @@ export function HealthInsightsModule() {
                 <TabsTrigger value="safety">Farm Safety</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="personal">
-                <PersonalHealthTracking />
-              </TabsContent>
-              
-              <TabsContent value="physical">
-                <PhysicalHealthContent />
-              </TabsContent>
-              
-              <TabsContent value="mental">
-                <MentalHealthContent />
-              </TabsContent>
-              
-              <TabsContent value="safety">
-                <SafetyContent />
-              </TabsContent>
+              <div className="mt-2">
+                <TabsContent value="personal" className="mt-0">
+                  <PersonalHealthTracking />
+                </TabsContent>
+                
+                <TabsContent value="physical" className="mt-0">
+                  <PhysicalHealthContent />
+                </TabsContent>
+                
+                <TabsContent value="mental" className="mt-0">
+                  <MentalHealthContent />
+                </TabsContent>
+                
+                <TabsContent value="safety" className="mt-0">
+                  <SafetyContent />
+                </TabsContent>
+              </div>
             </Tabs>
           </CardContent>
         </Card>
