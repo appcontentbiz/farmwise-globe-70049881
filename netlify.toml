@@ -5,8 +5,8 @@
 [build]
   # Directory to publish (output of the build)
   publish = "dist"
-  # Build command that explicitly installs dependencies and uses npx to run vite
-  command = "npm ci && npx vite build"
+  # Build command that explicitly installs vite and its dependencies before building
+  command = "npm ci && npm install vite @vitejs/plugin-react-swc && npx vite build"
   # Base directory (where your package.json is located)
   base = "/"
 
@@ -35,4 +35,4 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Force a new deploy by adding this comment - Build trigger: 2
+# Force a new deploy by adding this comment - Build trigger: 3
