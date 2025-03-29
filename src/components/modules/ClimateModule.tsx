@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { TrackingInterface } from "./TrackingInterface";
+import { PredictiveInsights } from "./PredictiveInsights";
 import { 
   LineChart, 
   Line, 
@@ -311,10 +312,8 @@ export function ClimateModule() {
         </Card>
       </div>
       
-      {/* Add the predictive insights component */}
       <PredictiveInsights moduleName="Climate & Sustainability" />
       
-      {/* Keep the existing tracking interface */}
       <TrackingInterface moduleName="Climate & Sustainability" />
     </div>
   );
