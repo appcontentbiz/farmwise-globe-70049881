@@ -27,6 +27,9 @@ import {
   Moon,
   Save,
   User,
+  BarChart3,
+  LineChart as LineChartIcon,
+  Activity,
 } from "lucide-react";
 import {
   LineChart,
@@ -37,6 +40,13 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts";
 import {
   Popover,
@@ -44,6 +54,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type MoodEntry = {
   date: Date;
@@ -66,6 +78,12 @@ const getMoodColor = (mood: string) => {
   return moodOptions.find((option) => option.value === mood)?.color || "#9e9e9e";
 };
 
+// Helper to get a score from mood
+const getMoodScore = (mood: string): number => {
+  const index = moodOptions.findIndex(m => m.value === mood);
+  return (index === -1) ? 2 : (4 - index); // 4 (great) to 0 (bad)
+};
+
 export function PersonalHealthTracking() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentEntry, setCurrentEntry] = useState<Omit<MoodEntry, "date">>({
@@ -79,25 +97,93 @@ export function PersonalHealthTracking() {
     const savedEntries = localStorage.getItem("health-tracking-entries");
     return savedEntries ? JSON.parse(savedEntries) : [];
   });
+  const [chartView, setChartView] = useState<"line" | "bar" | "area" | "distribution">("line");
+  const [timeRange, setTimeRange] = useState<"7days" | "30days" | "90days" | "all">("30days");
   const { toast } = useToast();
 
-  // Generate last 30 days data for the chart
-  const last30DaysData = Array.from({ length: 30 }, (_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - 29 + i);
-    const dateString = format(date, "MMM dd");
+  // Get date range based on selected time range
+  const getDateRange = () => {
+    const endDate = new Date();
+    const startDate = new Date();
     
-    const entry = entries.find(
-      (e) => format(new Date(e.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-    );
+    switch (timeRange) {
+      case "7days":
+        startDate.setDate(endDate.getDate() - 7);
+        break;
+      case "30days":
+        startDate.setDate(endDate.getDate() - 30);
+        break;
+      case "90days":
+        startDate.setDate(endDate.getDate() - 90);
+        break;
+      case "all":
+        if (entries.length > 0) {
+          // Find the earliest entry date
+          const dates = entries.map(e => new Date(e.date).getTime());
+          startDate.setTime(Math.min(...dates));
+        } else {
+          startDate.setDate(endDate.getDate() - 30); // Default to 30 days if no entries
+        }
+        break;
+    }
     
-    return {
-      date: dateString,
-      mood: entry ? moodOptions.findIndex(m => m.value === entry.mood) * 2 + 1 : null,
-      energy: entry?.energy || null,
-      sleep: entry?.sleep || null,
-    };
-  });
+    return { startDate, endDate };
+  };
+
+  // Generate chart data based on time range
+  const generateChartData = () => {
+    const { startDate, endDate } = getDateRange();
+    const filteredEntries = entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate <= endDate;
+    });
+    
+    // Sort entries by date
+    filteredEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    return filteredEntries.map(entry => ({
+      date: format(new Date(entry.date), "MMM dd"),
+      rawDate: new Date(entry.date),
+      mood: getMoodScore(entry.mood),
+      moodLabel: entry.mood,
+      moodColor: getMoodColor(entry.mood),
+      energy: entry.energy,
+      sleep: entry.sleep,
+    }));
+  };
+
+  // Calculate mood distribution data
+  const getMoodDistributionData = () => {
+    const { startDate, endDate } = getDateRange();
+    const filteredEntries = entries.filter(entry => {
+      const entryDate = new Date(entry.date);
+      return entryDate >= startDate && entryDate <= endDate;
+    });
+    
+    const distribution = moodOptions.map(option => ({
+      name: option.label,
+      value: filteredEntries.filter(entry => entry.mood === option.value).length,
+      color: option.color,
+    }));
+    
+    return distribution.filter(item => item.value > 0);
+  };
+
+  const chartData = generateChartData();
+  const distributionData = getMoodDistributionData();
+
+  // Calculate health insights
+  const calculateAverageSleep = () => {
+    if (entries.length === 0) return "N/A";
+    const total = entries.reduce((sum, entry) => sum + entry.sleep, 0);
+    return (total / entries.length).toFixed(1);
+  };
+
+  const calculateAverageEnergy = () => {
+    if (entries.length === 0) return "N/A";
+    const total = entries.reduce((sum, entry) => sum + entry.energy, 0);
+    return (total / entries.length).toFixed(1);
+  };
 
   const handleSaveEntry = () => {
     const newEntry = {
@@ -178,6 +264,59 @@ export function PersonalHealthTracking() {
     }
     
     return <span>{day.getDate()}</span>;
+  };
+
+  // Custom tooltip for charts
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background/95 border p-3 rounded-lg shadow-md text-sm">
+          <p className="font-medium">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <div 
+              key={`item-${index}`} 
+              className="flex items-center gap-2 mt-1"
+              style={{ color: entry.color }}
+            >
+              <div 
+                className="w-3 h-3 rounded-full" 
+                style={{ backgroundColor: entry.color }} 
+              />
+              <span>{entry.name}: </span>
+              <span className="font-medium">
+                {entry.name === "Mood" 
+                  ? moodOptions.find((_, i) => getMoodScore(_.value) === entry.value)?.label 
+                  : entry.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Render pie chart tooltip
+  const PieTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-background/95 border p-3 rounded-lg shadow-md text-sm">
+          <div 
+            className="flex items-center gap-2"
+            style={{ color: data.color }}
+          >
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: data.color }} 
+            />
+            <span className="font-medium">{data.name}: </span>
+            <span>{data.value} entries ({((data.value / entries.length) * 100).toFixed(0)}%)</span>
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -324,62 +463,294 @@ export function PersonalHealthTracking() {
         </Card>
       </div>
 
+      {/* Interactive Health Visualization Section */}
       <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium flex items-center gap-2">
-            <Heart className="h-5 w-5 text-farm-green" />
-            Health Trends
-          </CardTitle>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-2 sm:space-y-0">
+            <CardTitle className="text-lg font-medium flex items-center gap-2">
+              <Activity className="h-5 w-5 text-farm-green" />
+              Health Trends & Analytics
+            </CardTitle>
+            
+            <div className="flex flex-wrap gap-2">
+              <Select value={timeRange} onValueChange={(value: any) => setTimeRange(value)}>
+                <SelectTrigger className="h-8 w-28">
+                  <SelectValue placeholder="Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7days">7 Days</SelectItem>
+                  <SelectItem value="30days">30 Days</SelectItem>
+                  <SelectItem value="90days">90 Days</SelectItem>
+                  <SelectItem value="all">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <div className="flex border rounded-md overflow-hidden">
+                <Button 
+                  variant={chartView === "line" ? "default" : "ghost"} 
+                  size="sm" 
+                  className="h-8 px-2" 
+                  onClick={() => setChartView("line")}
+                >
+                  <LineChartIcon className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant={chartView === "bar" ? "default" : "ghost"} 
+                  size="sm" 
+                  className="h-8 px-2" 
+                  onClick={() => setChartView("bar")}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant={chartView === "area" ? "default" : "ghost"} 
+                  size="sm" 
+                  className="h-8 px-2" 
+                  onClick={() => setChartView("area")}
+                >
+                  <Activity className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant={chartView === "distribution" ? "default" : "ghost"} 
+                  size="sm" 
+                  className="h-8 px-2" 
+                  onClick={() => setChartView("distribution")}
+                >
+                  <Heart className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={last30DaysData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 10 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  tick={{ fontSize: 12 }}
-                  interval={Math.floor(last30DaysData.length / 10)}
-                />
-                <YAxis 
-                  yAxisId="left" 
-                  domain={[0, 10]} 
-                  tick={{ fontSize: 12 }} 
-                  label={{ value: 'Rating (1-10)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12 } }} 
-                />
-                <Tooltip />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="mood"
-                  name="Mood"
-                  stroke="#8884d8"
-                  activeDot={{ r: 8 }}
-                  connectNulls
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="energy"
-                  name="Energy"
-                  stroke="#4CAF50"
-                  connectNulls
-                />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="sleep"
-                  name="Sleep (hours)"
-                  stroke="#2196F3"
-                  connectNulls
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          {entries.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-[300px] text-center">
+              <Activity className="h-12 w-12 text-muted-foreground/40 mb-4" />
+              <h3 className="text-lg font-medium">No health data available</h3>
+              <p className="text-muted-foreground">Add your first health entry to start tracking your well-being over time.</p>
+            </div>
+          ) : (
+            <>
+              <div className="h-[350px]">
+                {chartView === "line" && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={chartData}
+                      margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }}
+                        interval={Math.max(Math.floor(chartData.length / 10), 0)}
+                      />
+                      <YAxis 
+                        yAxisId="left" 
+                        domain={[0, 10]} 
+                        tick={{ fontSize: 12 }} 
+                        label={{ value: 'Rating', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fontSize: 12 } }} 
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="mood"
+                        name="Mood"
+                        stroke="#8884d8"
+                        activeDot={{ r: 8 }}
+                        strokeWidth={2}
+                        dot={{ stroke: '#8884d8', strokeWidth: 2, r: 4 }}
+                      />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="energy"
+                        name="Energy"
+                        stroke="#4CAF50"
+                        strokeWidth={2}
+                        dot={{ stroke: '#4CAF50', strokeWidth: 2, r: 4 }}
+                      />
+                      <Line
+                        yAxisId="left"
+                        type="monotone"
+                        dataKey="sleep"
+                        name="Sleep (hours)"
+                        stroke="#2196F3"
+                        strokeWidth={2}
+                        dot={{ stroke: '#2196F3', strokeWidth: 2, r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+                
+                {chartView === "bar" && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={chartData}
+                      margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }}
+                        interval={Math.max(Math.floor(chartData.length / 10), 0)}
+                      />
+                      <YAxis domain={[0, 10]} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Bar dataKey="mood" name="Mood" fill="#8884d8" />
+                      <Bar dataKey="energy" name="Energy" fill="#4CAF50" />
+                      <Bar dataKey="sleep" name="Sleep (hours)" fill="#2196F3" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+                
+                {chartView === "area" && (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart
+                      data={chartData}
+                      margin={{ top: 20, right: 30, left: 10, bottom: 10 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{ fontSize: 12 }}
+                        interval={Math.max(Math.floor(chartData.length / 10), 0)}
+                      />
+                      <YAxis domain={[0, 10]} />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Area 
+                        type="monotone" 
+                        dataKey="mood" 
+                        stackId="1" 
+                        name="Mood" 
+                        stroke="#8884d8" 
+                        fill="#8884d8" 
+                        fillOpacity={0.6}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="energy" 
+                        stackId="2" 
+                        name="Energy" 
+                        stroke="#4CAF50" 
+                        fill="#4CAF50" 
+                        fillOpacity={0.6}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="sleep" 
+                        stackId="3" 
+                        name="Sleep (hours)" 
+                        stroke="#2196F3" 
+                        fill="#2196F3" 
+                        fillOpacity={0.6}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+                
+                {chartView === "distribution" && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 h-full">
+                    <div className="flex items-center justify-center">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={distributionData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            outerRadius={100}
+                            fill="#8884d8"
+                            dataKey="value"
+                            nameKey="name"
+                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {distributionData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<PieTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex flex-col justify-center p-4">
+                      <h3 className="text-lg font-medium mb-3">Mood Distribution</h3>
+                      <div className="space-y-4">
+                        {distributionData.map((entry) => (
+                          <div key={entry.name} className="space-y-1">
+                            <div className="flex justify-between items-center">
+                              <div className="flex items-center gap-2">
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <span>{entry.name}</span>
+                              </div>
+                              <span className="font-medium">{entry.value} entries</span>
+                            </div>
+                            <div className="w-full bg-muted/30 rounded-full h-2">
+                              <div 
+                                className="h-2 rounded-full" 
+                                style={{ 
+                                  width: `${(entry.value / entries.length) * 100}%`,
+                                  backgroundColor: entry.color
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="bg-muted/20 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Moon className="h-4 w-4 text-blue-500" />
+                      Sleep Average
+                    </h3>
+                    <span className="text-xl font-bold">{calculateAverageSleep()}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Average hours of sleep per night during selected period</p>
+                </div>
+                
+                <div className="bg-muted/20 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <Activity className="h-4 w-4 text-green-500" />
+                      Energy Average
+                    </h3>
+                    <span className="text-xl font-bold">{calculateAverageEnergy()}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Average energy level (1-10) during selected period</p>
+                </div>
+                
+                <div className="bg-muted/20 p-4 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="font-medium flex items-center gap-2">
+                      <CalendarIcon className="h-4 w-4 text-purple-500" />
+                      Tracking Consistency
+                    </h3>
+                    <span className="text-xl font-bold">
+                      {chartData.length} / {
+                        timeRange === "7days" ? 7 : 
+                        timeRange === "30days" ? 30 : 
+                        timeRange === "90days" ? 90 : 
+                        Math.ceil((getDateRange().endDate.getTime() - getDateRange().startDate.getTime()) / (1000 * 60 * 60 * 24))
+                      }
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Number of days with entries in the selected period</p>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -425,7 +796,7 @@ export function PersonalHealthTracking() {
               <div className="bg-muted/30 p-3 rounded-md">
                 <p className="text-sm font-medium">Your Sleep Patterns</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Your average sleep duration is {entries.length > 0 ? (entries.reduce((sum, entry) => sum + entry.sleep, 0) / entries.length).toFixed(1) : "N/A"} hours.
+                  Your average sleep duration is {calculateAverageSleep()} hours.
                   During seasonal transitions, farmers often experience sleep disruptions due to changing workloads.
                 </p>
               </div>
