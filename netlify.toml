@@ -5,8 +5,8 @@
 [build]
   # Directory to publish (output of the build)
   publish = "dist"
-  # Build command with explicit dependency installation and ignoring warnings
-  command = "CI=false npm ci && npm run build"
+  # Build command that explicitly installs dependencies and uses npx to run vite
+  command = "npm ci && npx vite build"
   # Base directory (where your package.json is located)
   base = "/"
 
@@ -20,7 +20,7 @@
   NODE_ENV = "production"
   # Specify Node version to avoid compatibility issues
   NODE_VERSION = "18"
-  # Setting CI to false directly in the environment (belt and suspenders approach)
+  # Setting CI to false to prevent treating warnings as errors
   CI = "false"
 
 # Handle SPA routing
@@ -35,4 +35,4 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Force a new deploy by adding this comment - Build trigger: 1
+# Force a new deploy by adding this comment - Build trigger: 2
