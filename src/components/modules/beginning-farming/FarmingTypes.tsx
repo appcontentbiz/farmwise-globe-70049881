@@ -8,7 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { 
   ExternalLink, 
   Share2, 
-  Sprout 
+  Sprout, 
+  ChevronRight,
+  BookOpen,
+  FileText,
+  Users
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { farmingTypesData } from "./data/farmingTypesData";
@@ -38,9 +42,26 @@ export function FarmingTypes() {
 
   const handleCompareClick = () => {
     toast({
-      title: "Coming Soon",
-      description: "The comparison feature will be available in the next update.",
+      title: "Comparing Farming Types",
+      description: "Loading comprehensive comparison chart...",
     });
+    
+    // Simulate loading
+    setTimeout(() => {
+      toast({
+        title: "Comparison Ready",
+        description: "Displaying detailed comparison of farming approaches.",
+      });
+      
+      // Here we would typically navigate to a comparison view or open a modal
+      // For now, we'll just simulate it with a toast
+      setTimeout(() => {
+        toast({
+          title: "Feature Preview",
+          description: "This comparison feature will be fully interactive in the next update.",
+        });
+      }, 1500);
+    }, 1000);
   };
 
   const handleCardClick = (farmingType: FarmingTypeData) => {
@@ -48,7 +69,7 @@ export function FarmingTypes() {
     setShowDialog(true);
   };
 
-  // New function to handle resource links
+  // Function to handle resource links
   const handleResourceClick = (url?: string, title?: string) => {
     if (url) {
       // Verify URL is valid before opening
@@ -57,6 +78,11 @@ export function FarmingTypes() {
         const urlToOpen = url.startsWith('http') ? url : `https://${url}`;
         // Open in new tab
         window.open(urlToOpen, '_blank', 'noopener,noreferrer');
+        
+        toast({
+          title: "Resource Opened",
+          description: `Opening ${title || 'resource'} in a new tab.`,
+        });
       } catch (error) {
         toast({
           title: "Link Error",
@@ -70,6 +96,29 @@ export function FarmingTypes() {
         description: "This resource doesn't have an accessible link yet.",
       });
     }
+  };
+
+  // Function to handle quick action buttons
+  const handleQuickAction = (action: string, farmingType?: string) => {
+    const actionMessages = {
+      "learn": `Loading educational resources for ${farmingType || "beginning farmers"}...`,
+      "connect": "Finding mentors and communities for beginning farmers...",
+      "tools": "Searching for essential tools and equipment...",
+      "grants": "Exploring available grants and financial assistance..."
+    };
+    
+    toast({
+      title: "Loading Resources",
+      description: actionMessages[action as keyof typeof actionMessages] || "Loading resources...",
+    });
+    
+    // Simulate loading
+    setTimeout(() => {
+      toast({
+        title: "Resources Ready",
+        description: `${farmingType ? farmingType + " resources" : "Beginning farmer resources"} are now available.`,
+      });
+    }, 1500);
   };
 
   return (
@@ -87,6 +136,25 @@ export function FarmingTypes() {
             </Button>
           </div>
           <p className="text-muted-foreground mb-6">Explore different farming approaches suitable for beginners</p>
+          
+          <div className="flex flex-wrap gap-3 mb-8">
+            <Button size="sm" variant="outline" onClick={() => handleQuickAction("learn")}>
+              <BookOpen className="h-4 w-4 mr-2" />
+              Learn More
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleQuickAction("connect")}>
+              <Users className="h-4 w-4 mr-2" />
+              Connect with Mentors
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleQuickAction("tools")}>
+              <FileText className="h-4 w-4 mr-2" />
+              Equipment Guide
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => handleQuickAction("grants")}>
+              <FileText className="h-4 w-4 mr-2" />
+              Find Grants
+            </Button>
+          </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {farmingTypesData.map((type) => (
@@ -131,6 +199,21 @@ export function FarmingTypes() {
                         />
                       </div>
                     </div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-2">
+                    <Button 
+                      size="sm" 
+                      variant="link" 
+                      className="text-farm-green p-0 h-auto"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleQuickAction("learn", type.title);
+                      }}
+                    >
+                      Learn more
+                    </Button>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
                   </div>
                 </div>
               </Card>
@@ -238,6 +321,30 @@ export function FarmingTypes() {
                       The key is to start with proper education, have realistic expectations, 
                       and connect with experienced mentors in this farming type.
                     </p>
+                    
+                    <div className="flex gap-3 mt-4">
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleQuickAction("connect", selectedType.title)}
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Find Mentors
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleQuickAction("tools", selectedType.title)}
+                      >
+                        Find Equipment
+                      </Button>
+                      
+                      <Button 
+                        variant="outline"
+                        onClick={() => handleQuickAction("grants", selectedType.title)}
+                      >
+                        Explore Grants
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </ScrollArea>

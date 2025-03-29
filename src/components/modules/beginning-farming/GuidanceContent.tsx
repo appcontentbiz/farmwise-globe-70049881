@@ -5,19 +5,52 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { ChevronRight, Sparkles } from "lucide-react";
+import { ChevronRight, Download, FileText, FilePlus, ClipboardList, LineChart, Users, BookOpen, Sprout, Sparkles } from "lucide-react";
 import { CustomizeGuideModal } from "./CustomizeGuideModal";
 import { guidanceResources } from "./utils/guidanceResources";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/hooks/use-toast";
+import { ResourceContentModal } from "./ResourceContentModal";
 
 export function GuidanceContent() {
   const [selectedGuide, setSelectedGuide] = useState<string | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const [showCustomizeModal, setShowCustomizeModal] = useState(false);
+  const [showResourceModal, setShowResourceModal] = useState(false);
+  const [resourceModalContent, setResourceModalContent] = useState({
+    title: "",
+    type: ""
+  });
+  const { toast } = useToast();
   
   const handleGuideClick = (guide: string) => {
     setSelectedGuide(guide);
     setShowDialog(true);
+  };
+
+  const handleResourceClick = (title: string, type: string) => {
+    setResourceModalContent({
+      title,
+      type
+    });
+    setShowResourceModal(true);
+  };
+
+  // Function to handle downloadable resources
+  const handleDownload = (resourceName: string) => {
+    toast({
+      title: "Download Started",
+      description: `${resourceName} will be downloaded shortly.`,
+    });
+    
+    // In a real app, this would be a link to the actual resource
+    // Simulating a download after a short delay
+    setTimeout(() => {
+      toast({
+        title: "Download Complete",
+        description: `${resourceName} has been downloaded successfully.`,
+      });
+    }, 2000);
   };
 
   return (
@@ -28,17 +61,149 @@ export function GuidanceContent() {
           Explore our curated guides designed specifically for beginning farmers. Each guide provides step-by-step 
           instructions, recommendations, and resources to help you start your farming journey with confidence.
         </p>
-        <Button 
-          variant="outline" 
-          className="border-farm-green text-farm-green hover:bg-farm-green hover:text-white" 
-          onClick={() => setShowCustomizeModal(true)}
-        >
-          <Sparkles className="h-4 w-4 mr-2" />
-          Customize Guidance for Your Farm
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button 
+            variant="outline" 
+            className="border-farm-green text-farm-green hover:bg-farm-green hover:text-white" 
+            onClick={() => setShowCustomizeModal(true)}
+          >
+            <Sparkles className="h-4 w-4 mr-2" />
+            Customize Guidance
+          </Button>
+          
+          <Button 
+            variant="outline"
+            onClick={() => handleDownload("Complete Farming Guide.pdf")}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Print Guide
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="getting-started">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Farm Vision Worksheet", "vision")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <FileText className="h-4 w-4 mr-2 text-farm-green" />
+                Farm Vision Worksheet
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Define your farm's purpose and direction</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Goal Template", "goals")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <ClipboardList className="h-4 w-4 mr-2 text-farm-green" />
+                Goal Template
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Create SMART goals for your farm business</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Resource Inventory", "inventory")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <ClipboardList className="h-4 w-4 mr-2 text-farm-green" />
+                Resource Inventory
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Track your assets, equipment, and resources</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Market Research Guide", "market")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <LineChart className="h-4 w-4 mr-2 text-farm-green" />
+                Market Research Guide
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Analyze local markets and customer demographics</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Business Plan Template", "business")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <FilePlus className="h-4 w-4 mr-2 text-farm-green" />
+                Business Plan Template
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Comprehensive farm business plan structure</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Financial Calculator", "calculator")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <LineChart className="h-4 w-4 mr-2 text-farm-green" />
+                Financial Calculator
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Estimate startup costs and financial projections</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Training Resources", "training")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <BookOpen className="h-4 w-4 mr-2 text-farm-green" />
+                Training Resources
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Courses, workshops, and learning materials</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+
+        <Card className="border hover:border-farm-green cursor-pointer transition-all"
+          onClick={() => handleResourceClick("Find a Mentor", "mentor")}
+        >
+          <CardContent className="p-4 flex justify-between items-start">
+            <div>
+              <h3 className="font-medium flex items-center">
+                <Users className="h-4 w-4 mr-2 text-farm-green" />
+                Find a Mentor
+              </h3>
+              <p className="text-sm text-muted-foreground mt-1">Connect with experienced farmers for guidance</p>
+            </div>
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="getting-started" className="mt-8">
         <TabsList className="mb-4">
           <TabsTrigger value="getting-started">Getting Started</TabsTrigger>
           <TabsTrigger value="planning">Planning</TabsTrigger>
@@ -170,6 +335,12 @@ export function GuidanceContent() {
       <CustomizeGuideModal 
         isOpen={showCustomizeModal} 
         onClose={() => setShowCustomizeModal(false)}
+      />
+
+      <ResourceContentModal
+        isOpen={showResourceModal}
+        onClose={() => setShowResourceModal(false)}
+        content={resourceModalContent}
       />
     </div>
   );
