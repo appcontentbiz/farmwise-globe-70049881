@@ -28,6 +28,11 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist', // Specify output directory for build
     minify: 'terser', // Use terser for better minification
     sourcemap: false, // Disable sourcemaps in production for smaller build
+    terserOptions: {
+      compress: {
+        drop_console: false, // Keep console logs for debugging
+      },
+    },
   },
   // Ensure environment variables are properly loaded by defining explicit prefixes
   envPrefix: ['VITE_', 'REACT_APP_'],
