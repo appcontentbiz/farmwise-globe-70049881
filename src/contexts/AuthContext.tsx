@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,10 +23,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthError = () => {
+    // This function handles auth errors in redirects
+    const handleAuthRedirects = () => {
       const url = new URL(window.location.href);
+      
+      // Handle error parameters
       const errorParam = url.searchParams.get('error');
       const errorDescription = url.searchParams.get('error_description');
+      
+      // Handle success parameters
+      const emailConfirmed = url.searchParams.get('email_confirmed');
       
       if (errorParam) {
         console.error('Auth redirect error:', errorParam, errorDescription);
@@ -33,11 +40,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         navigate('/login', { replace: true });
         return true;
       }
+      
+      if (emailConfirmed === 'true') {
+        navigate('/login?email_confirmed=true', { replace: true });
+        return true;
+      }
+      
       return false;
     };
 
-    const hasHandledError = handleAuthError();
-    if (hasHandledError) return;
+    const hasHandledRedirect = handleAuthRedirects();
+    if (hasHandledRedirect) return;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
