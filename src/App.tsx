@@ -34,6 +34,7 @@ const App = () => {
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/" element={<Index />} />
+                <Route path="/global" element={<Index />} />
                 <Route path="/climate" element={<Index />} />
                 <Route path="/economic" element={<Index />} />
                 <Route path="/tech" element={<Index />} />

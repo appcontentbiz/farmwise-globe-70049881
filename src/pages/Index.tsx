@@ -13,6 +13,7 @@ import {
   Coins, 
   Droplets, 
   FileText, 
+  Globe,
   Landmark, 
   Leaf, 
   Microscope, 
@@ -31,6 +32,7 @@ import { BeginningFarmingModule } from "@/components/modules/BeginningFarmingMod
 import { FarmingTypesModule } from "@/components/modules/FarmingTypesModule";
 import { HealthInsightsModule } from "@/components/modules/HealthInsightsModule";
 import { AIAssistantModule } from "@/components/modules/AIAssistantModule";
+import { GlobalMonitorModule } from "@/components/modules/GlobalMonitorModule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -40,6 +42,13 @@ const farmModules = [
     description: "Farm overview and key metrics",
     icon: Leaf,
     path: "/",
+    available: true
+  },
+  {
+    name: "Global Monitor",
+    description: "Track worldwide agricultural activities and trends",
+    icon: Globe,
+    path: "/global",
     available: true
   },
   {
@@ -260,6 +269,7 @@ const Index = () => {
   return (
     <FarmSidebar>
       {path === "/" && <Dashboard />}
+      {path === "/global" && <GlobalMonitorModule />}
       {path === "/climate" && <ClimateModule />}
       {path === "/economic" && <EconomicModule />}
       {path === "/tech" && <TechModule />}
