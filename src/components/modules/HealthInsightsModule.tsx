@@ -35,7 +35,7 @@ export function HealthInsightsModule() {
                 <TabsTrigger value="safety">Farm Safety</TabsTrigger>
               </TabsList>
               
-              <div className="mt-2">
+              <div className="relative mt-4 overflow-hidden">
                 <TabsContent value="personal" className="mt-0">
                   <PersonalHealthTracking />
                 </TabsContent>
