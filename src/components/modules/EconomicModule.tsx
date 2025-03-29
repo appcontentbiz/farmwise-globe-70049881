@@ -1,7 +1,69 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Banknote, CreditCard, TrendingUp } from "lucide-react";
+import { 
+  AlertCircle, 
+  Banknote, 
+  CreditCard, 
+  DollarSign,  
+  Download, 
+  RefreshCw, 
+  Share, 
+  TrendingUp, 
+  Truck
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TrackingInterface } from "./TrackingInterface";
+import { Button } from "@/components/ui/button";
+import { 
+  BarChart, 
+  Bar, 
+  LineChart, 
+  Line, 
+  PieChart, 
+  Pie, 
+  Cell, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from "recharts";
+
+// Define missing icons
+const Coins = Banknote;
+const LineChartIcon = TrendingUp;
+const BarChartIcon = TrendingUp;
+
+// Define sample data for charts
+const marketPriceData = [
+  { month: 'Jan', corn: 4.2, wheat: 5.1, soybeans: 12.5 },
+  { month: 'Feb', corn: 4.3, wheat: 5.3, soybeans: 12.8 },
+  { month: 'Mar', corn: 4.5, wheat: 5.4, soybeans: 13.2 },
+  { month: 'Apr', corn: 4.6, wheat: 5.6, soybeans: 13.5 },
+  { month: 'May', corn: 4.8, wheat: 5.8, soybeans: 14.0 },
+  { month: 'Jun', corn: 5.0, wheat: 6.0, soybeans: 14.3 },
+  { month: 'Jul', corn: 5.2, wheat: 6.1, soybeans: 14.6 },
+];
+
+const profitData = [
+  { month: 'Jan', revenue: 28000, expenses: 22000, profit: 6000 },
+  { month: 'Feb', revenue: 32000, expenses: 24000, profit: 8000 },
+  { month: 'Mar', revenue: 35000, expenses: 25000, profit: 10000 },
+  { month: 'Apr', revenue: 38000, expenses: 26000, profit: 12000 },
+  { month: 'May', revenue: 42000, expenses: 28000, profit: 14000 },
+  { month: 'Jun', revenue: 45000, expenses: 29000, profit: 16000 },
+];
+
+const expenseData = [
+  { name: 'Seeds', value: 25 },
+  { name: 'Fertilizer', value: 30 },
+  { name: 'Labor', value: 20 },
+  { name: 'Equipment', value: 15 },
+  { name: 'Other', value: 10 },
+];
+
+const COLORS = ['#4CAF50', '#FBC02D', '#42A5F5', '#A1887F', '#F06292'];
 
 export function EconomicModule() {
   return (
