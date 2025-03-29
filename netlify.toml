@@ -7,6 +7,12 @@
   publish = "dist"
   # Build command
   command = "npm run build"
+  # Base directory (where your package.json is located)
+  base = "/"
+
+# Branch settings (default to 'main' if not specified in UI)
+[context.production]
+  branch = "main"
 
 # Set environment variables needed for build
 [build.environment]
