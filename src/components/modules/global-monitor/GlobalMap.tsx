@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MapPin, AlertCircle, CloudRain, FileText, Leaf } from 'lucide-react';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -6,8 +5,23 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { GlobalEventCard } from './GlobalEventCard';
 
-// Map event data
-const mapEvents = [
+// Define the event type to match what GlobalEventCardProps expects
+type EventType = "weather" | "policy" | "innovation" | "disease" | "market";
+
+// Define the map event interface
+interface MapEvent {
+  id: number;
+  title: string;
+  description: string;
+  type: EventType;
+  location: string;
+  coordinates: { x: number; y: number };
+  date: string;
+  severity: "high" | "medium" | "low";
+}
+
+// Map event data with properly typed EventType
+const mapEvents: MapEvent[] = [
   {
     id: 1,
     title: 'Severe Drought Conditions',
@@ -81,7 +95,7 @@ const mapEvents = [
 ];
 
 // Function to get icon based on event type
-const getEventIcon = (type: string, className: string = 'h-4 w-4') => {
+const getEventIcon = (type: EventType, className: string = 'h-4 w-4') => {
   switch (type) {
     case 'weather':
       return <CloudRain className={className + ' text-blue-500'} />;
@@ -116,7 +130,7 @@ export function GlobalMap() {
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [selectedEvent, setSelectedEvent] = useState<number | null>(null);
-  const [mapFilter, setMapFilter] = useState<string | null>(null);
+  const [mapFilter, setMapFilter] = useState<EventType | null>(null);
 
   // Handle zoom functionality
   const handleZoomIn = () => {
