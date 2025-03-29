@@ -28,7 +28,7 @@ export function HealthInsightsModule() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="personal">
-              <TabsList className="mb-4">
+              <TabsList className="mb-4 w-full justify-start overflow-x-auto">
                 <TabsTrigger value="personal">Personal Health Tracking</TabsTrigger>
                 <TabsTrigger value="physical">Physical Health</TabsTrigger>
                 <TabsTrigger value="mental">Mental Wellbeing</TabsTrigger>
