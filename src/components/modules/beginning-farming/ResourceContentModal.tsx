@@ -12,6 +12,7 @@ import { FarmResource, downloadResource } from "./utils/guidanceResources";
 import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FarmFinancialCalculator } from "./FarmFinancialCalculator";
 
 interface ResourceContentModalProps {
   resource: FarmResource | null;
@@ -37,6 +38,9 @@ export function ResourceContentModal({
       window.open(resource.externalUrl, '_blank');
     }
   };
+
+  // Check if this is the financial calculator resource
+  const isFinancialCalculator = resource.id === "financial-calculator";
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -47,7 +51,7 @@ export function ResourceContentModal({
         </DialogHeader>
         
         <div className="flex gap-2 my-2">
-          {resource.content && (
+          {resource.content && !isFinancialCalculator && (
             <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="h-4 w-4 mr-2" />
               Download
@@ -63,13 +67,13 @@ export function ResourceContentModal({
         </div>
         
         <ScrollArea className="flex-1 p-4 border rounded-md">
-          {resource.content && (
+          {isFinancialCalculator ? (
+            <FarmFinancialCalculator />
+          ) : resource.content ? (
             <ReactMarkdown className="prose prose-sm max-w-none dark:prose-invert">
               {resource.content}
             </ReactMarkdown>
-          )}
-          
-          {!resource.content && resource.externalUrl && (
+          ) : resource.externalUrl ? (
             <div className="text-center p-6">
               <p className="mb-4">This resource is available at an external link.</p>
               <Button onClick={handleExternalLink}>
@@ -77,9 +81,7 @@ export function ResourceContentModal({
                 Visit Resource
               </Button>
             </div>
-          )}
-          
-          {!resource.content && !resource.externalUrl && (
+          ) : (
             <div className="text-center p-6">
               <p>Content is being prepared. Please check back later.</p>
             </div>
