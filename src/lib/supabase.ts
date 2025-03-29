@@ -2,12 +2,12 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Get environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-// Check if environment variables are defined
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase connection not established.');
+// Check if environment variables are defined and valid
+if (!supabaseUrl || typeof supabaseUrl !== 'string' || !supabaseUrl.startsWith('http')) {
+  console.error('Invalid Supabase connection details.');
   console.log('================== IMPORTANT INSTRUCTIONS ==================');
   console.log('To connect your project to Supabase:');
   console.log('1. Click on the green "Supabase" button at the top right of your Lovable interface');
@@ -16,13 +16,24 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.log('==========================================================');
 }
 
-// Create Supabase client with fallback values that will result in a more user-friendly error
+// Default fallback values that are valid URLs for the URL constructor
+const FALLBACK_URL = 'https://example.supabase.co';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSJ9.LzKGEffr7J2qvk5wgSFO3jnQq4UvHQ06S3-9FMRXYes';
+
+// Create Supabase client with proper URL validation
 export const supabase = createClient(
-  supabaseUrl || 'https://example.supabase.co',
-  supabaseAnonKey || 'public-anon-key-placeholder'
+  (supabaseUrl && typeof supabaseUrl === 'string' && supabaseUrl.startsWith('http')) 
+    ? supabaseUrl 
+    : FALLBACK_URL,
+  supabaseAnonKey || FALLBACK_KEY
 );
 
-// We need to modify the auth context to handle connection errors gracefully
+// Check if Supabase is properly connected
 export const isSupabaseConnected = () => {
-  return !!supabaseUrl && !!supabaseAnonKey;
+  return (
+    supabaseUrl && 
+    typeof supabaseUrl === 'string' && 
+    supabaseUrl.startsWith('http') && 
+    supabaseAnonKey
+  );
 };

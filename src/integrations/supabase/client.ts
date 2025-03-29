@@ -6,9 +6,9 @@ import { toast } from 'sonner';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
 
-// Check if environment variables are defined
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase connection not established. Using fallback values.');
+// Check if environment variables are defined and valid
+if (!supabaseUrl || typeof supabaseUrl !== 'string' || !supabaseUrl.startsWith('http')) {
+  console.warn('Invalid Supabase URL. Using fallback values.');
   console.log('================== IMPORTANT INSTRUCTIONS ==================');
   console.log('To connect your project to Supabase:');
   console.log('1. Click on the green "Supabase" button at the top right of your Lovable interface');
@@ -17,15 +17,21 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.log('==========================================================');
 }
 
-// Create Supabase client with fallback values that will result in a more user-friendly error
+// Default fallback values that are valid URLs for the URL constructor
+const FALLBACK_URL = 'https://example.supabase.co';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSJ9.LzKGEffr7J2qvk5wgSFO3jnQq4UvHQ06S3-9FMRXYes';
+
+// Create Supabase client with proper URL validation
 export const supabase = createClient(
-  supabaseUrl || 'https://example.supabase.co',
-  supabaseAnonKey || 'public-anon-key-placeholder'
+  (supabaseUrl && typeof supabaseUrl === 'string' && supabaseUrl.startsWith('http')) 
+    ? supabaseUrl 
+    : FALLBACK_URL,
+  supabaseAnonKey || FALLBACK_KEY
 );
 
 // Utility function to check if Supabase is connected properly
 export const isSupabaseConnected = async () => {
-  if (!supabaseUrl || !supabaseAnonKey) {
+  if (!supabaseUrl || !supabaseUrl.startsWith('http') || !supabaseAnonKey) {
     return false;
   }
   
@@ -46,6 +52,12 @@ export const isSupabaseConnected = async () => {
 // Initialize Supabase schema 
 export const initializeSupabaseSchema = async () => {
   try {
+    // Only try to initialize if Supabase is properly connected
+    if (!await isSupabaseConnected()) {
+      console.log('Supabase not properly connected. Schema initialization skipped.');
+      return;
+    }
+    
     // Check if the farms table exists
     const { error: checkError } = await supabase
       .from('farms')
