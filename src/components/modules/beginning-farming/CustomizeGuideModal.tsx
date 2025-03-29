@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Download, Save } from "lucide-react";
 
-interface CustomizeGuideModalProps {
+export interface CustomizeGuideModalProps {
   isOpen: boolean;
   onClose: () => void;
 }

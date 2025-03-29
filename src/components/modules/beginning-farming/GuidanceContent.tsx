@@ -48,7 +48,7 @@ export function GuidanceContent() {
         
         <TabsContent value="getting-started">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {guidanceResources.filter(g => g.category === "getting-started").map((guide) => (
+            {Object.values(guidanceResources).filter(g => g.category === "getting-started").map((guide) => (
               <Card 
                 key={guide.id} 
                 className="border hover:border-farm-green cursor-pointer transition-all"
@@ -73,7 +73,7 @@ export function GuidanceContent() {
         
         <TabsContent value="planning">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {guidanceResources.filter(g => g.category === "planning").map((guide) => (
+            {Object.values(guidanceResources).filter(g => g.category === "planning").map((guide) => (
               <Card 
                 key={guide.id} 
                 className="border hover:border-farm-green cursor-pointer transition-all"
@@ -98,7 +98,7 @@ export function GuidanceContent() {
         
         <TabsContent value="operations">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {guidanceResources.filter(g => g.category === "operations").map((guide) => (
+            {Object.values(guidanceResources).filter(g => g.category === "operations").map((guide) => (
               <Card 
                 key={guide.id} 
                 className="border hover:border-farm-green cursor-pointer transition-all"
@@ -123,7 +123,7 @@ export function GuidanceContent() {
         
         <TabsContent value="business">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {guidanceResources.filter(g => g.category === "business").map((guide) => (
+            {Object.values(guidanceResources).filter(g => g.category === "business").map((guide) => (
               <Card 
                 key={guide.id} 
                 className="border hover:border-farm-green cursor-pointer transition-all"
@@ -151,7 +151,7 @@ export function GuidanceContent() {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>
-              {selectedGuide && guidanceResources.find(g => g.id === selectedGuide)?.title}
+              {selectedGuide && guidanceResources[selectedGuide]?.title}
             </DialogTitle>
           </DialogHeader>
           
@@ -159,7 +159,7 @@ export function GuidanceContent() {
             <div className="p-4">
               {selectedGuide && (
                 <div className="prose prose-farm max-w-none">
-                  {guidanceResources.find(g => g.id === selectedGuide)?.content}
+                  {guidanceResources[selectedGuide]?.content}
                 </div>
               )}
             </div>
@@ -168,8 +168,8 @@ export function GuidanceContent() {
       </Dialog>
       
       <CustomizeGuideModal 
-        open={showCustomizeModal} 
-        onOpenChange={setShowCustomizeModal}
+        isOpen={showCustomizeModal} 
+        onClose={() => setShowCustomizeModal(false)}
       />
     </div>
   );

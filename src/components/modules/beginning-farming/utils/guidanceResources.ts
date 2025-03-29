@@ -1,4 +1,3 @@
-
 // Resource types and interfaces
 export interface FarmResource {
   id: string;
@@ -8,6 +7,8 @@ export interface FarmResource {
   fileUrl?: string;
   externalUrl?: string;
   type: 'worksheet' | 'template' | 'guide' | 'calculator' | 'resource' | 'mentorship';
+  category?: 'getting-started' | 'planning' | 'operations' | 'business';
+  timeToComplete?: string;
 }
 
 // Guidance resources
@@ -69,7 +70,9 @@ Schedule dates to review this vision:
 - 3-month check-in:
 - 6-month check-in:
 - Annual review:`,
-    type: 'worksheet'
+    type: 'worksheet',
+    category: 'getting-started',
+    timeToComplete: '30-45 min'
   },
   goalTemplate: {
     id: 'goal-template',
@@ -166,7 +169,9 @@ Date | Progress Update | Next Steps
 
 **Follow-up goals:**
 [Your answer]`,
-    type: 'template'
+    type: 'template',
+    category: 'planning',
+    timeToComplete: '15-20 min'
   },
   resourceInventory: {
     id: 'resource-inventory',
