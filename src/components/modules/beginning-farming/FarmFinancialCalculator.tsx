@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
-import { Calculator, DollarSign, PercentIcon, ArrowRight, Download, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Calculator, DollarSign, PercentIcon, Download, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export function FarmFinancialCalculator() {
   const [profitabilityResults, setProfitabilityResults] = useState<FinancialData | null>(null);
   const [notes, setNotes] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
+  const [taxRate, setTaxRate] = useState(15);
 
   const scrollUp = () => {
     if (contentRef.current) {
@@ -849,16 +850,17 @@ export function FarmFinancialCalculator() {
                         name="taxRate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Estimated Tax Rate (%)</FormLabel>
+                            <FormLabel>Estimated Tax Rate (%): {taxRate}%</FormLabel>
                             <FormControl>
-                              <div className="relative">
-                                <PercentIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input
-                                  type="number"
-                                  className="pl-9"
-                                  placeholder="15"
-                                  {...field}
-                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              <div className="pt-2">
+                                <Slider 
+                                  defaultValue={[field.value]} 
+                                  max={50} 
+                                  step={1}
+                                  onValueChange={(value) => {
+                                    field.onChange(value[0]);
+                                    setTaxRate(value[0]);
+                                  }}
                                 />
                               </div>
                             </FormControl>
