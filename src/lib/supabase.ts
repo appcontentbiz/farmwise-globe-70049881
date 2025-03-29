@@ -7,7 +7,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.RE
 
 // Check if environment variables are defined
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables.');
+  console.error('Missing Supabase environment variables. Using fallback values.');
 }
 
 // Create Supabase client with proper fallbacks
@@ -17,6 +17,17 @@ export const supabase = createClient(
 );
 
 // Check if Supabase is properly connected
-export const isSupabaseConnected = () => {
-  return !!supabaseUrl && !!supabaseAnonKey;
+export const isSupabaseConnected = async () => {
+  try {
+    // Simple ping to check connection
+    const { data, error } = await supabase.from('_dummy_query').select('*').limit(1);
+    if (error && !error.message.includes('relation "_dummy_query" does not exist')) {
+      console.error('Supabase connection test failed:', error);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Error testing Supabase connection:', err);
+    return false;
+  }
 };

@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => ({
       transformMixedEsModules: true,
     },
     outDir: 'dist', // Specify output directory for build
+    minify: 'terser', // Use terser for better minification
+    sourcemap: false, // Disable sourcemaps in production for smaller build
   },
   // Ensure environment variables are properly loaded by defining explicit prefixes
   envPrefix: ['VITE_', 'REACT_APP_'],

@@ -5,8 +5,8 @@
 [build]
   # Directory to publish (output of the build)
   publish = "dist"
-  # Build command 
-  command = "npm run build"
+  # Build command with explicit dependency installation 
+  command = "npm ci && npm run build"
   # Base directory (where your package.json is located)
   base = "/"
 
@@ -26,6 +26,10 @@
   VITE_SUPABASE_URL = "https://phdxahmpqvobbrqqjbut.supabase.co"
   VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZHhhaG1wcXZvYmJycXFqYnV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MzAyODgsImV4cCI6MjA1MjMwNjI4OH0.lVWfcAaigt8z5yskV8XLH_EhYJJiNQ9mz_5PTQKMBng"
 
+# Configure post-processing of build assets 
+[build.processing]
+  skip_processing = false
+
 # Handle SPA routing
 [[redirects]]
   from = "/*"
@@ -38,4 +42,4 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Force a new deploy by adding this comment - Build trigger: 11
+# Force a new deploy by adding this comment - Build trigger: 12
