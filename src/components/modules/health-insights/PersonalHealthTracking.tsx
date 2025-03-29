@@ -177,7 +177,7 @@ export function PersonalHealthTracking() {
       );
     }
     
-    return day.getDate();
+    return <span>{day.getDate()}</span>;
   };
 
   return (
