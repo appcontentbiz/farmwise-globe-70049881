@@ -19,4 +19,4 @@ createRoot(rootElement).render(
 reportWebVitals();
 
 // Log that the app has been mounted successfully
-console.log('FarmWise application mounted successfully - Build version 6');
+console.log('FarmWise application mounted successfully - Build version 7');
