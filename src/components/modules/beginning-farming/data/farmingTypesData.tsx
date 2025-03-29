@@ -1,17 +1,17 @@
 
 import { 
-  Apple, 
-  Carrot, 
-  CloudRain,  
   Leaf, 
   Sprout, 
+  Flower, 
+  Droplets, 
   Sun, 
-  Tractor, 
-  Wheat 
+  Fish, 
+  Warehouse,
+  Building,
+  Bug
 } from "lucide-react";
-import React from "react";
 
-// Ensure this interface matches the one in FarmingTypes.tsx
+// Interface for farming type data
 export interface FarmingTypeData {
   id: string;
   title: string;
@@ -29,463 +29,437 @@ export interface FarmingTypeData {
   }[];
 }
 
+// Define the farming types data
 export const farmingTypesData: FarmingTypeData[] = [
   {
     id: "market-gardening",
     title: "Market Gardening",
-    icon: <Carrot className="h-6 w-6 text-farm-green" />,
-    description: "Small-scale intensive cultivation of vegetables, fruits, and flowers for direct marketing to customers.",
+    icon: <Leaf className="h-5 w-5 text-farm-green" />,
+    description: "Small-scale intensive cultivation of vegetables, fruits, and flowers for direct sale to consumers, restaurants, or local markets.",
     expertise: 2,
-    initialCost: 2,
+    initialCost: 3,
     benefits: [
-      "Low startup costs compared to other farming types",
+      "Low startup costs compared to larger-scale farming",
       "Can be profitable on small acreage (1-2 acres)",
-      "Direct marketing creates better profit margins",
-      "Diverse crops reduce risk of total crop failure",
-      "Can start part-time while maintaining other employment"
+      "Direct marketing creates higher profit margins",
+      "Can be managed by an individual or small family",
+      "Flexible growing practices and crop selection"
     ],
     challenges: [
-      "Labor intensive with significant physical work",
-      "Requires consistent production planning",
-      "Marketing and customer relations take significant time",
-      "Weather variability affects production",
-      "Seasonal income fluctuations"
+      "Labor intensive with significant time commitment",
+      "Requires season extension for year-round income",
+      "Multiple marketing channels need to be developed",
+      "Competitive in popular markets",
+      "Weather and pest risks"
     ],
     startingSteps: [
-      "Start with ¼ to ½ acre and expand as you gain experience",
-      "Focus on high-value, quick-growing crops initially",
-      "Establish irrigation, basic storage, and season extension",
-      "Research farmers markets, CSAs, and restaurant sales",
-      "Create detailed growing schedule for succession planting"
+      "Assess your land for growing conditions and size requirements",
+      "Select 3-5 high-value crops to focus on initially",
+      "Invest in essential tools: broadfork, wheel hoe, precision seeder",
+      "Develop a simple crop plan and rotation schedule",
+      "Research local markets and establish selling points",
+      "Set up basic irrigation systems",
+      "Plan for post-harvest handling and storage"
     ],
     resources: [
       {
-        title: "The Market Gardener by Jean-Martin Fortier",
-        url: "https://www.themarketgardener.com/book",
-        description: "Essential book on small-scale organic vegetable production"
+        title: "The Market Gardener's Masterclass",
+        url: "https://www.themarketgardener.com/masterclass",
+        description: "Comprehensive online course by Jean-Martin Fortier"
       },
       {
         title: "ATTRA's Market Gardening Guide",
         url: "https://attra.ncat.org/product/market-gardening-a-start-up-guide/",
-        description: "Free online resource with production and marketing guidance"
+        description: "Free downloadable guide for beginning market gardeners"
       },
       {
-        title: "Curtis Stone YouTube Channel",
-        url: "https://www.youtube.com/c/UrbanFarmerCurtisStone",
-        description: "Practical videos on urban market gardening"
+        title: "Extension Office Services",
+        url: "https://www.nifa.usda.gov/about-nifa/how-we-work/extension",
+        description: "Find your local agricultural extension for soil testing and advice"
       }
     ]
   },
   {
-    id: "backyard-homesteading",
-    title: "Backyard Homesteading",
-    icon: <Sprout className="h-6 w-6 text-farm-green" />,
-    description: "Self-sufficient living combining vegetable gardening, small livestock, and food preservation on residential property.",
-    expertise: 2,
+    id: "microgreens-production",
+    title: "Microgreens Production",
+    icon: <Sprout className="h-5 w-5 text-farm-green" />,
+    description: "Growing vegetable, herb or grain seedlings that are harvested when they develop their first true leaves. Typically sold to restaurants and at farmers' markets.",
+    expertise: 1,
     initialCost: 2,
     benefits: [
-      "Can be started on typical residential lot",
-      "Reduces household food expenses",
-      "Provides food security and self-reliance",
-      "Low financial risk as it's primarily for home use",
-      "Educational opportunity for families"
-    ],
-    challenges: [
-      "Local zoning may restrict livestock",
-      "Limited space requires careful planning",
-      "Daily animal care requirements",
-      "Learning multiple skills simultaneously",
-      "May not generate significant income"
-    ],
-    startingSteps: [
-      "Research zoning laws regarding livestock and structures",
-      "Start with a vegetable garden of foods your family eats",
-      "Add easy livestock like chickens or rabbits first",
-      "Learn food preservation techniques (canning, freezing, dehydrating)",
-      "Connect with local homesteaders for advice and community"
-    ],
-    resources: [
-      {
-        title: "The Backyard Homestead by Carleen Madigan",
-        url: "https://www.amazon.com/Backyard-Homestead-Produce-food-quarter/dp/1603421386",
-        description: "Comprehensive guide to producing food on a quarter acre"
-      },
-      {
-        title: "Mother Earth News",
-        url: "https://www.motherearthnews.com/",
-        description: "Magazine with extensive homesteading articles and advice"
-      },
-      {
-        title: "Homesteading Forum",
-        url: "https://www.homesteadingtoday.com/",
-        description: "Active online community for homesteading support"
-      }
-    ]
-  },
-  {
-    id: "u-pick-operation",
-    title: "U-Pick Operation",
-    icon: <Apple className="h-6 w-6 text-red-500" />,
-    description: "Fruit or vegetable farm where customers harvest their own produce, creating an agritourism experience.",
-    expertise: 3,
-    initialCost: 3,
-    benefits: [
-      "Reduced labor costs as customers harvest crops",
-      "Creates direct connection with customers",
-      "Higher profit margins than wholesale",
-      "Potential for additional revenue through value-added products",
-      "Seasonal operation with concentrated work periods"
-    ],
-    challenges: [
-      "Liability insurance requirements",
-      "Need for parking and facilities for visitors",
-      "Weather-dependent customer traffic",
-      "Marketing and customer experience management",
-      "Crop timing and availability management"
-    ],
-    startingSteps: [
-      "Choose crops that harvest well by inexperienced pickers",
-      "Develop infrastructure for parking, restrooms, and checkout",
-      "Establish clear policies for pricing and harvesting guidelines",
-      "Use social media to announce harvest availability",
-      "Consider complementary products for additional sales"
-    ],
-    resources: [
-      {
-        title: "North American Farm Direct Marketing Association",
-        url: "https://nafdma.com/",
-        description: "Resources for agritourism and U-Pick operations"
-      },
-      {
-        title: "Starting a U-Pick Enterprise Guide",
-        url: "https://extension.psu.edu/starting-a-pick-your-own-operation",
-        description: "University extension guide to U-Pick businesses"
-      },
-      {
-        title: "Farm liability insurance providers",
-        description: "Essential for protecting your operation"
-      }
-    ]
-  },
-  {
-    id: "microgreens",
-    title: "Microgreens Production",
-    icon: <Leaf className="h-6 w-6 text-green-600" />,
-    description: "Growing nutrient-dense seedlings harvested at an early stage for high-value culinary uses.",
-    expertise: 2,
-    initialCost: 1,
-    benefits: [
-      "Can be grown indoors year-round in small spaces",
-      "Quick growing cycle (7-14 days) enables fast cash flow",
+      "Can be started with minimal space (even indoors)",
+      "Quick crop cycles (7-21 days) for rapid income",
       "High-value crop with strong profit margins",
-      "No special equipment needed to start small",
-      "Minimal pest and disease issues"
+      "Year-round production possible",
+      "Minimal equipment needed to start"
     ],
     challenges: [
       "Requires consistent daily attention",
-      "Limited shelf life requires timely delivery",
-      "Need to develop consistent restaurant clientele",
-      "Scaling up requires efficient systems",
-      "Market education sometimes necessary"
+      "Market development needed for steady sales",
+      "Perishable product with short shelf life",
+      "Quality control is critical",
+      "Scaling can require significant investment"
     ],
     startingSteps: [
-      "Create clean, temperature-controlled space with good lighting",
-      "Begin with popular varieties like sunflower, pea, radish, and broccoli",
-      "Develop systems for seeding, watering, and harvesting",
-      "Approach high-end restaurants and farmers markets",
-      "Increase production as you secure reliable customers"
+      "Set up a small growing area with good lighting",
+      "Invest in quality seed varieties suited for microgreens",
+      "Acquire growing trays, organic potting soil or growing mats",
+      "Establish a sanitation protocol for food safety",
+      "Test growth cycles of different microgreen varieties",
+      "Develop packaging that maintains freshness",
+      "Contact potential customers (chefs, market managers)"
     ],
     resources: [
       {
         title: "Microgreens: A Guide to Growing Nutrient-Packed Greens",
-        url: "https://www.amazon.com/Microgreens-Growing-Nutrient-Packed-Greens-Countertop/dp/1423640217",
-        description: "Comprehensive book on production techniques"
+        url: "https://extension.umn.edu/growing-vegetables/growing-microgreens",
+        description: "University of Minnesota Extension guide to microgreens production"
       },
       {
-        title: "Johnny's Selected Seeds",
-        url: "https://www.johnnyseeds.com/growers-library/vegetables/microgreens-guide.html",
-        description: "Quality microgreen seed supplier with educational resources"
+        title: "Profitable Microgreens Farm",
+        url: "https://www.profitablemicrogreens.com",
+        description: "Training and resources for commercial microgreens growers"
       },
       {
-        title: "On The Grow YouTube Channel",
-        url: "https://www.youtube.com/c/onthegrow",
-        description: "Visual learning resources for setup and techniques"
+        title: "Johnny's Selected Seeds - Microgreens",
+        url: "https://www.johnnyseeds.com/growers-library/vegetables/microgreens-key-growing-information.html",
+        description: "Growing information and specialized seeds for microgreens"
       }
     ]
   },
   {
-    id: "pastured-poultry",
-    title: "Pastured Poultry",
-    icon: <Wheat className="h-6 w-6 text-amber-600" />,
-    description: "Raising chickens, turkeys or other poultry on pasture using movable housing for eggs or meat production.",
+    id: "cut-flower-farm",
+    title: "Cut Flower Farm",
+    icon: <Flower className="h-5 w-5 text-farm-green" />,
+    description: "Growing and selling fresh-cut flowers to florists, through CSA subscriptions, at farmers' markets, or for events and weddings.",
     expertise: 2,
-    initialCost: 2,
+    initialCost: 3,
     benefits: [
-      "Relatively quick return on investment",
-      "Can start small and scale up gradually",
-      "Strong demand for pasture-raised poultry products",
-      "Improves soil fertility as birds fertilize pasture",
-      "Multiple revenue streams possible (meat, eggs)"
+      "High-value crop with strong aesthetic appeal",
+      "Diverse market channels (CSA, weddings, florists)",
+      "Many varieties can be grown on small acreage",
+      "Potential for value-added products (wreaths, dried flowers)",
+      "Brings beauty and joy to your farm work"
     ],
     challenges: [
-      "Daily management required for moving pens",
-      "Predator protection essential",
-      "Processing regulations can be complex",
-      "Seasonal production in cold climates",
-      "Feed costs can affect profitability"
+      "Steep learning curve for harvest timing and conditioning",
+      "Weather-dependent and seasonal in most climates",
+      "Requires careful post-harvest handling",
+      "Competition from imported flowers",
+      "Labor intensive during peak season"
     ],
     startingSteps: [
-      "Understand local regulations regarding poultry production and processing",
-      "Create or purchase movable chicken tractors or day-range systems",
-      "Begin with 50-100 birds to learn management techniques",
-      "Build customer base through farmers markets or direct marketing",
-      "Explore options like bone broth or pre-made meals for additional revenue"
+      "Research flower varieties suited to your climate",
+      "Start with 10-15 reliable, productive varieties",
+      "Prepare growing beds with good weed suppression",
+      "Set up irrigation systems (drip recommended)",
+      "Create a harvest and post-harvest station",
+      "Acquire appropriate buckets and cooler space",
+      "Begin marketing 3-4 months before first harvest"
     ],
     resources: [
       {
-        title: "Pastured Poultry Profit$ by Joel Salatin",
-        url: "https://www.amazon.com/Pastured-Poultry-Profit-Salatin-Polyface/dp/0963810936",
-        description: "Essential guide to pastured poultry systems"
-      },
-      {
-        title: "American Pastured Poultry Producers Association",
-        url: "https://apppa.org/",
-        description: "Industry organization with extensive resources"
-      },
-      {
-        title: "Poultrykeeper.com",
-        url: "https://poultrykeeper.com/",
-        description: "Practical information on chicken keeping and health"
-      }
-    ]
-  },
-  {
-    id: "mushroom-farming",
-    title: "Mushroom Farming",
-    icon: <CloudRain className="h-6 w-6 text-blue-500" />,
-    description: "Indoor or outdoor cultivation of gourmet and medicinal mushrooms for local markets.",
-    expertise: 3,
-    initialCost: 2,
-    benefits: [
-      "Can be grown indoors year-round in small spaces",
-      "Uses agricultural waste products as growing medium",
-      "High value crop with good profit potential",
-      "Multiple markets available (restaurants, farmers markets, medicinal)",
-      "Can be combined with forest farming for outdoor varieties"
-    ],
-    challenges: [
-      "Requires careful attention to sterile procedures",
-      "Temperature and humidity control critical",
-      "Learning curve for cultivation techniques",
-      "Limited shelf life requires good timing",
-      "Market education sometimes necessary"
-    ],
-    startingSteps: [
-      "Start with easier varieties like oyster mushrooms",
-      "Create clean space with temperature and humidity control",
-      "Master the basics of sterile cultivation to prevent contamination",
-      "Begin with pre-made spawn before attempting full cultivation",
-      "Connect with chefs, farmers markets, and health food stores"
-    ],
-    resources: [
-      {
-        title: "Growing Gourmet and Medicinal Mushrooms by Paul Stamets",
-        url: "https://www.amazon.com/Growing-Gourmet-Medicinal-Mushrooms-Stamets/dp/1580081754",
-        description: "Comprehensive guide to mushroom cultivation"
-      },
-      {
-        title: "North American Mycological Association",
-        url: "https://namyco.org/",
-        description: "Educational resources and community connections"
-      },
-      {
-        title: "Field & Forest Products",
-        url: "https://www.fieldforest.net/",
-        description: "Quality supplier of mushroom spawn and equipment"
-      }
-    ]
-  },
-  {
-    id: "herb-farming",
-    title: "Herb Farming",
-    icon: <Leaf className="h-6 w-6 text-green-700" />,
-    description: "Growing culinary, medicinal, or aromatic herbs for fresh and value-added markets.",
-    expertise: 2,
-    initialCost: 2,
-    benefits: [
-      "High value crops can be grown in small spaces",
-      "Multiple market channels (fresh, dried, value-added)",
-      "Many perennial options require less annual planting",
-      "Extended season possible with simple protection",
-      "Potential for agritourism and education"
-    ],
-    challenges: [
-      "Labor intensive for harvest and processing",
-      "Specialized knowledge for medicinal herbs",
-      "Post-harvest handling critical for quality",
-      "Certifications important for medicinal markets",
-      "Competition from imported products"
-    ],
-    startingSteps: [
-      "Identify local demand for specific herbs and products",
-      "Begin with familiar herbs that have established markets",
-      "Create space for drying, processing, and packaging",
-      "Consider teas, salves, or seasonings for additional revenue",
-      "Connect with chefs, herbalists, and health food stores"
-    ],
-    resources: [
-      {
-        title: "The Organic Medicinal Herb Farmer",
-        url: "https://www.amazon.com/Organic-Medicinal-Herb-Farmer-Successful/dp/1603585737",
-        description: "Practical guide to commercial herb production"
-      },
-      {
-        title: "American Herb Association",
-        url: "https://www.ahaherb.com/",
-        description: "Industry information and networking opportunities"
-      },
-      {
-        title: "Richters Herbs",
-        url: "https://www.richters.com/",
-        description: "Quality supplier with extensive cultivar selection"
-      }
-    ]
-  },
-  {
-    id: "cut-flowers",
-    title: "Cut Flower Farming",
-    icon: <Sun className="h-6 w-6 text-yellow-500" />,
-    description: "Growing annual and perennial flowers for fresh bouquets, florists, and event markets.",
-    expertise: 2,
-    initialCost: 2,
-    benefits: [
-      "High-value crop with strong profit potential",
-      "Can be productive on small acreage (1 acre or less)",
-      "Different market channels available (direct, wholesale, weddings)",
-      "Creative and aesthetically rewarding",
-      "Growing local flower movement provides market support"
-    ],
-    challenges: [
-      "Highly seasonal in most climates",
-      "Labor intensive for planting, harvesting, and arranging",
-      "Post-harvest handling critical for quality",
-      "Requires succession planting for continuous bloom",
-      "Competition from imported flowers"
-    ],
-    startingSteps: [
-      "Identify flowers with good vase life and market demand",
-      "Begin with 1/4 acre and focus on season-long production",
-      "Create efficient harvest, processing, and cooling systems",
-      "Connect with florists, farmers markets, and event planners",
-      "Explore wedding and event work for additional revenue"
-    ],
-    resources: [
-      {
-        title: "The Flower Farmer by Lynn Byczynski",
-        url: "https://www.amazon.com/Flower-Farmer-Organic-Business-Gardeners/dp/1933392657",
-        description: "Classic guide to small-scale cut flower production"
+        title: "The Flower Farmer",
+        url: "https://www.flowerfarmer.com",
+        description: "Lynn Byczynski's essential guide to growing and selling cut flowers"
       },
       {
         title: "Association of Specialty Cut Flower Growers",
-        url: "https://www.ascfg.org/",
-        description: "Industry organization with extensive resources"
+        url: "https://www.ascfg.org",
+        description: "Membership organization with extensive resources and community"
       },
       {
-        title: "Floret Farm's resources",
-        url: "https://www.floretflowers.com/resources/",
-        description: "Educational materials from leading flower farmers"
+        title: "Floret Flower Farm Workshops",
+        url: "https://www.floretflowers.com/online-workshops",
+        description: "Online courses from a leading cut flower farm"
       }
     ]
   },
   {
-    id: "grass-fed-beef",
-    title: "Small-Scale Grass-Fed Beef",
-    icon: <Tractor className="h-6 w-6 text-farm-wheat-dark" />,
-    description: "Raising cattle on pasture without grain finishing for direct marketing of premium beef.",
-    expertise: 3,
+    id: "small-scale-hydroponics",
+    title: "Small-Scale Hydroponics",
+    icon: <Droplets className="h-5 w-5 text-farm-green" />,
+    description: "Growing plants without soil using nutrient-rich water solutions, typically in a greenhouse or indoor environment.",
+    expertise: 4,
     initialCost: 4,
     benefits: [
-      "Premium pricing for grass-fed beef",
-      "Lower daily labor than many other farm enterprises",
-      "Improves soil through proper grazing management",
-      "Converts marginal land into productive acreage",
-      "Can be managed part-time with proper setup"
+      "Higher yields in smaller spaces compared to soil",
+      "Reduced water usage (up to 90% less than conventional)",
+      "Year-round production capability",
+      "Faster growth rates and more crop cycles",
+      "Fewer pest and disease issues than soil cultivation"
     ],
     challenges: [
-      "Significant land requirement (minimum 10+ acres)",
-      "Higher initial investment for livestock purchase",
-      "Longer time to first revenue (1-2 years)",
-      "Processing logistics and regulations",
-      "Marketing larger quantity of product at once"
+      "High initial setup costs for systems",
+      "Technical knowledge required for nutrients and pH",
+      "Dependent on reliable electricity and water",
+      "System failures can cause rapid crop loss",
+      "Ongoing costs for nutrients and growing media"
     ],
     startingSteps: [
-      "Set up fencing, water systems, and handling facilities",
-      "Enhance pasture diversity before adding animals",
-      "Begin with 3-5 animals to learn management techniques",
-      "Research USDA-inspected processors in your area",
-      "Build customer base for bulk beef purchases"
+      "Start with a small, simple system (like NFT or DWC)",
+      "Research crops with proven hydroponic success",
+      "Set up reliable electrical and water systems",
+      "Learn about nutrient solutions and pH management",
+      "Establish environmental controls for temperature",
+      "Plan for backup systems in case of power failure",
+      "Identify markets for premium hydroponic produce"
     ],
     resources: [
       {
-        title: "Grass-Fed Cattle by Julius Ruechel",
-        url: "https://www.amazon.com/Grass-Fed-Cattle-Produce-Market-Natural/dp/1580176054",
-        description: "Comprehensive guide to raising grass-fed beef"
+        title: "Upstart University",
+        url: "https://university.upstartfarmers.com",
+        description: "Online courses specifically for hydroponic farmers"
       },
       {
-        title: "American Grassfed Association",
-        url: "https://www.americangrassfed.org/",
-        description: "Industry standards and marketing support"
+        title: "Cornell CEA Hydroponic Handbook",
+        url: "https://cea.cals.cornell.edu/learning-resources",
+        description: "Research-based resources from Cornell University"
       },
       {
-        title: "Graze Magazine",
-        url: "https://www.grazeonline.com/",
-        description: "Publication focused on grass-based livestock production"
+        title: "Hydroponic Food Production",
+        url: "https://www.hydroponicssimplified.com/hydroponic-food-production",
+        description: "Howard Resh's comprehensive book on hydroponic systems"
+      }
+    ]
+  },
+  {
+    id: "pastured-livestock",
+    title: "Pastured Livestock",
+    icon: <Sun className="h-5 w-5 text-farm-green" />,
+    description: "Raising animals on pasture using rotational grazing, including chickens (eggs/meat), sheep, goats, or cattle on a small scale.",
+    expertise: 3,
+    initialCost: 3,
+    benefits: [
+      "Animals do much of the work through grazing",
+      "Can utilize marginal land unsuitable for crops",
+      "Multiple revenue streams possible (meat, eggs, breeding stock)",
+      "Improves soil fertility through managed grazing",
+      "Often commands premium prices from consumers"
+    ],
+    challenges: [
+      "Daily animal care requirements (no days off)",
+      "Predator protection needed",
+      "Processing logistics and regulations",
+      "Seasonal production cycles",
+      "Marketing challenges for meat products"
+    ],
+    startingSteps: [
+      "Start with one species appropriate for your land",
+      "Set up secure fencing and shelter systems",
+      "Develop a rotational grazing plan",
+      "Research local regulations for livestock",
+      "Identify processing facilities in your area",
+      "Establish reliable water sources in all pastures",
+      "Create a simple record-keeping system for animal health"
+    ],
+    resources: [
+      {
+        title: "Polyface Farm Resources",
+        url: "https://www.polyfacefarms.com/resources",
+        description: "Joel Salatin's pioneering farm resources and videos"
+      },
+      {
+        title: "NCAT Livestock Resources",
+        url: "https://attra.ncat.org/topics/livestock-and-pasture",
+        description: "Free technical resources for pasture-based production"
+      },
+      {
+        title: "American Pastured Poultry Producers Association",
+        url: "https://www.apppa.org",
+        description: "Support organization for pastured poultry farmers"
       }
     ]
   },
   {
     id: "aquaponics",
     title: "Aquaponics",
-    icon: <CloudRain className="h-6 w-6 text-blue-400" />,
-    description: "Integrated system that combines fish farming with hydroponic plant production in a symbiotic environment.",
-    expertise: 4,
-    initialCost: 3,
+    icon: <Fish className="h-5 w-5 text-farm-green" />,
+    description: "Integrated system that combines aquaculture (raising fish) with hydroponics (growing plants in water) in a symbiotic environment.",
+    expertise: 5,
+    initialCost: 5,
     benefits: [
-      "Produces both fish and vegetables from one system",
-      "Can be operated in non-traditional spaces (warehouses, etc.)",
-      "Water-efficient compared to traditional agriculture",
-      "Year-round production possible with climate control",
-      "Growing interest provides marketing storytelling opportunities"
+      "Produces both fish and plants as harvested crops",
+      "Closed-loop system conserves water",
+      "Eliminates need for chemical fertilizers",
+      "Can be very productive in limited space",
+      "Year-round production potential"
     ],
     challenges: [
-      "Complex system requires technical knowledge",
-      "Higher startup costs for infrastructure",
-      "Requires consistent monitoring and backup systems",
-      "Energy costs for pumps and climate control",
-      "Steep learning curve for balancing ecosystem"
+      "Complex system requiring specialized knowledge",
+      "High startup costs",
+      "Fish and plants have different optimal conditions",
+      "System failures can be catastrophic",
+      "Energy dependent for pumps and aeration"
     ],
     startingSteps: [
-      "Begin with a demo system to learn fundamental principles",
-      "Understand fish farming regulations in your area",
-      "Create system with backup power and minimize energy use",
-      "Select fish and plants that thrive in similar conditions",
-      "Identify premium markets for both fish and produce"
+      "Take courses specific to aquaponic system design",
+      "Start with a small pilot system to learn",
+      "Research fish species appropriate for your climate",
+      "Select plant crops compatible with aquaponics",
+      "Set up robust water testing protocols",
+      "Install backup systems for power and aeration",
+      "Understand regulations for selling fish products"
     ],
     resources: [
       {
-        title: "Aquaponic Gardening by Sylvia Bernstein",
-        url: "https://www.amazon.com/Aquaponic-Gardening-Step-By-Step-Vegetables-Together/dp/086571701X",
-        description: "Foundational guide to small-scale aquaponics"
+        title: "Aquaponic Gardening Community",
+        url: "https://community.aquaponicgardening.com",
+        description: "Active forum for aquaponic growers of all levels"
       },
       {
-        title: "Aquaponic Association",
-        url: "https://aquaponicsassociation.org/",
-        description: "Industry organization with training and resources"
+        title: "Nelson and Pade Aquaponics",
+        url: "https://aquaponics.com/educational-resources",
+        description: "Training and system design resources"
       },
       {
-        title: "Friendly Aquaponics",
-        url: "https://www.friendlyaquaponics.com/",
-        description: "Commercial-scale system designs and training"
+        title: "The Aquaponic Farmer",
+        url: "https://www.theaquaponicfarmer.com",
+        description: "Practical guide for commercial aquaponics"
+      }
+    ]
+  },
+  {
+    id: "mushroom-cultivation",
+    title: "Mushroom Cultivation",
+    icon: <Warehouse className="h-5 w-5 text-farm-green" />,
+    description: "Growing specialty mushrooms like oyster, shiitake, and lion's mane, either in a climate-controlled indoor environment or on logs outdoors.",
+    expertise: 3,
+    initialCost: 2,
+    benefits: [
+      "Can be grown in spaces unsuitable for other crops",
+      "Quick production cycles for some varieties",
+      "High-value specialty crop with growing demand",
+      "Low water and energy requirements",
+      "Can utilize waste products (coffee grounds, sawdust)"
+    ],
+    challenges: [
+      "Contamination control is critical",
+      "Requires careful temperature and humidity management",
+      "Some varieties have longer time to fruiting",
+      "Specialized knowledge of mycology helpful",
+      "Marketing requires consumer education"
+    ],
+    startingSteps: [
+      "Start with easier varieties like oyster mushrooms",
+      "Create a clean workspace for inoculation",
+      "Learn sterile techniques to prevent contamination",
+      "Set up a dedicated fruiting room or environment",
+      "Source quality spawn from reputable suppliers",
+      "Experiment with different substrate formulations",
+      "Establish consistent harvesting and handling practices"
+    ],
+    resources: [
+      {
+        title: "Growing Gourmet and Medicinal Mushrooms",
+        url: "https://fungi.com/products/growing-gourmet-and-medicinal-mushrooms",
+        description: "Paul Stamets' comprehensive guide to mushroom cultivation"
+      },
+      {
+        title: "North American Mycological Association",
+        url: "https://namyco.org/cultivation.php",
+        description: "Resources and community for mushroom growers"
+      },
+      {
+        title: "MushroomCompany.com Cultivation Guides",
+        url: "https://www.mushroomcompany.com/resources/howto",
+        description: "Free guides for different cultivation methods"
+      }
+    ]
+  },
+  {
+    id: "vertical-farming",
+    title: "Vertical Farming",
+    icon: <Building className="h-5 w-5 text-farm-green" />,
+    description: "Growing crops in vertically stacked layers, often incorporating controlled-environment agriculture technology and optimized for space efficiency.",
+    expertise: 5,
+    initialCost: 5,
+    benefits: [
+      "Maximizes production in minimal space",
+      "Can be located in urban environments near consumers",
+      "Protected from weather extremes and pests",
+      "Precise control over growing conditions",
+      "Year-round production capability"
+    ],
+    challenges: [
+      "Very high startup costs for equipment",
+      "Energy intensive for lighting and climate control",
+      "Technical expertise required",
+      "Limited crop selection (mostly greens and herbs)",
+      "Maintenance of complex systems"
+    ],
+    startingSteps: [
+      "Visit existing vertical farms for insights",
+      "Start with a small-scale system as proof of concept",
+      "Focus on high-value, quick-turnover crops",
+      "Optimize lighting and space utilization",
+      "Develop automated monitoring systems",
+      "Secure contracts with buyers before scaling",
+      "Create efficient workflow processes for harvesting"
+    ],
+    resources: [
+      {
+        title: "Association for Vertical Farming",
+        url: "https://vertical-farming.net/resources",
+        description: "Industry association with educational resources"
+      },
+      {
+        title: "Upstart University",
+        url: "https://university.upstartfarmers.com/courses",
+        description: "Online courses for vertical and controlled environment farming"
+      },
+      {
+        title: "The Vertical Farm by Dr. Dickson Despommier",
+        url: "https://www.verticalfarm.com/the-vertical-essay",
+        description: "Foundational book on vertical farming concepts"
+      }
+    ]
+  },
+  {
+    id: "permaculture",
+    title: "Permaculture",
+    icon: <Bug className="h-5 w-5 text-farm-green" />,
+    description: "Agricultural ecosystem designed to be sustainable and self-sufficient, mimicking patterns observed in natural ecosystems.",
+    expertise: 3,
+    initialCost: 2,
+    benefits: [
+      "Reduces ongoing inputs once established",
+      "Creates resilient, diverse ecosystems",
+      "Can regenerate degraded land over time",
+      "Multiple yields from the same system",
+      "Reduced pest pressures through biodiversity"
+    ],
+    challenges: [
+      "Longer establishment period before full production",
+      "Complex design requires good planning",
+      "Knowledge-intensive approach",
+      "Marketing diverse, seasonal products",
+      "May not fit conventional agricultural models"
+    ],
+    startingSteps: [
+      "Complete a Permaculture Design Certificate course",
+      "Observe your land through all seasons before major changes",
+      "Create a detailed property map and sector analysis",
+      "Start with small-scale permaculture techniques",
+      "Establish water management systems early",
+      "Plant perennial crops strategically",
+      "Connect with local permaculture community"
+    ],
+    resources: [
+      {
+        title: "Permaculture Research Institute",
+        url: "https://permaculturenews.org",
+        description: "Articles, courses and resources on permaculture practices"
+      },
+      {
+        title: "Midwest Permaculture",
+        url: "https://midwestpermaculture.com/resources",
+        description: "Practical permaculture resources for temperate climates"
+      },
+      {
+        title: "Restoration Agriculture by Mark Shepard",
+        url: "https://newforestfarm.us/restoration-agriculture",
+        description: "Book on large-scale permaculture farming systems"
       }
     ]
   }
