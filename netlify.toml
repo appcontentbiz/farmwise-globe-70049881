@@ -4,9 +4,9 @@
 
 [build]
   # Directory to publish (output of the build)
-  publish = "build"
-  # Build command that uses Create React App instead of Vite
-  command = "npm ci && npm install react-scripts@5.0.1 && npm run build"
+  publish = "dist"
+  # Build command 
+  command = "npm run build"
   # Base directory (where your package.json is located)
   base = "/"
 
@@ -35,4 +35,4 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Force a new deploy by adding this comment - Build trigger: 8
+# Force a new deploy by adding this comment - Build trigger: 9

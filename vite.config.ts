@@ -24,4 +24,6 @@ export default defineConfig({
       transformMixedEsModules: true,
     },
   },
+  // Make sure environment variables are properly loaded
+  envPrefix: ['VITE_', 'REACT_APP_'],
 });
