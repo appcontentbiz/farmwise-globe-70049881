@@ -850,17 +850,16 @@ export function FarmFinancialCalculator() {
                         name="taxRate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Estimated Tax Rate (%): {taxRate}%</FormLabel>
+                            <FormLabel>Estimated Tax Rate (%)</FormLabel>
                             <FormControl>
-                              <div className="pt-2">
-                                <Slider 
-                                  defaultValue={[field.value]} 
-                                  max={50} 
-                                  step={1}
-                                  onValueChange={(value) => {
-                                    field.onChange(value[0]);
-                                    setTaxRate(value[0]);
-                                  }}
+                              <div className="relative">
+                                <PercentIcon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                <Input
+                                  type="number"
+                                  className="pl-9"
+                                  placeholder="15"
+                                  {...field}
+                                  onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                                 />
                               </div>
                             </FormControl>
