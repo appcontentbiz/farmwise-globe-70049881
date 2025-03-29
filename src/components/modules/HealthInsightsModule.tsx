@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PhysicalHealthContent } from "./health-insights/PhysicalHealthContent";
 import { MentalHealthContent } from "./health-insights/MentalHealthContent";
 import { SafetyContent } from "./health-insights/SafetyContent";
+import { PersonalHealthTracking } from "./health-insights/PersonalHealthTracking";
 
 export function HealthInsightsModule() {
   return (
@@ -26,12 +27,17 @@ export function HealthInsightsModule() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="physical">
+            <Tabs defaultValue="personal">
               <TabsList className="mb-4">
+                <TabsTrigger value="personal">Personal Health Tracking</TabsTrigger>
                 <TabsTrigger value="physical">Physical Health</TabsTrigger>
                 <TabsTrigger value="mental">Mental Wellbeing</TabsTrigger>
                 <TabsTrigger value="safety">Farm Safety</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="personal">
+                <PersonalHealthTracking />
+              </TabsContent>
               
               <TabsContent value="physical">
                 <PhysicalHealthContent />
@@ -136,7 +142,7 @@ export function HealthInsightsModule() {
                     <Heart className="h-4 w-4 mr-2 text-farm-green mt-0.5" />
                     <div className="text-sm">
                       <p className="font-medium">Improve Sleep Quality</p>
-                      <p className="text-xs text-muted-foreground">Aim for consistent sleep schedule and reduce screen time before bed</p>
+                      <p className="text-xs text-muted-foreground mt-1">Aim for consistent sleep schedule and reduce screen time before bed</p>
                     </div>
                   </div>
                 </div>
@@ -145,7 +151,7 @@ export function HealthInsightsModule() {
                     <Activity className="h-4 w-4 mr-2 text-farm-sky mt-0.5" />
                     <div className="text-sm">
                       <p className="font-medium">Schedule Regular Breaks</p>
-                      <p className="text-xs text-muted-foreground">Short breaks during intense work periods can reduce fatigue and injury risk</p>
+                      <p className="text-xs text-muted-foreground mt-1">Short breaks during intense work periods can reduce fatigue and injury risk</p>
                     </div>
                   </div>
                 </div>
@@ -154,7 +160,7 @@ export function HealthInsightsModule() {
                     <ShieldCheck className="h-4 w-4 mr-2 text-amber-500 mt-0.5" />
                     <div className="text-sm">
                       <p className="font-medium">Annual Health Check-up</p>
-                      <p className="text-xs text-muted-foreground">Schedule your annual health check-up in the next 30 days</p>
+                      <p className="text-xs text-muted-foreground mt-1">Schedule your annual health check-up in the next 30 days</p>
                     </div>
                   </div>
                 </div>
