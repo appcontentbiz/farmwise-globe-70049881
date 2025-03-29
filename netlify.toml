@@ -4,9 +4,9 @@
 
 [build]
   # Directory to publish (output of the build)
-  publish = "dist"
-  # Build command that explicitly installs vite and its dependencies before building
-  command = "npm ci && npm install vite@4.5.1 @vitejs/plugin-react-swc@3.5.0 && npx vite build"
+  publish = "build"
+  # Build command that uses Create React App instead of Vite
+  command = "npm ci && npm install react-scripts@5.0.1 && npm run build"
   # Base directory (where your package.json is located)
   base = "/"
 
@@ -16,7 +16,7 @@
 
 # Set environment variables needed for build
 [build.environment]
-  # Tell Vite we're building for production
+  # Tell React we're building for production
   NODE_ENV = "production"
   # Specify Node version to avoid compatibility issues
   NODE_VERSION = "18"
@@ -31,9 +31,8 @@
 
 # Cache control for assets
 [[headers]]
-  for = "/assets/*"
+  for = "/static/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Force a new deploy by adding this comment - Build trigger: 5
-
+# Force a new deploy by adding this comment - Build trigger: 6
