@@ -20,19 +20,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Force commonjs modules for Netlify compatibility
+  // Build configuration 
   build: {
     commonjsOptions: {
       transformMixedEsModules: true,
     },
     outDir: 'dist', // Specify output directory for build
-    minify: 'terser', // Use terser for better minification
+    minify: true, // Use default minification instead of explicitly requiring terser
     sourcemap: false, // Disable sourcemaps in production for smaller build
-    terserOptions: {
-      compress: {
-        drop_console: false, // Keep console logs for debugging
-      },
-    },
   },
   // Ensure environment variables are properly loaded by defining explicit prefixes
   envPrefix: ['VITE_', 'REACT_APP_'],

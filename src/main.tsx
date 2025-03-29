@@ -15,4 +15,4 @@ createRoot(rootElement).render(
 );
 
 // Log that the app has been mounted successfully
-console.log('FarmWise application mounted successfully - Build version 14');
+console.log('FarmWise application mounted successfully - Build version 15');
