@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent,
@@ -17,16 +17,38 @@ import {
   Apple,
   Sun,
   CloudRain,
-  Wheat
+  Wheat,
+  Download,
+  Share2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer"
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMobile } from "@/hooks/use-mobile";
 
 interface FarmingTypeDetail {
   id: string;
@@ -56,7 +78,43 @@ export function FarmingTypes() {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState("overview");
   const [userInterest, setUserInterest] = useState<Record<string, number>>({});
+  const [savedNotes, setSavedNotes] = useState<Record<string, string>>({});
+  const [currentNote, setCurrentNote] = useState("");
+  const [isNoteSheetOpen, setIsNoteSheetOpen] = useState(false);
+  const [isResourceOpen, setIsResourceOpen] = useState(false);
+  const [selectedResource, setSelectedResource] = useState<any>(null);
+  const [showCompare, setShowCompare] = useState(false);
+  const [compareTypes, setCompareTypes] = useState<string[]>([]);
+  const isMobile = useMobile();
   const { toast } = useToast();
+
+  // Load saved user data from localStorage on component mount
+  useEffect(() => {
+    const savedInterest = localStorage.getItem('farmingTypesInterest');
+    const savedUserNotes = localStorage.getItem('farmingTypesNotes');
+    
+    if (savedInterest) {
+      setUserInterest(JSON.parse(savedInterest));
+    }
+    
+    if (savedUserNotes) {
+      setSavedNotes(JSON.parse(savedUserNotes));
+    }
+  }, []);
+
+  // Save user interest to localStorage whenever it changes
+  useEffect(() => {
+    if (Object.keys(userInterest).length > 0) {
+      localStorage.setItem('farmingTypesInterest', JSON.stringify(userInterest));
+    }
+  }, [userInterest]);
+
+  // Save notes to localStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(savedNotes).length > 0) {
+      localStorage.setItem('farmingTypesNotes', JSON.stringify(savedNotes));
+    }
+  }, [savedNotes]);
 
   const farmingTypes: FarmingTypeDetail[] = [
     {
@@ -734,6 +792,7 @@ export function FarmingTypes() {
   const handleFarmingTypeSelect = (typeId: string) => {
     setSelectedType(typeId);
     setSelectedTab("overview");
+    setCurrentNote(savedNotes[typeId] || "");
   };
 
   const handleInterestRating = (typeId: string, rating: number) => {
@@ -748,6 +807,108 @@ export function FarmingTypes() {
     });
   };
 
+  const handleSaveNote = () => {
+    if (selectedType) {
+      setSavedNotes({
+        ...savedNotes,
+        [selectedType]: currentNote
+      });
+      
+      toast({
+        title: "Notes Saved",
+        description: "Your notes have been saved successfully.",
+      });
+      
+      setIsNoteSheetOpen(false);
+    }
+  };
+
+  const handleResourceSelect = (resource: any) => {
+    setSelectedResource(resource);
+    setIsResourceOpen(true);
+  };
+
+  const handleToggleCompareType = (typeId: string) => {
+    if (compareTypes.includes(typeId)) {
+      setCompareTypes(compareTypes.filter(id => id !== typeId));
+    } else {
+      if (compareTypes.length < 3) {
+        setCompareTypes([...compareTypes, typeId]);
+      } else {
+        toast({
+          title: "Comparison Limit",
+          description: "You can compare up to 3 farming types at once.",
+        });
+      }
+    }
+  };
+
+  const handleDownloadInfo = (typeId: string) => {
+    const farmType = farmingTypes.find(t => t.id === typeId);
+    
+    if (farmType) {
+      let content = `# ${farmType.title}\n\n`;
+      content += `${farmType.description}\n\n`;
+      
+      content += `## Key Metrics\n`;
+      content += `- Expertise Required: ${farmType.expertise}/5\n`;
+      content += `- Initial Investment: ${farmType.initialCost}/5\n`;
+      content += `- Profit Potential: ${farmType.profitPotential}/5\n`;
+      content += `- Time Commitment: ${farmType.timeCommitment}/5\n`;
+      content += `- Land Required: ${farmType.landRequired}/5\n\n`;
+      
+      content += `## Benefits\n`;
+      farmType.benefits.forEach(benefit => {
+        content += `- ${benefit}\n`;
+      });
+      content += '\n';
+      
+      content += `## Challenges\n`;
+      farmType.challenges.forEach(challenge => {
+        content += `- ${challenge}\n`;
+      });
+      content += '\n';
+      
+      content += `## Best For\n`;
+      farmType.bestFor.forEach(item => {
+        content += `- ${item}\n`;
+      });
+      content += '\n';
+      
+      content += `## Getting Started Steps\n`;
+      farmType.steps.forEach((step, index) => {
+        content += `${index + 1}. ${step.title}: ${step.description}\n`;
+      });
+      content += '\n';
+      
+      content += `## Key Resources\n`;
+      farmType.keyResources.forEach(resource => {
+        content += `- ${resource.title}: ${resource.description}\n`;
+      });
+      
+      // User notes if available
+      if (savedNotes[typeId]) {
+        content += `\n## My Notes\n${savedNotes[typeId]}\n`;
+      }
+      
+      // Create the file for download
+      const blob = new Blob([content], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${farmType.title.replace(/\s+/g, '-').toLowerCase()}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Info Downloaded",
+        description: `Information about ${farmType.title} has been downloaded.`,
+      });
+    }
+  };
+
   const renderProgressBar = (value: number, max: number = 5) => {
     const percentage = (value / max) * 100;
     return (
@@ -759,11 +920,14 @@ export function FarmingTypes() {
   };
 
   const renderFarmingTypeCard = (type: FarmingTypeDetail) => {
+    const isSelected = selectedType === type.id;
+    const isCompareSelected = compareTypes.includes(type.id);
+    
     return (
       <Card 
         key={type.id} 
-        className={`cursor-pointer transition-all ${selectedType === type.id ? 'border-farm-green ring-1 ring-farm-green' : 'hover:border-farm-green/50'}`}
-        onClick={() => handleFarmingTypeSelect(type.id)}
+        className={`cursor-pointer transition-all ${isSelected ? 'border-farm-green ring-1 ring-farm-green' : 'hover:border-farm-green/50'} ${isCompareSelected ? 'bg-farm-green/5' : ''}`}
+        onClick={() => !showCompare && handleFarmingTypeSelect(type.id)}
       >
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
@@ -771,10 +935,23 @@ export function FarmingTypes() {
               {type.icon}
               <CardTitle className="text-base">{type.title}</CardTitle>
             </div>
-            {userInterest[type.id] && (
-              <Badge variant="outline" className="bg-farm-green/10 text-farm-green">
-                Interest: {userInterest[type.id]}/5
+            {showCompare ? (
+              <Badge 
+                variant={isCompareSelected ? "default" : "outline"} 
+                className={`cursor-pointer ${isCompareSelected ? 'bg-farm-green' : 'hover:bg-farm-green/10'}`}
+                onClick={(e) => {
+                  e.stopPropagation(); 
+                  handleToggleCompareType(type.id);
+                }}
+              >
+                {isCompareSelected ? "Selected" : "Compare"}
               </Badge>
+            ) : (
+              userInterest[type.id] && (
+                <Badge variant="outline" className="bg-farm-green/10 text-farm-green">
+                  Interest: {userInterest[type.id]}/5
+                </Badge>
+              )
             )}
           </div>
           <CardDescription className="line-clamp-2">{type.description}</CardDescription>
@@ -795,16 +972,236 @@ export function FarmingTypes() {
     );
   };
 
+  const getSelectedFarmType = () => {
+    return selectedType ? farmingTypes.find(t => t.id === selectedType) : null;
+  };
+
+  const renderComparisonTable = () => {
+    if (compareTypes.length === 0) {
+      return (
+        <div className="text-center p-6">
+          <p>Select farming types above to compare them.</p>
+        </div>
+      );
+    }
+
+    const selectedTypes = farmingTypes.filter(type => compareTypes.includes(type.id));
+
+    return (
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="border-b">
+              <th className="text-left p-2">Characteristic</th>
+              {selectedTypes.map(type => (
+                <th key={type.id} className="text-left p-2">{type.title}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Description</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">{type.description}</td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Expertise Required</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">{type.expertise}/5</td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Initial Cost</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">{type.initialCost}/5</td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Profit Potential</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">{type.profitPotential}/5</td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Time Commitment</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">{type.timeCommitment}/5</td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Land Required</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">{type.landRequired}/5</td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Top Benefits</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">
+                  <ul className="list-disc pl-5 space-y-1">
+                    {type.benefits.slice(0, 3).map((benefit, i) => (
+                      <li key={i} className="text-sm">{benefit}</li>
+                    ))}
+                  </ul>
+                </td>
+              ))}
+            </tr>
+            <tr className="border-b">
+              <td className="p-2 font-medium">Top Challenges</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">
+                  <ul className="list-disc pl-5 space-y-1">
+                    {type.challenges.slice(0, 3).map((challenge, i) => (
+                      <li key={i} className="text-sm">{challenge}</li>
+                    ))}
+                  </ul>
+                </td>
+              ))}
+            </tr>
+            <tr>
+              <td className="p-2 font-medium">Actions</td>
+              {selectedTypes.map(type => (
+                <td key={type.id} className="p-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => handleFarmingTypeSelect(type.id)}
+                    className="mr-2"
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleDownloadInfo(type.id)}
+                  >
+                    <Download className="h-3.5 w-3.5 mr-1" />
+                    Download
+                  </Button>
+                </td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  // Component for the notes feature - adapts to mobile vs desktop
+  const NotesComponent = () => {
+    const NoteContent = (
+      <div className="space-y-4">
+        <h3 className="font-medium">My Notes for {getSelectedFarmType()?.title}</h3>
+        <textarea 
+          className="w-full min-h-[200px] p-3 border rounded-md" 
+          placeholder="Add your notes, questions, and thoughts about this farming type..."
+          value={currentNote}
+          onChange={(e) => setCurrentNote(e.target.value)}
+        />
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={() => setIsNoteSheetOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveNote}>
+            Save Notes
+          </Button>
+        </div>
+      </div>
+    );
+
+    return isMobile ? (
+      <Drawer open={isNoteSheetOpen} onOpenChange={setIsNoteSheetOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>My Notes</DrawerTitle>
+            <DrawerDescription>
+              Keep track of your thoughts on this farming type
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4">
+            {NoteContent}
+          </div>
+          <DrawerFooter>
+            <DrawerClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    ) : (
+      <Sheet open={isNoteSheetOpen} onOpenChange={setIsNoteSheetOpen}>
+        <SheetContent className="w-[400px] sm:w-[540px]">
+          <SheetHeader>
+            <SheetTitle>My Notes</SheetTitle>
+            <SheetDescription>
+              Keep track of your thoughts on this farming type
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-4">
+            {NoteContent}
+          </div>
+        </SheetContent>
+      </Sheet>
+    );
+  };
+
+  // Resource dialog component
+  const ResourceDialog = () => {
+    if (!selectedResource) return null;
+    
+    return (
+      <Dialog open={isResourceOpen} onOpenChange={setIsResourceOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedResource.title}</DialogTitle>
+            <DialogDescription>{selectedResource.description}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[60vh] overflow-y-auto">
+            <p className="mb-4">This is a placeholder for the resource content. In a complete implementation, this would display the actual resource information or connect to external resources.</p>
+            
+            <p className="text-sm text-muted-foreground">If this were a real implementation, you would be able to access:</p>
+            <ul className="list-disc pl-5 mt-2 space-y-2 text-sm">
+              <li>Detailed guides about {selectedResource.title}</li>
+              <li>Practical tools and templates</li>
+              <li>Expert advice and recommendations</li>
+              <li>Connections to learning resources</li>
+            </ul>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <Sprout className="h-5 w-5 text-farm-green" />
-          Beginner Farming Types
-        </CardTitle>
-        <CardDescription>
-          Explore different farming approaches suitable for beginners
-        </CardDescription>
+        <div className="flex justify-between items-center">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-xl">
+              <Sprout className="h-5 w-5 text-farm-green" />
+              Beginner Farming Types
+            </CardTitle>
+            <CardDescription>
+              Explore different farming approaches suitable for beginners
+            </CardDescription>
+          </div>
+          <div>
+            <Button 
+              variant={showCompare ? "default" : "outline"} 
+              size="sm"
+              onClick={() => {
+                setShowCompare(!showCompare);
+                if (!showCompare) {
+                  setCompareTypes([]);
+                }
+              }}
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              {showCompare ? "Exit Compare" : "Compare Types"}
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
@@ -812,12 +1209,47 @@ export function FarmingTypes() {
             {farmingTypes.map(renderFarmingTypeCard)}
           </div>
 
-          {selectedType && (
+          {showCompare && (
+            <Card className="mt-4 border-farm-green/20">
+              <CardHeader>
+                <CardTitle>Farming Types Comparison</CardTitle>
+                <CardDescription>
+                  {compareTypes.length > 0 
+                    ? `Comparing ${compareTypes.length} farming type${compareTypes.length > 1 ? 's' : ''}` 
+                    : 'Select up to 3 farming types above to compare'}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {renderComparisonTable()}
+              </CardContent>
+            </Card>
+          )}
+
+          {selectedType && !showCompare && (
             <Card className="mt-8 border-farm-green/20">
               <CardHeader className="pb-2">
-                <div className="flex items-center gap-2">
-                  {farmingTypes.find(t => t.id === selectedType)?.icon}
-                  <CardTitle>{farmingTypes.find(t => t.id === selectedType)?.title}</CardTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {farmingTypes.find(t => t.id === selectedType)?.icon}
+                    <CardTitle>{farmingTypes.find(t => t.id === selectedType)?.title}</CardTitle>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setIsNoteSheetOpen(true)}
+                    >
+                      Add Notes
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleDownloadInfo(selectedType)}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Info
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -889,6 +1321,18 @@ export function FarmingTypes() {
                           </ul>
                         </div>
                       </div>
+
+                      {savedNotes[selectedType] && (
+                        <div className="bg-muted/30 p-4 rounded-lg mt-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h3 className="font-medium text-sm">My Notes</h3>
+                            <Button variant="ghost" size="sm" onClick={() => setIsNoteSheetOpen(true)}>
+                              Edit
+                            </Button>
+                          </div>
+                          <p className="text-sm whitespace-pre-line">{savedNotes[selectedType]}</p>
+                        </div>
+                      )}
 
                       <div className="pt-4 border-t">
                         <h3 className="font-medium text-sm mb-3">Your Interest Level</h3>
@@ -972,16 +1416,26 @@ export function FarmingTypes() {
                           <div key={index} className="border rounded-lg p-3">
                             <h4 className="font-medium text-sm">{resource.title}</h4>
                             <p className="text-sm text-muted-foreground mt-1">{resource.description}</p>
-                            {resource.url && (
-                              <a 
-                                href={resource.url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-sm text-farm-green hover:underline mt-2 inline-block"
-                              >
-                                View Resource →
-                              </a>
-                            )}
+                            <div className="mt-2">
+                              {resource.url ? (
+                                <a 
+                                  href={resource.url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-farm-green hover:underline inline-flex items-center"
+                                >
+                                  View Resource <ExternalLink className="h-3.5 w-3.5 ml-1" />
+                                </a>
+                              ) : (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleResourceSelect(resource)}
+                                >
+                                  View Resource
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -998,6 +1452,12 @@ export function FarmingTypes() {
           )}
         </div>
       </CardContent>
+
+      {/* Notes Sheet/Drawer */}
+      <NotesComponent />
+
+      {/* Resource Dialog */}
+      <ResourceDialog />
     </Card>
   );
 }

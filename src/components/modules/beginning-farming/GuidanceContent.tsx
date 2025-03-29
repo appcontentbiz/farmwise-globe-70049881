@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   BookOpen, 
@@ -9,8 +10,41 @@ import {
   List, 
   SlidersHorizontal 
 } from "lucide-react";
+import { guidanceResources, FarmResource } from "./utils/guidanceResources";
+import { ResourceContentModal } from "./ResourceContentModal";
+import { CustomizeGuideModal } from "./CustomizeGuideModal";
+import { useToast } from "@/hooks/use-toast";
 
 export function GuidanceContent() {
+  const [resourceModal, setResourceModal] = useState<{isOpen: boolean, resource: FarmResource | null}>({
+    isOpen: false,
+    resource: null
+  });
+  const [customizeModal, setCustomizeModal] = useState(false);
+  const { toast } = useToast();
+
+  const handleOpenResource = (resourceId: string) => {
+    setResourceModal({
+      isOpen: true,
+      resource: guidanceResources[resourceId]
+    });
+  };
+
+  const handleCloseResource = () => {
+    setResourceModal({
+      isOpen: false,
+      resource: null
+    });
+  };
+
+  const handlePrintGuide = () => {
+    handleOpenResource('printGuide');
+  };
+
+  const handleCustomize = () => {
+    setCustomizeModal(true);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -19,11 +53,11 @@ export function GuidanceContent() {
           <p className="text-sm text-muted-foreground">Step-by-step approach to starting your farm</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handlePrintGuide}>
             <FileText className="h-4 w-4 mr-2" />
             Print Guide
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleCustomize}>
             <SlidersHorizontal className="h-4 w-4 mr-2" />
             Customize
           </Button>
@@ -40,11 +74,21 @@ export function GuidanceContent() {
             Establish clear goals for your farm - whether it's for profit, sustainability, lifestyle, or a combination of factors.
           </p>
           <div className="ml-8 mt-2 flex gap-2">
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('farmVision')}
+            >
               <FileText className="h-3 w-3 mr-1" />
               Farm Vision Worksheet
             </Button>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('goalTemplate')}
+            >
               <FileSpreadsheet className="h-3 w-3 mr-1" />
               Goal Template
             </Button>
@@ -60,11 +104,21 @@ export function GuidanceContent() {
             Evaluate available land, capital, equipment, skills, and identify potential markets for your products.
           </p>
           <div className="ml-8 mt-2 flex gap-2">
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('resourceInventory')}
+            >
               <List className="h-3 w-3 mr-1" />
               Resource Inventory
             </Button>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('marketResearch')}
+            >
               <ExternalLink className="h-3 w-3 mr-1" />
               Market Research Guide
             </Button>
@@ -80,11 +134,21 @@ export function GuidanceContent() {
             Create a comprehensive business plan including startup costs, operating expenses, and projected revenue.
           </p>
           <div className="ml-8 mt-2 flex gap-2">
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('businessPlanTemplate')}
+            >
               <Download className="h-3 w-3 mr-1" />
               Business Plan Template
             </Button>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('financialCalculator')}
+            >
               <FileSpreadsheet className="h-3 w-3 mr-1" />
               Financial Calculator
             </Button>
@@ -100,11 +164,21 @@ export function GuidanceContent() {
             Gain necessary knowledge through educational resources, training programs, mentorship, and hands-on experience.
           </p>
           <div className="ml-8 mt-2 flex gap-2">
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('trainingResources')}
+            >
               <BookOpen className="h-3 w-3 mr-1" />
               Training Resources
             </Button>
-            <Button variant="outline" size="sm" className="text-xs">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="text-xs"
+              onClick={() => handleOpenResource('findMentor')}
+            >
               <ExternalLink className="h-3 w-3 mr-1" />
               Find a Mentor
             </Button>
@@ -125,6 +199,19 @@ export function GuidanceContent() {
           </li>
         </ul>
       </div>
+
+      {/* Resource content modal */}
+      <ResourceContentModal
+        resource={resourceModal.resource}
+        isOpen={resourceModal.isOpen}
+        onClose={handleCloseResource}
+      />
+
+      {/* Customize guide modal */}
+      <CustomizeGuideModal
+        isOpen={customizeModal}
+        onClose={() => setCustomizeModal(false)}
+      />
     </div>
   );
 }

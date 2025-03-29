@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   Check, 
@@ -16,8 +17,24 @@ import { ChecklistContent } from "./beginning-farming/ChecklistContent";
 import { FarmingCalendar } from "./beginning-farming/FarmingCalendar";
 import { ProgressCharts } from "./beginning-farming/ProgressCharts";
 import { FarmingTypes } from "./beginning-farming/FarmingTypes";
+import { useToast } from "@/hooks/use-toast";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function BeginningFarmingModule() {
+  const [activeTab, setActiveTab] = useState("guidance");
+  const { toast } = useToast();
+
+  // Handle tab change to simulate tracking user activity
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    
+    // Show toast to indicate tracking is active
+    toast({
+      title: "Progress Tracked",
+      description: `Your exploration of the ${value} section has been logged.`,
+    });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -29,7 +46,7 @@ export function BeginningFarmingModule() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="guidance">
+            <Tabs defaultValue="guidance" value={activeTab} onValueChange={handleTabChange}>
               <TabsList className="mb-4">
                 <TabsTrigger value="guidance">Structured Guidance</TabsTrigger>
                 <TabsTrigger value="resources">Learning Resources</TabsTrigger>
@@ -37,15 +54,21 @@ export function BeginningFarmingModule() {
               </TabsList>
               
               <TabsContent value="guidance">
-                <GuidanceContent />
+                <ScrollArea className="h-[calc(100vh-320px)]">
+                  <GuidanceContent />
+                </ScrollArea>
               </TabsContent>
               
               <TabsContent value="resources">
-                <ResourcesContent />
+                <ScrollArea className="h-[calc(100vh-320px)]">
+                  <ResourcesContent />
+                </ScrollArea>
               </TabsContent>
               
               <TabsContent value="checklist">
-                <ChecklistContent />
+                <ScrollArea className="h-[calc(100vh-320px)]">
+                  <ChecklistContent />
+                </ScrollArea>
               </TabsContent>
             </Tabs>
           </CardContent>
