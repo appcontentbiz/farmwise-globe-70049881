@@ -1,13 +1,11 @@
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useState } from "react";
-import { Download, CheckCircle, ClipboardList, LineChart, FileText, Calculator } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { FarmFinancialCalculator } from "./FarmFinancialCalculator";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { ExternalLink, Users } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface ResourceContentModalProps {
   isOpen: boolean;
@@ -20,1721 +18,2018 @@ interface ResourceContentModalProps {
 
 export function ResourceContentModal({ isOpen, onClose, content }: ResourceContentModalProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<string>("overview");
+  const [selectedTab, setSelectedTab] = useState<string>("overview");
 
+  // Function to handle resource interactions
+  const handleResourceClick = (resourceName: string) => {
+    toast({
+      title: "Resource Accessed",
+      description: `You are now viewing ${resourceName}`,
+    });
+  };
+
+  // Function to handle downloadable resources
   const handleDownload = (resourceName: string) => {
     toast({
       title: "Download Started",
       description: `${resourceName} will be downloaded shortly.`,
     });
     
-    // Simulate a download after a short delay
+    // In a real app, this would be a link to the actual resource
+    // Simulating a download after a short delay
     setTimeout(() => {
       toast({
         title: "Download Complete",
         description: `${resourceName} has been downloaded successfully.`,
       });
-    }, 1500);
+    }, 2000);
   };
 
-  const handleSave = (type: string) => {
+  // Function to handle external links
+  const handleExternalLink = (url: string, resourceName: string) => {
     toast({
-      title: "Progress Saved",
-      description: `Your ${type} has been saved successfully.`,
+      title: "External Resource",
+      description: `Opening ${resourceName} in a new tab`,
     });
+    window.open(url, "_blank");
   };
 
-  const getModalContent = () => {
+  // Content mappings based on the content type
+  const renderContent = () => {
     switch (content.type) {
       case "vision":
         return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="worksheet">Worksheet</TabsTrigger>
-              <TabsTrigger value="examples">Examples</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <div className="space-y-4">
-                <p>A Farm Vision Worksheet helps you define your farming values, mission, and long-term vision. This provides a foundation for all your farming decisions.</p>
-                
-                <h3 className="text-lg font-medium">Why Create a Farm Vision?</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Clarifies your purpose and farming values</li>
-                  <li>Guides decision-making for your farm business</li>
-                  <li>Helps communicate your farm's identity to customers</li>
-                  <li>Provides direction when faced with opportunities or challenges</li>
-                </ul>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("worksheet")}>
-                    Continue to Worksheet
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Vision Worksheet.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="worksheet">
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Personal Values & Motivations</h3>
-                  <p className="text-sm text-muted-foreground">What values are most important to you as a farmer? Why did you choose farming?</p>
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Farm Vision Worksheet</h3>
+              <p className="text-muted-foreground">
+                Use this worksheet to clarify your farming vision, goals, and values. A clear 
+                vision will guide your business decisions and help you stay focused on what matters most.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-medium mb-3">Section 1: Your Farming Purpose</h3>
+              <div className="space-y-4 mb-6">
+                <div className="border p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Why do you want to farm?</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Reflect on your personal motivations and reasons for wanting to farm. 
+                    What draws you to agriculture? What impact do you hope to make?
+                  </p>
                   <textarea 
-                    className="w-full h-24 p-3 border rounded-md" 
-                    placeholder="Write your personal values and motivations here..."
+                    className="w-full p-3 border rounded-md h-24" 
+                    placeholder="Write your thoughts here..."
                   ></textarea>
                 </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Farm Mission Statement</h3>
-                  <p className="text-sm text-muted-foreground">A concise statement that describes your farm's purpose and core goals (1-2 sentences)</p>
-                  <textarea 
-                    className="w-full h-24 p-3 border rounded-md" 
-                    placeholder="Write your farm mission statement here..."
-                  ></textarea>
-                </div>
-                
-                <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Long-term Vision (5-10 years)</h3>
-                  <p className="text-sm text-muted-foreground">Describe what you want your farm to become in the future</p>
-                  <textarea 
-                    className="w-full h-24 p-3 border rounded-md" 
-                    placeholder="Write your long-term vision here..."
-                  ></textarea>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("examples")}>
-                    View Examples
-                  </Button>
-                  <Button onClick={() => handleSave("farm vision")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Vision
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="examples">
-              <div className="space-y-6">
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium">Example: Community Supported Farm</h3>
-                    <div className="mt-3 space-y-3">
-                      <div>
-                        <p className="text-sm font-medium">Values & Motivations:</p>
-                        <p className="text-sm mt-1">We value sustainable agriculture, community connection, and food security. We farm because we believe everyone deserves access to healthy, locally-grown food.</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Mission Statement:</p>
-                        <p className="text-sm mt-1">Green Valley Farm produces nutritious, sustainably-grown vegetables while building community relationships and caring for the land that sustains us all.</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Long-term Vision:</p>
-                        <p className="text-sm mt-1">By 2030, Green Valley Farm will be a thriving 15-acre vegetable operation serving 200 CSA members, supplying three farmers markets, and offering educational programs for the community. We'll utilize regenerative practices, powered by renewable energy, and employ four year-round staff members.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium">Example: Heritage Livestock Farm</h3>
-                    <div className="mt-3 space-y-3">
-                      <div>
-                        <p className="text-sm font-medium">Values & Motivations:</p>
-                        <p className="text-sm mt-1">We value animal welfare, genetic diversity, and traditional farming methods. We farm to preserve heritage breeds and produce exceptional meat and dairy products.</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Mission Statement:</p>
-                        <p className="text-sm mt-1">Oak Hill Farm raises heritage livestock breeds with respect and care to produce high-quality meat and dairy products while preserving genetic diversity for future generations.</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Long-term Vision:</p>
-                        <p className="text-sm mt-1">Within 10 years, Oak Hill Farm will be a recognized breeder of heritage livestock with direct sales to restaurants and conscious consumers. We'll maintain breeding programs for three endangered livestock breeds, host on-farm events and tours, and operate a small farm store featuring our products and those of neighboring farms.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("worksheet")}>
-                    Return to Worksheet
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Vision Examples.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Examples
-                  </Button>
+
+                <div className="border p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">What values are most important to you?</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    List 3-5 core values that will guide your farming practices and business decisions.
+                  </p>
+                  <div className="space-y-2">
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Value 1"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Value 2"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Value 3"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Value 4"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Value 5"
+                    />
+                  </div>
                 </div>
               </div>
-            </TabsContent>
-          </Tabs>
+
+              <h3 className="text-lg font-medium mb-3">Section 2: Farm Vision Statement</h3>
+              <div className="border p-4 rounded-lg mb-6">
+                <h4 className="font-medium mb-2">Vision Statement</h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  A vision statement describes what you want your farm to become. It should be inspiring, 
+                  future-oriented, and aligned with your values. (Example: "To create a regenerative 
+                  farm that produces healthy food while enhancing the local ecosystem and community.")
+                </p>
+                <textarea 
+                  className="w-full p-3 border rounded-md h-24" 
+                  placeholder="Write your vision statement here..."
+                ></textarea>
+              </div>
+
+              <h3 className="text-lg font-medium mb-3">Section 3: Farm Description</h3>
+              <div className="space-y-4 mb-6">
+                <div className="border p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">What will your farm produce?</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    List the main products or services your farm will provide.
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-24" 
+                    placeholder="Write your products/services here..."
+                  ></textarea>
+                </div>
+
+                <div className="border p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Who will be your customers?</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Describe your target market and how you plan to reach them.
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-24" 
+                    placeholder="Describe your customers here..."
+                  ></textarea>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => handleDownload("Farm Vision Worksheet.pdf")}>
+                  Save as PDF
+                </Button>
+                <Button>
+                  Save Progress
+                </Button>
+              </div>
+            </div>
+          </div>
         );
-      
+
       case "goals":
         return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="template">Template</TabsTrigger>
-              <TabsTrigger value="examples">Examples</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">SMART Goal Template</h3>
+              <p className="text-muted-foreground">
+                Create specific, measurable, achievable, relevant, and time-bound goals for your farm business.
+                Well-defined goals will help you track progress and stay motivated.
+              </p>
+            </div>
+
+            <div className="border p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-4">Goal #1</h3>
+              
               <div className="space-y-4">
-                <p>Setting SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound) helps you create a clear roadmap for your farming success.</p>
-                
-                <h3 className="text-lg font-medium">Types of Farm Goals</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li><span className="font-medium">Production Goals:</span> Crop yields, livestock growth, product quality</li>
-                  <li><span className="font-medium">Financial Goals:</span> Revenue targets, profit margins, debt reduction</li>
-                  <li><span className="font-medium">Land & Infrastructure:</span> Soil improvement, equipment acquisition, building projects</li>
-                  <li><span className="font-medium">Marketing & Sales:</span> Customer acquisition, market expansion, branding</li>
-                  <li><span className="font-medium">Personal & Lifestyle:</span> Work hours, skill development, family time</li>
-                </ul>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("template")}>
-                    Continue to Template
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Goals Template.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
+                <div>
+                  <h4 className="font-medium mb-2">S - Specific</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    What exactly do you want to accomplish? Be detailed and clear.
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-20" 
+                    placeholder="Example: Establish a vegetable CSA program with 25 members"
+                  ></textarea>
                 </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="template">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Short-term Goals (1 year)</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Goal Description:</label>
-                      <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="What do you want to accomplish?" />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Specific Measures:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="How will you measure success?" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Timeline:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="By when?" />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Actions Needed:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="What steps will you take?"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Resources Required:</label>
-                      <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="What do you need to accomplish this?" />
-                    </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">M - Measurable</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    How will you know when you've reached this goal? What metrics will you use?
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-20" 
+                    placeholder="Example: Sign up 25 members who each pay $500 for a 20-week CSA share"
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">A - Achievable</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Is this goal realistic given your resources? What do you need to accomplish it?
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-20" 
+                    placeholder="Example: I have 2 acres of growing space and irrigation, and I've calculated that I can produce enough for 25 shares"
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">R - Relevant</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Why is this goal important to your farm vision? How does it align with your values?
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-20" 
+                    placeholder="Example: This goal supports my vision of creating community connections and providing local food access"
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">T - Time-bound</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    When do you plan to achieve this goal? Set a specific deadline.
+                  </p>
+                  <textarea 
+                    className="w-full p-3 border rounded-md h-20" 
+                    placeholder="Example: Have all 25 memberships filled by March 1st for the upcoming growing season"
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <h4 className="font-medium mb-2">Action Steps</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    List 3-5 specific actions needed to accomplish this goal.
+                  </p>
+                  <div className="space-y-2">
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Action 1"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Action 2"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Action 3"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Action 4"
+                    />
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Action 5"
+                    />
                   </div>
-                  
-                  <Button variant="outline" size="sm" className="mt-2">
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    Add Another Short-term Goal
-                  </Button>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="font-medium">Medium-term Goals (1-3 years)</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Goal Description:</label>
-                      <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="What do you want to accomplish?" />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Specific Measures:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="How will you measure success?" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Timeline:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="By when?" />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Actions Needed:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="What steps will you take?"></textarea>
-                    </div>
-                  </div>
-                  
-                  <Button variant="outline" size="sm" className="mt-2">
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    Add Another Medium-term Goal
-                  </Button>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("examples")}>
-                    View Examples
-                  </Button>
-                  <Button onClick={() => handleSave("farm goals")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Goals
-                  </Button>
                 </div>
               </div>
-            </TabsContent>
+            </div>
             
-            <TabsContent value="examples">
-              <div className="space-y-6">
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium">Example: Market Garden Farm</h3>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm font-medium">Short-term Goal (1 year):</p>
-                      <div className="mt-2 pl-4 border-l-2 border-farm-green">
-                        <p className="text-sm"><span className="font-medium">Description:</span> Establish direct sales at two farmers markets</p>
-                        <p className="text-sm"><span className="font-medium">Specific Measures:</span> Generate $1,000 weekly revenue from farmers markets by August</p>
-                        <p className="text-sm"><span className="font-medium">Timeline:</span> Apply by March, begin markets in May</p>
-                        <p className="text-sm"><span className="font-medium">Actions:</span> Apply to markets, create display materials, develop product mix, set pricing strategy</p>
-                        <p className="text-sm"><span className="font-medium">Resources:</span> Market fees ($500), tent and tables ($800), signage and branding ($400)</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm font-medium">Medium-term Goal (2 years):</p>
-                      <div className="mt-2 pl-4 border-l-2 border-farm-green">
-                        <p className="text-sm"><span className="font-medium">Description:</span> Add season extension infrastructure to extend growing season</p>
-                        <p className="text-sm"><span className="font-medium">Specific Measures:</span> Install 2 high tunnels (30'x96') to produce crops 10 months of the year</p>
-                        <p className="text-sm"><span className="font-medium">Timeline:</span> Research and apply for NRCS funding by fall Year 1, install by spring Year 2</p>
-                        <p className="text-sm"><span className="font-medium">Actions:</span> Research designs, apply for NRCS funding, prepare site, contract installation</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardContent className="p-4">
-                    <h3 className="font-medium">Example: Livestock Farm</h3>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm font-medium">Short-term Goal (1 year):</p>
-                      <div className="mt-2 pl-4 border-l-2 border-farm-green">
-                        <p className="text-sm"><span className="font-medium">Description:</span> Implement rotational grazing system</p>
-                        <p className="text-sm"><span className="font-medium">Specific Measures:</span> Convert 20 acres to managed rotational grazing with 10 paddocks</p>
-                        <p className="text-sm"><span className="font-medium">Timeline:</span> Complete by June before summer grazing season</p>
-                        <p className="text-sm"><span className="font-medium">Actions:</span> Design paddock layout, install fencing and water systems, develop rotation schedule</p>
-                        <p className="text-sm"><span className="font-medium">Resources:</span> Fencing materials ($3,000), water system ($1,500), labor (40 hours)</p>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3">
-                      <p className="text-sm font-medium">Medium-term Goal (3 years):</p>
-                      <div className="mt-2 pl-4 border-l-2 border-farm-green">
-                        <p className="text-sm"><span className="font-medium">Description:</span> Develop direct marketing program for grass-finished beef</p>
-                        <p className="text-sm"><span className="font-medium">Specific Measures:</span> Sell 10 grass-finished steers direct to consumer as quarter, half, and whole animals</p>
-                        <p className="text-sm"><span className="font-medium">Timeline:</span> Build customer list Year 1-2, full direct marketing program by Year 3</p>
-                        <p className="text-sm"><span className="font-medium">Actions:</span> Establish relationships with processors, develop pricing structure, create marketing materials</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("template")}>
-                    Return to Template
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Goal Examples.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Examples
-                  </Button>
-                </div>
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => handleResourceClick("Add Another Goal")}>
+                + Add Another Goal
+              </Button>
+              <div className="space-x-2">
+                <Button variant="outline" onClick={() => handleDownload("SMART Goals Template.pdf")}>
+                  Save as PDF
+                </Button>
+                <Button>
+                  Save Progress
+                </Button>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         );
-      
+
       case "inventory":
         return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="land">Land & Natural Resources</TabsTrigger>
-              <TabsTrigger value="equipment">Equipment & Infrastructure</TabsTrigger>
-              <TabsTrigger value="financial">Financial Resources</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <div className="space-y-4">
-                <p>A resource inventory helps you identify what assets you have available and what you'll need to acquire to start your farming operation.</p>
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Farm Resource Inventory</h3>
+              <p className="text-muted-foreground">
+                Document all the resources available for your farm operation. Understanding what you have will 
+                help you identify what you need to acquire and make the most of existing assets.
+              </p>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted p-4">
+                <h3 className="font-medium">Land Resources</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Total Acreage</label>
+                    <input type="text" className="w-full p-2 border rounded-md" placeholder="Example: 5 acres" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Usable Acreage</label>
+                    <input type="text" className="w-full p-2 border rounded-md" placeholder="Example: 3.5 acres" />
+                  </div>
+                </div>
                 
-                <h3 className="text-lg font-medium">Why Create a Resource Inventory?</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Assess what resources you already have access to</li>
-                  <li>Identify resource gaps that need to be addressed</li>
-                  <li>Prioritize resource acquisition based on your farm plan</li>
-                  <li>Create a realistic startup budget and timeline</li>
-                </ul>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Land Features</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: Southern exposure slope, creek running through SE corner, wooded area on north edge"
+                  ></textarea>
+                </div>
                 
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("land")}>
-                    Start Inventory
-                  </Button>
-                  <Button onClick={() => handleDownload("Resource Inventory Template.xlsx")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Soil Type</label>
+                  <input type="text" className="w-full p-2 border rounded-md" placeholder="Example: Sandy loam" />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Current Land Use</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: 1 acre vegetables, 2 acres pasture, 1.5 acres woodland, 0.5 acres infrastructure"
+                  ></textarea>
                 </div>
               </div>
-            </TabsContent>
+            </div>
             
-            <TabsContent value="land">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Land Resources</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Total Acreage:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Number of acres" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Ownership Status:</label>
-                        <select className="w-full mt-1 p-2 border rounded-md">
-                          <option value="">Select status</option>
-                          <option value="own">Own</option>
-                          <option value="lease">Lease</option>
-                          <option value="seeking">Seeking land</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Current Land Use:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Describe the current condition and uses of the land"></textarea>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Soil Type:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Main soil types" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Water Sources:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Wells, ponds, streams, etc." />
-                      </div>
-                    </div>
-                  </div>
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted p-4">
+                <h3 className="font-medium">Infrastructure</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Buildings</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: 30'x40' barn, 12'x16' shed, 20'x80' high tunnel"
+                  ></textarea>
                 </div>
                 
-                <div className="space-y-3">
-                  <h3 className="font-medium">Natural Resources & Features</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Topography:</label>
-                        <select className="w-full mt-1 p-2 border rounded-md">
-                          <option value="">Select primary topography</option>
-                          <option value="flat">Mostly flat</option>
-                          <option value="rolling">Gently rolling</option>
-                          <option value="hilly">Hilly</option>
-                          <option value="mixed">Mixed terrain</option>
-                        </select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Drainage:</label>
-                        <select className="w-full mt-1 p-2 border rounded-md">
-                          <option value="">Select drainage quality</option>
-                          <option value="excellent">Excellent</option>
-                          <option value="good">Good</option>
-                          <option value="fair">Fair</option>
-                          <option value="poor">Poor</option>
-                        </select>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Existing Natural Features:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Woodlots, streams, ponds, wetlands, etc."></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Wildlife Considerations:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Beneficial or problematic wildlife present"></textarea>
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Water Sources</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: Well with 10 gpm flow rate, 2,000 gallon rainwater collection system"
+                  ></textarea>
                 </div>
                 
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("equipment")}>
-                    Next: Equipment
-                  </Button>
-                  <Button onClick={() => handleSave("land inventory")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Land Inventory
-                  </Button>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Fencing</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: 2 acres surrounded by 5' woven wire fence, 1 acre with electric net fencing"
+                  ></textarea>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Utilities</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: 200 amp electrical service to barn, septic system, broadband internet"
+                  ></textarea>
                 </div>
               </div>
-            </TabsContent>
+            </div>
             
-            <TabsContent value="equipment">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Buildings & Infrastructure</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Existing Buildings:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Barns, sheds, greenhouses, etc. Include sizes and conditions"></textarea>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Housing:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Describe available housing" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Storage Facilities:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Storage for equipment, products, etc." />
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Utilities:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Electricity, water, etc." />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Fencing:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Existing fencing and condition" />
-                      </div>
-                    </div>
-                  </div>
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted p-4">
+                <h3 className="font-medium">Equipment & Tools</h3>
+              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Major Equipment</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: 35hp tractor with bucket loader, 6' rotary mower, 4' tiller"
+                  ></textarea>
                 </div>
                 
-                <div className="space-y-3">
-                  <h3 className="font-medium">Equipment & Tools</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Major Equipment Owned:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Tractors, implements, vehicles, etc."></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Hand Tools & Small Equipment:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Hand tools, small machinery, etc."></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Equipment Needed to Acquire:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Equipment you'll need to purchase or rent"></textarea>
-                    </div>
-                  </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Hand Tools</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: 2 broadforks, 4 wheel hoes, assorted hand tools for 2 workers"
+                  ></textarea>
                 </div>
                 
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("financial")}>
-                    Next: Financial Resources
-                  </Button>
-                  <Button onClick={() => handleSave("equipment inventory")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Equipment Inventory
-                  </Button>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Processing Equipment</label>
+                  <textarea 
+                    className="w-full p-2 border rounded-md h-20" 
+                    placeholder="Example: Wash station with 3 sinks, root washer, commercial refrigerator"
+                  ></textarea>
                 </div>
               </div>
-            </TabsContent>
+            </div>
             
-            <TabsContent value="financial">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Financial Resources</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-sm font-medium">Available Startup Capital:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Amount available to invest" />
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium">Monthly Farm Budget:</label>
-                        <input type="text" className="w-full mt-1 p-2 border rounded-md" placeholder="Expected monthly expenses" />
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Other Income Sources:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Off-farm income or other revenue streams"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Potential Funding Sources:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Grants, loans, investors, etc. you plan to pursue"></textarea>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="font-medium">Human Resources</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Available Labor:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Family members, partners, employees available to work"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Skills & Experience:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Relevant skills and experience of the farm team"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Training Needs:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Skills you need to develop or training required"></textarea>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                    Back to Overview
-                  </Button>
-                  <Button onClick={() => handleSave("complete resource inventory")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Complete Inventory
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => handleDownload("Farm Resource Inventory.pdf")}>
+                Save as PDF
+              </Button>
+              <Button>
+                Save Progress
+              </Button>
+            </div>
+          </div>
         );
-      
+
       case "market":
         return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="research">Market Research</TabsTrigger>
-              <TabsTrigger value="channels">Marketing Channels</TabsTrigger>
-              <TabsTrigger value="analysis">Competition Analysis</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <div className="space-y-4">
-                <p>Market research is essential for beginning farmers to identify viable markets, understand customer needs, and develop effective pricing and distribution strategies.</p>
-                
-                <h3 className="text-lg font-medium">Why Conduct Market Research?</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Identify profitable crops/products to grow</li>
-                  <li>Understand local market demand and pricing</li>
-                  <li>Assess competition and find market gaps</li>
-                  <li>Select appropriate marketing channels</li>
-                  <li>Develop informed marketing strategies</li>
-                </ul>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("research")}>
-                    Start Research
-                  </Button>
-                  <Button onClick={() => handleDownload("Market Research Guide.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Guide
-                  </Button>
-                </div>
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Market Research Guide</h3>
+              <p className="text-muted-foreground">
+                Understand your local market and identify opportunities for your farm products. 
+                Thorough market research is essential for developing a viable farm business.
+              </p>
+            </div>
+
+            <div className="border p-4 rounded-lg space-y-4">
+              <h3 className="text-lg font-medium">Local Market Assessment</h3>
+              
+              <div>
+                <h4 className="font-medium mb-2">Target Customer Demographics</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Describe the characteristics of your ideal customers. Consider age, income, values, and location.
+                </p>
+                <textarea 
+                  className="w-full p-3 border rounded-md h-24" 
+                  placeholder="Describe your target customers here..."
+                ></textarea>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="research">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Market Demographics</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Primary Market Area:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Geographic area you plan to serve (cities, counties, radius from farm)"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Target Customer Profile:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Describe your ideal customers (age, income, values, shopping habits)"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Population Data:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Population size, growth trends, income levels in your market area"></textarea>
-                    </div>
-                  </div>
-                </div>
+              
+              <div>
+                <h4 className="font-medium mb-2">Market Channels</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Research and evaluate potential sales channels in your area.
+                </p>
                 
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("channels")}>
-                    Next: Marketing Channels
-                  </Button>
-                  <Button onClick={() => handleSave("market research")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Research
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="channels">
-              <div className="space-y-6">
                 <div className="space-y-3">
-                  <h3 className="font-medium">Marketing Channel Assessment</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="grid grid-cols-1 gap-4">
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <div className="flex items-start">
-                          <input type="checkbox" className="mt-1 mr-2" />
-                          <div>
-                            <label className="text-sm font-medium">Farmers Markets</label>
-                            <p className="text-xs text-muted-foreground mt-1">Local markets where farmers sell directly to consumers</p>
-                            <div className="grid grid-cols-2 gap-2 mt-2">
-                              <div>
-                                <label className="text-xs font-medium">Potential Markets:</label>
-                                <input type="text" className="w-full mt-1 p-1.5 text-sm border rounded-md" placeholder="List potential markets" />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium">Market Days/Hours:</label>
-                                <input type="text" className="w-full mt-1 p-1.5 text-sm border rounded-md" placeholder="Days and times" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
+                  <div className="border p-3 rounded-md">
+                    <h5 className="font-medium">Farmers Markets</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-sm mb-1">Available Markets</label>
+                        <textarea 
+                          className="w-full p-2 border rounded-md h-20" 
+                          placeholder="List markets, locations, and days"
+                        ></textarea>
                       </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <div className="flex items-start">
-                          <input type="checkbox" className="mt-1 mr-2" />
-                          <div>
-                            <label className="text-sm font-medium">Community Supported Agriculture (CSA)</label>
-                            <p className="text-xs text-muted-foreground mt-1">Subscription service where members receive regular shares of produce</p>
-                            <div className="grid grid-cols-2 gap-2 mt-2">
-                              <div>
-                                <label className="text-xs font-medium">Target Members:</label>
-                                <input type="text" className="w-full mt-1 p-1.5 text-sm border rounded-md" placeholder="Number of members" />
-                              </div>
-                              <div>
-                                <label className="text-xs font-medium">Share Price:</label>
-                                <input type="text" className="w-full mt-1 p-1.5 text-sm border rounded-md" placeholder="Estimated share price" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <div className="flex items-start">
-                          <input type="checkbox" className="mt-1 mr-2" />
-                          <div>
-                            <label className="text-sm font-medium">Restaurants & Food Service</label>
-                            <p className="text-xs text-muted-foreground mt-1">Selling directly to restaurants, cafes, caterers, etc.</p>
-                            <div className="mt-2">
-                              <label className="text-xs font-medium">Potential Restaurants:</label>
-                              <textarea className="w-full mt-1 p-1.5 text-sm border rounded-md h-10" placeholder="List potential restaurant clients"></textarea>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <div className="flex items-start">
-                          <input type="checkbox" className="mt-1 mr-2" />
-                          <div>
-                            <label className="text-sm font-medium">Wholesale & Retail</label>
-                            <p className="text-xs text-muted-foreground mt-1">Selling to grocery stores, co-ops, food hubs, distributors</p>
-                            <div className="mt-2">
-                              <label className="text-xs font-medium">Potential Buyers:</label>
-                              <textarea className="w-full mt-1 p-1.5 text-sm border rounded-md h-10" placeholder="List potential wholesale clients"></textarea>
-                            </div>
-                          </div>
-                        </div>
+                      <div>
+                        <label className="block text-sm mb-1">Requirements & Fees</label>
+                        <textarea 
+                          className="w-full p-2 border rounded-md h-20" 
+                          placeholder="Note application processes, costs, etc."
+                        ></textarea>
                       </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("analysis")}>
-                    Next: Competition Analysis
-                  </Button>
-                  <Button onClick={() => handleSave("marketing channels")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Channel Analysis
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="analysis">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Competitor Analysis</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div>
-                      <label className="text-sm font-medium">Local Competitors:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="List other farms and businesses selling similar products in your area"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Competitor Products & Pricing:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Products offered by competitors and their price points"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Market Gaps/Opportunities:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="Identify underserved markets or products not currently available"></textarea>
-                    </div>
-                    
-                    <div>
-                      <label className="text-sm font-medium">Your Competitive Advantage:</label>
-                      <textarea className="w-full mt-1 p-2 border rounded-md h-20" placeholder="What will make your farm/products unique or better than competitors?"></textarea>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                    Back to Overview
-                  </Button>
-                  <Button onClick={() => handleSave("complete market analysis")}>
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    Save Complete Analysis
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
-        );
-      
-      case "business":
-        return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="template">Business Plan Template</TabsTrigger>
-              <TabsTrigger value="outline">Plan Outline</TabsTrigger>
-              <TabsTrigger value="examples">Sample Plans</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <div className="space-y-4">
-                <p>A well-developed business plan is crucial for beginning farmers. It serves as a roadmap for your farm business and is essential when seeking financing or partnerships.</p>
-                
-                <h3 className="text-lg font-medium">Why Create a Business Plan?</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Clarifies your farm business concept and strategy</li>
-                  <li>Required by lenders and grant programs</li>
-                  <li>Identifies potential challenges before they arise</li>
-                  <li>Provides measurable goals and benchmarks</li>
-                  <li>Forces you to think through all aspects of your farm business</li>
-                </ul>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("template")}>
-                    View Template
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Business Plan Template.docx")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="template">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Farm Business Plan Template</h3>
                   
                   <div className="border p-3 rounded-md">
-                    <p className="text-sm">This template provides a comprehensive structure for your farm business plan. Download the complete template or explore each section using the outline tab.</p>
-                    
-                    <div className="mt-4 space-y-4">
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">1. Executive Summary</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Brief overview of your farm business, mission, products, and financial highlights</p>
+                    <h5 className="font-medium">Restaurants & Chefs</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-sm mb-1">Potential Buyers</label>
+                        <textarea 
+                          className="w-full p-2 border rounded-md h-20" 
+                          placeholder="List restaurants interested in local food"
+                        ></textarea>
                       </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">2. Business Description</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Detailed description of your farm, legal structure, location, and history</p>
+                      <div>
+                        <label className="block text-sm mb-1">Product Needs</label>
+                        <textarea 
+                          className="w-full p-2 border rounded-md h-20" 
+                          placeholder="Note specific products, quantities, and quality standards"
+                        ></textarea>
                       </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">3. Products & Services</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Description of what you'll produce, production methods, and unique qualities</p>
+                    </div>
+                  </div>
+                  
+                  <div className="border p-3 rounded-md">
+                    <h5 className="font-medium">CSA (Community Supported Agriculture)</h5>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                      <div>
+                        <label className="block text-sm mb-1">Local Competition</label>
+                        <textarea 
+                          className="w-full p-2 border rounded-md h-20" 
+                          placeholder="List existing CSAs in your area"
+                        ></textarea>
                       </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">4. Market Analysis</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Industry trends, target market, competition, and marketing strategy</p>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">5. Operations Plan</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Production methods, facilities, equipment, supplies, and labor</p>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">6. Management & Organization</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Management team, advisors, organizational structure, and personnel plan</p>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h4 className="font-medium">7. Financial Plan</h4>
-                        <p className="text-xs text-muted-foreground mt-1">Startup costs, operating budget, cash flow projections, break-even analysis</p>
+                      <div>
+                        <label className="block text-sm mb-1">Differentiation Strategy</label>
+                        <textarea 
+                          className="w-full p-2 border rounded-md h-20" 
+                          placeholder="How will your CSA be different or better?"
+                        ></textarea>
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("outline")}>
-                    View Full Outline
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Business Plan Template.docx")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Template
-                  </Button>
-                </div>
               </div>
-            </TabsContent>
+              
+              <div>
+                <h4 className="font-medium mb-2">Competitor Analysis</h4>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Identify farms offering similar products in your area and analyze their strategies.
+                </p>
+                <div className="border p-3 rounded-md">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm mb-1">Competitor Name</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2 border rounded-md" 
+                        placeholder="Farm name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Products Offered</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2 border rounded-md" 
+                        placeholder="What they sell"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Price Points</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2 border rounded-md" 
+                        placeholder="Their pricing"
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <label className="block text-sm mb-1">Strengths & Weaknesses</label>
+                    <textarea 
+                      className="w-full p-2 border rounded-md h-20" 
+                      placeholder="Note what they do well and where there might be opportunities"
+                    ></textarea>
+                  </div>
+                </div>
+                
+                <Button variant="outline" className="mt-3" onClick={() => handleResourceClick("Add Another Competitor")}>
+                  + Add Another Competitor
+                </Button>
+              </div>
+            </div>
             
-            <TabsContent value="outline">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Detailed Business Plan Outline</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div>
-                      <h4 className="font-medium">1. Executive Summary</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Business name and ownership</li>
-                        <li className="text-sm">Mission statement</li>
-                        <li className="text-sm">Brief description of products/services</li>
-                        <li className="text-sm">Overview of market opportunity</li>
-                        <li className="text-sm">Financial highlights and funding needs</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">2. Business Description</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Farm history or startup story</li>
-                        <li className="text-sm">Legal structure (sole proprietorship, LLC, etc.)</li>
-                        <li className="text-sm">Farm location and facilities</li>
-                        <li className="text-sm">Short and long-term goals</li>
-                        <li className="text-sm">Vision for the future</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">3. Products & Services</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Detailed description of products/services</li>
-                        <li className="text-sm">Production methods and practices</li>
-                        <li className="text-sm">Unique selling points or differentiators</li>
-                        <li className="text-sm">Certifications or special standards</li>
-                        <li className="text-sm">Future product development plans</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">4. Market Analysis</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Industry overview and trends</li>
-                        <li className="text-sm">Target market demographics</li>
-                        <li className="text-sm">Competitive analysis</li>
-                        <li className="text-sm">Marketing strategy and channels</li>
-                        <li className="text-sm">Pricing strategy</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">5. Operations Plan</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Production methods and schedule</li>
-                        <li className="text-sm">Facilities and equipment</li>
-                        <li className="text-sm">Supply chain and input sourcing</li>
-                        <li className="text-sm">Quality control processes</li>
-                        <li className="text-sm">Regulatory compliance</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">6. Management & Organization</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Owner/management team qualifications</li>
-                        <li className="text-sm">Personnel plan and labor requirements</li>
-                        <li className="text-sm">Advisory team (mentors, consultants, etc.)</li>
-                        <li className="text-sm">Professional services (accountant, lawyer, etc.)</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">7. Financial Plan</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Startup costs and funding sources</li>
-                        <li className="text-sm">Sales forecasts (3-5 years)</li>
-                        <li className="text-sm">Profit and loss projections</li>
-                        <li className="text-sm">Cash flow analysis</li>
-                        <li className="text-sm">Break-even analysis</li>
-                        <li className="text-sm">Financial assumptions</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h4 className="font-medium">Appendices</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Detailed financial projections</li>
-                        <li className="text-sm">Owner resumes</li>
-                        <li className="text-sm">Farm maps and layouts</li>
-                        <li className="text-sm">Equipment lists</li>
-                        <li className="text-sm">Supporting market research</li>
-                        <li className="text-sm">Letters of support or intent</li>
-                      </ul>
-                    </div>
-                  </div>
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => handleExternalLink("https://www.sba.gov/business-guide/plan-your-business/market-research", "SBA Market Research Guide")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Additional Resources
+              </Button>
+              <div className="space-x-2">
+                <Button variant="outline" onClick={() => handleDownload("Market Research Guide.pdf")}>
+                  Save as PDF
+                </Button>
+                <Button>
+                  Save Progress
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case "business":
+        return (
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Farm Business Plan Template</h3>
+              <p className="text-muted-foreground">
+                A well-constructed business plan serves as a roadmap for your farm business and is essential 
+                for loan applications and grant funding. This template will guide you through creating a comprehensive plan.
+              </p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-4">
+              <div className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full h-auto py-4 flex flex-col items-center justify-center" 
+                  onClick={() => setSelectedTab("overview")}
+                >
+                  <span className="text-base font-medium">Overview</span>
+                  <span className="text-xs text-muted-foreground mt-1">Introduction & Guide</span>
+                </Button>
+              </div>
+              <div className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full h-auto py-4 flex flex-col items-center justify-center" 
+                  onClick={() => setSelectedTab("executive")}
+                >
+                  <span className="text-base font-medium">Executive Summary</span>
+                  <span className="text-xs text-muted-foreground mt-1">Business Overview</span>
+                </Button>
+              </div>
+              <div className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full h-auto py-4 flex flex-col items-center justify-center" 
+                  onClick={() => setSelectedTab("operations")}
+                >
+                  <span className="text-base font-medium">Operations</span>
+                  <span className="text-xs text-muted-foreground mt-1">Production Details</span>
+                </Button>
+              </div>
+              <div className="flex-1">
+                <Button 
+                  variant="outline" 
+                  className="w-full h-auto py-4 flex flex-col items-center justify-center" 
+                  onClick={() => setSelectedTab("financial")}
+                >
+                  <span className="text-base font-medium">Financials</span>
+                  <span className="text-xs text-muted-foreground mt-1">Projections & Analysis</span>
+                </Button>
+              </div>
+            </div>
+
+            {selectedTab === "overview" && (
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="text-lg font-medium">Business Plan Overview</h3>
+                <p className="text-muted-foreground">
+                  This template will guide you through creating a comprehensive farm business plan. 
+                  Each section contains questions and prompts to help you articulate your business strategy.
+                </p>
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">Business Plan Sections</h4>
+                  <ul className="space-y-2 ml-5 list-disc">
+                    <li><span className="font-medium">Executive Summary:</span> Brief overview of your farm business</li>
+                    <li><span className="font-medium">Company Description:</span> Details about your farm and its structure</li>
+                    <li><span className="font-medium">Products & Services:</span> What you'll produce and sell</li>
+                    <li><span className="font-medium">Market Analysis:</span> Research on your target market and competition</li>
+                    <li><span className="font-medium">Marketing Strategy:</span> How you'll reach and retain customers</li>
+                    <li><span className="font-medium">Operations Plan:</span> Production systems and management</li>
+                    <li><span className="font-medium">Financial Projections:</span> Income, expenses, and profit forecasts</li>
+                    <li><span className="font-medium">Funding Request:</span> Capital needs and funding sources</li>
+                    <li><span className="font-medium">Appendix:</span> Supporting documents and research</li>
+                  </ul>
                 </div>
                 
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("examples")}>
-                    View Sample Plans
-                  </Button>
-                  <Button onClick={() => handleDownload("Farm Business Plan Detailed Outline.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Outline
+                <div className="bg-muted p-4 rounded-lg">
+                  <h4 className="font-medium mb-2">How to Use This Template</h4>
+                  <ol className="space-y-2 ml-5 list-decimal">
+                    <li>Work through each section at your own pace, saving your progress as you go</li>
+                    <li>Use the prompts and questions to guide your thinking</li>
+                    <li>Be realistic and specific in your plans and projections</li>
+                    <li>Update your plan regularly as your business evolves</li>
+                    <li>Share your plan with advisors, mentors, or potential funders for feedback</li>
+                  </ol>
+                </div>
+                
+                <div className="flex justify-between items-center">
+                  <Badge variant="outline" className="text-xs px-2 py-1 bg-green-50">
+                    <span className="font-medium">Difficulty:</span> Intermediate
+                  </Badge>
+                  <Badge variant="outline" className="text-xs px-2 py-1 bg-amber-50">
+                    <span className="font-medium">Estimated Time:</span> 8-12 hours
+                  </Badge>
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button 
+                    onClick={() => handleExternalLink("https://www.sba.gov/business-guide/plan-your-business/write-your-business-plan", "SBA Business Plan Guide")}
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Additional Resources
                   </Button>
                 </div>
               </div>
-            </TabsContent>
+            )}
+
+            {selectedTab === "executive" && (
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="text-lg font-medium">Executive Summary</h3>
+                <p className="text-sm text-muted-foreground">
+                  The executive summary provides a concise overview of your entire business plan.
+                  While it appears first, it's usually written last after you've completed the other sections.
+                </p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Business Name</h4>
+                    <input 
+                      type="text" 
+                      className="w-full p-3 border rounded-md" 
+                      placeholder="Your farm name"
+                    />
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Mission Statement</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      A clear, concise statement of your farm's purpose and values.
+                    </p>
+                    <textarea 
+                      className="w-full p-3 border rounded-md h-20" 
+                      placeholder="Example: Green Valley Farm's mission is to produce nutritious, sustainably grown vegetables while building soil health and supporting our local community."
+                    ></textarea>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Business Overview</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Briefly describe your farm business, including products, location, and size.
+                    </p>
+                    <textarea 
+                      className="w-full p-3 border rounded-md h-24" 
+                      placeholder="Example: Green Valley Farm is a 15-acre diversified vegetable farm located in Riverside County. We grow over 30 varieties of certified organic vegetables for direct sale through our CSA program, farmers markets, and restaurant accounts."
+                    ></textarea>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Legal Structure</h4>
+                      <select className="w-full p-3 border rounded-md">
+                        <option value="">Select business structure</option>
+                        <option value="sole_proprietorship">Sole Proprietorship</option>
+                        <option value="partnership">Partnership</option>
+                        <option value="llc">Limited Liability Company (LLC)</option>
+                        <option value="corporation">Corporation</option>
+                        <option value="cooperative">Cooperative</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <h4 className="font-medium mb-2">Years in Operation</h4>
+                      <select className="w-full p-3 border rounded-md">
+                        <option value="">Select years in operation</option>
+                        <option value="startup">Startup (Not yet operating)</option>
+                        <option value="less_than_1">Less than 1 year</option>
+                        <option value="1_3">1-3 years</option>
+                        <option value="4_10">4-10 years</option>
+                        <option value="over_10">Over 10 years</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Owners & Key Personnel</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      List the owners and key team members along with their roles and qualifications.
+                    </p>
+                    <textarea 
+                      className="w-full p-3 border rounded-md h-24" 
+                      placeholder="Example: Jane Smith, Owner/Operator - 5 years farming experience, Certificate in Sustainable Agriculture from State University. John Doe, Sales Manager - 10 years experience in food retail and distribution."
+                    ></textarea>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <Badge variant="outline" className="text-xs px-2 py-1 bg-blue-50">
+                      <span className="font-medium">Status:</span> In Progress
+                    </Badge>
+                    <Badge variant="outline" className="text-xs px-2 py-1 bg-amber-50">
+                      <span className="font-medium">Completion:</span> 0%
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedTab === "operations" && (
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="text-lg font-medium">Operations Plan</h3>
+                <p className="text-sm text-muted-foreground">
+                  The operations plan outlines how your farm will function on a daily basis, 
+                  including production methods, facilities, equipment, and management systems.
+                </p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Production Methods</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Describe your farming approach and production practices.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm mb-1">Production System</label>
+                        <select className="w-full p-2 border rounded-md">
+                          <option value="">Select production system</option>
+                          <option value="conventional">Conventional</option>
+                          <option value="organic">Certified Organic</option>
+                          <option value="organic_transitioning">Transitioning to Organic</option>
+                          <option value="regenerative">Regenerative</option>
+                          <option value="biodynamic">Biodynamic</option>
+                          <option value="permaculture">Permaculture</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-1">Production Scale</label>
+                        <select className="w-full p-2 border rounded-md">
+                          <option value="">Select scale</option>
+                          <option value="home">Home/Garden (under 1/4 acre)</option>
+                          <option value="market_garden">Market Garden (1/4 - 3 acres)</option>
+                          <option value="small_farm">Small Farm (3-30 acres)</option>
+                          <option value="mid_size">Mid-size Farm (30-500 acres)</option>
+                          <option value="large">Large Farm (500+ acres)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <label className="block text-sm mb-1">Key Production Practices</label>
+                      <textarea 
+                        className="w-full p-2 border rounded-md h-24" 
+                        placeholder="Describe your key production practices (e.g., crop rotation, cover cropping, pest management, irrigation methods, etc.)"
+                      ></textarea>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Land & Facilities</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm mb-1">Land Access</label>
+                        <select className="w-full p-2 border rounded-md">
+                          <option value="">Select land status</option>
+                          <option value="own">Own</option>
+                          <option value="lease_long">Long-term Lease (5+ years)</option>
+                          <option value="lease_short">Short-term Lease (1-4 years)</option>
+                          <option value="seeking">Seeking Land</option>
+                          <option value="other">Other Arrangement</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm mb-1">Total Land Area</label>
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Total acres or hectares"
+                        />
+                      </div>
+                    </div>
+                    <div className="mt-2">
+                      <label className="block text-sm mb-1">Buildings & Infrastructure</label>
+                      <textarea 
+                        className="w-full p-2 border rounded-md h-24" 
+                        placeholder="Describe existing buildings, storage facilities, wash/pack areas, greenhouses, irrigation systems, etc."
+                      ></textarea>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Equipment & Technology</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      List major equipment needed for your operation.
+                    </p>
+                    <div className="border p-2 rounded-md">
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="font-medium text-sm">Equipment Item</div>
+                        <div className="font-medium text-sm">Owned/Needed</div>
+                        <div className="font-medium text-sm">Estimated Cost</div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Item name"
+                        />
+                        <select className="w-full p-2 border rounded-md">
+                          <option value="owned">Already Own</option>
+                          <option value="need_immediate">Need Immediately</option>
+                          <option value="need_future">Future Need</option>
+                          <option value="rent">Will Rent/Borrow</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                      </div>
+                    </div>
+                    <Button variant="outline" className="mt-2" onClick={() => handleResourceClick("Add Equipment Item")}>
+                      + Add Equipment Item
+                    </Button>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <Badge variant="outline" className="text-xs px-2 py-1 bg-blue-50">
+                      <span className="font-medium">Status:</span> Not Started
+                    </Badge>
+                    <Badge variant="outline" className="text-xs px-2 py-1 bg-amber-50">
+                      <span className="font-medium">Completion:</span> 0%
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {selectedTab === "financial" && (
+              <div className="space-y-4 border p-4 rounded-lg">
+                <h3 className="text-lg font-medium">Financial Projections</h3>
+                <p className="text-sm text-muted-foreground">
+                  Create realistic financial projections for your farm business. These will help you 
+                  assess viability, secure funding, and track performance over time.
+                </p>
+                
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Startup Costs</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Estimate one-time expenses needed to start your farm business.
+                    </p>
+                    <div className="border p-2 rounded-md">
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <div className="font-medium text-sm">Cost Item</div>
+                        <div className="font-medium text-sm">Amount</div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Land acquisition/lease"
+                        />
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Equipment purchase"
+                        />
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Infrastructure/buildings"
+                        />
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                      </div>
+                    </div>
+                    <Button variant="outline" className="mt-2" onClick={() => handleResourceClick("Add Cost Item")}>
+                      + Add Cost Item
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Revenue Projections</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Estimate your sales revenue by product category.
+                    </p>
+                    <div className="border p-2 rounded-md">
+                      <div className="grid grid-cols-4 gap-2 mb-2">
+                        <div className="font-medium text-sm">Product</div>
+                        <div className="font-medium text-sm">Unit Price</div>
+                        <div className="font-medium text-sm">Annual Units</div>
+                        <div className="font-medium text-sm">Annual Revenue</div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 mb-2">
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Product name"
+                        />
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Quantity"
+                        />
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                      </div>
+                    </div>
+                    <Button variant="outline" className="mt-2" onClick={() => handleResourceClick("Add Product")}>
+                      + Add Product
+                    </Button>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Operating Expenses</h4>
+                    <p className="text-xs text-muted-foreground mb-1">
+                      Estimate your recurring monthly or annual expenses.
+                    </p>
+                    <div className="border p-2 rounded-md">
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <div className="font-medium text-sm">Expense Item</div>
+                        <div className="font-medium text-sm">Frequency</div>
+                        <div className="font-medium text-sm">Amount</div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 mb-2">
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="Seeds/plants"
+                        />
+                        <select className="w-full p-2 border rounded-md">
+                          <option value="monthly">Monthly</option>
+                          <option value="quarterly">Quarterly</option>
+                          <option value="annually">Annually</option>
+                          <option value="seasonal">Seasonal</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          className="w-full p-2 border rounded-md" 
+                          placeholder="$"
+                        />
+                      </div>
+                    </div>
+                    <Button variant="outline" className="mt-2" onClick={() => handleResourceClick("Add Expense Item")}>
+                      + Add Expense Item
+                    </Button>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <Badge variant="outline" className="text-xs px-2 py-1 bg-blue-50">
+                      <span className="font-medium">Status:</span> Not Started
+                    </Badge>
+                    <Badge variant="outline" className="text-xs px-2 py-1">
+                      <span className="font-medium">Template Type:</span> Basic
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            )}
             
-            <TabsContent value="examples">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Sample Business Plans</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Market Garden Farm Plan</h4>
-                          <p className="text-xs text-muted-foreground mt-1">5-acre diversified vegetable farm with direct-to-consumer sales</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleDownload("Sample Market Garden Business Plan.pdf")}>
-                          <Download className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Small Livestock Operation</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Pastured pork and poultry farm with diversified marketing channels</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleDownload("Sample Livestock Business Plan.pdf")}>
-                          <Download className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Value-Added Dairy</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Goat dairy with cheese and soap production</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleDownload("Sample Dairy Business Plan.pdf")}>
-                          <Download className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Specialty Crop Farm</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Organic medicinal herb production with value-added products</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleDownload("Sample Specialty Crop Business Plan.pdf")}>
-                          <Download className="h-3 w-3 mr-1" />
-                          Download
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="font-medium">Business Plan Resources</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-3">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">AgPlan (University of Minnesota)</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Free online business plan creator with agricultural focus</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://agplan.umn.edu", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Building a Sustainable Business (SARE)</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Comprehensive guide to farm business planning</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.sare.org/resources/building-a-sustainable-business/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Farm Business Planning Workshops</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Find local workshops through Extension offices</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => handleResourceClick("training")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Workshops
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                    Back to Overview
-                  </Button>
-                  <Button onClick={() => handleDownload("Complete Business Plan Package.zip")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download All Resources
-                  </Button>
-                </div>
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => handleExternalLink("https://www.sba.gov/business-guide/plan-your-business/write-your-business-plan", "SBA Business Plan Guide")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Additional Resources
+              </Button>
+              <div className="space-x-2">
+                <Button variant="outline" onClick={() => handleDownload("Farm Business Plan Template.pdf")}>
+                  Save as PDF
+                </Button>
+                <Button>
+                  Save Progress
+                </Button>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         );
 
       case "calculator":
-        return <FarmFinancialCalculator />;
-      
+        return (
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Farm Financial Calculator</h3>
+              <p className="text-muted-foreground">
+                Use this tool to estimate startup costs, operational expenses, and potential revenue 
+                for your farm business. Accurate financial projections are essential for planning and securing funding.
+              </p>
+            </div>
+
+            <div>
+              <h3 className="text-base font-medium mb-4">Enterprise Profitability Calculator</h3>
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-muted p-4">
+                  <h4 className="font-medium">Step 1: Define Your Enterprise</h4>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Enterprise Name</label>
+                      <input 
+                        type="text" 
+                        className="w-full p-2 border rounded-md" 
+                        placeholder="Example: Tomato Production"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-1">Production Area</label>
+                      <div className="flex">
+                        <input 
+                          type="number" 
+                          className="w-full p-2 border rounded-l-md" 
+                          placeholder="Area size"
+                        />
+                        <select className="p-2 border border-l-0 rounded-r-md">
+                          <option value="acres">Acres</option>
+                          <option value="hectares">Hectares</option>
+                          <option value="sq_ft">Square Feet</option>
+                          <option value="rows">Rows</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Enterprise Description</label>
+                    <textarea 
+                      className="w-full p-2 border rounded-md h-20" 
+                      placeholder="Brief description of this enterprise"
+                    ></textarea>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden mt-4">
+                <div className="bg-muted p-4">
+                  <h4 className="font-medium">Step 2: Revenue Projections</h4>
+                </div>
+                <div className="p-4">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Product</th>
+                          <th className="text-left p-2">Unit Type</th>
+                          <th className="text-left p-2">Price per Unit</th>
+                          <th className="text-left p-2">Expected Yield</th>
+                          <th className="text-left p-2">Total Revenue</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-1 border rounded-md" 
+                              placeholder="Product name"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <select className="w-full p-1 border rounded-md">
+                              <option value="lb">lb</option>
+                              <option value="kg">kg</option>
+                              <option value="bushel">bushel</option>
+                              <option value="box">box</option>
+                              <option value="each">each</option>
+                              <option value="bunch">bunch</option>
+                            </select>
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md" 
+                                placeholder="0.00"
+                              />
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <input 
+                              type="number" 
+                              className="w-full p-1 border rounded-md" 
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md bg-muted/30" 
+                                placeholder="0.00"
+                                readOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t font-medium">
+                          <td colSpan={4} className="p-2 text-right">Total Projected Revenue:</td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md bg-muted/30 font-medium" 
+                                placeholder="0.00"
+                                readOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <Button variant="outline" className="mt-3" onClick={() => handleResourceClick("Add Product Line")}>
+                    + Add Product Line
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden mt-4">
+                <div className="bg-muted p-4">
+                  <h4 className="font-medium">Step 3: Variable Costs</h4>
+                </div>
+                <div className="p-4">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Cost Item</th>
+                          <th className="text-left p-2">Category</th>
+                          <th className="text-left p-2">Unit</th>
+                          <th className="text-left p-2">Quantity</th>
+                          <th className="text-left p-2">Cost per Unit</th>
+                          <th className="text-left p-2">Total Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-1 border rounded-md" 
+                              placeholder="Item name"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <select className="w-full p-1 border rounded-md">
+                              <option value="">Select category</option>
+                              <option value="seeds">Seeds/Plants</option>
+                              <option value="fertilizer">Fertilizer</option>
+                              <option value="pesticide">Pest Control</option>
+                              <option value="labor">Labor</option>
+                              <option value="fuel">Fuel</option>
+                              <option value="irrigation">Irrigation</option>
+                              <option value="other">Other</option>
+                            </select>
+                          </td>
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-1 border rounded-md" 
+                              placeholder="Unit type"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input 
+                              type="number" 
+                              className="w-full p-1 border rounded-md" 
+                              placeholder="0"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md" 
+                                placeholder="0.00"
+                              />
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md bg-muted/30" 
+                                placeholder="0.00"
+                                readOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t font-medium">
+                          <td colSpan={5} className="p-2 text-right">Total Variable Costs:</td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md bg-muted/30 font-medium" 
+                                placeholder="0.00"
+                                readOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <Button variant="outline" className="mt-3" onClick={() => handleResourceClick("Add Cost Item")}>
+                    + Add Cost Item
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden mt-4">
+                <div className="bg-muted p-4">
+                  <h4 className="font-medium">Step 4: Fixed Costs (Pro-rated for this enterprise)</h4>
+                </div>
+                <div className="p-4">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-2">Fixed Cost Item</th>
+                          <th className="text-left p-2">Annual Cost</th>
+                          <th className="text-left p-2">% Allocated to Enterprise</th>
+                          <th className="text-left p-2">Enterprise Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-2">
+                            <input 
+                              type="text" 
+                              className="w-full p-1 border rounded-md" 
+                              placeholder="Example: Equipment depreciation"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md" 
+                                placeholder="0.00"
+                              />
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-l-md" 
+                                placeholder="0"
+                              />
+                              <span className="inline-flex items-center px-2 border border-l-0 rounded-r-md bg-muted">%</span>
+                            </div>
+                          </td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md bg-muted/30" 
+                                placeholder="0.00"
+                                readOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t font-medium">
+                          <td colSpan={3} className="p-2 text-right">Total Fixed Costs:</td>
+                          <td className="p-2">
+                            <div className="flex">
+                              <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                              <input 
+                                type="number" 
+                                className="w-full p-1 border rounded-r-md bg-muted/30 font-medium" 
+                                placeholder="0.00"
+                                readOnly
+                              />
+                            </div>
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                  <Button variant="outline" className="mt-3" onClick={() => handleResourceClick("Add Fixed Cost")}>
+                    + Add Fixed Cost
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="border rounded-lg overflow-hidden mt-4">
+                <div className="bg-muted p-4">
+                  <h4 className="font-medium">Step 5: Profitability Summary</h4>
+                </div>
+                <div className="p-4">
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-right font-medium">Total Revenue:</div>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-r-md bg-muted/30" 
+                          placeholder="0.00"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-right font-medium">Total Variable Costs:</div>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-r-md bg-muted/30" 
+                          placeholder="0.00"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-right font-medium">Gross Margin:</div>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-r-md bg-muted/30" 
+                          placeholder="0.00"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-right font-medium">Total Fixed Costs:</div>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-r-md bg-muted/30" 
+                          placeholder="0.00"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 border-t pt-2">
+                      <div className="text-right font-medium">Net Profit:</div>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-r-md bg-green-50 font-medium" 
+                          placeholder="0.00"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-right font-medium">Profit Margin:</div>
+                      <div className="flex">
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-l-md bg-green-50 font-medium" 
+                          placeholder="0"
+                          readOnly
+                        />
+                        <span className="inline-flex items-center px-2 border border-l-0 rounded-r-md bg-muted">%</span>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="text-right font-medium">Break-even Price:</div>
+                      <div className="flex">
+                        <span className="inline-flex items-center px-2 border border-r-0 rounded-l-md bg-muted">$</span>
+                        <input 
+                          type="number" 
+                          className="w-full p-1 border rounded-r-md bg-muted/30" 
+                          placeholder="0.00"
+                          readOnly
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => handleExternalLink("https://farmanswers.org/farm-calculator", "More Farm Calculators")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Additional Calculators
+              </Button>
+              <div className="space-x-2">
+                <Button variant="outline" onClick={() => handleDownload("Enterprise Budget.xlsx")}>
+                  Export to Excel
+                </Button>
+                <Button onClick={() => handleResourceClick("Calculate Results")}>
+                  Calculate
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
       case "training":
         return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="courses">Online Courses</TabsTrigger>
-              <TabsTrigger value="workshops">Workshops & Trainings</TabsTrigger>
-              <TabsTrigger value="resources">Free Resources</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <div className="space-y-4">
-                <p>Building your knowledge and skills is an essential part of successful farming. This guide helps you find high-quality educational resources for beginning farmers.</p>
-                
-                <h3 className="text-lg font-medium">Training Categories</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
-                  <Card className="border">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-farm-green" />
-                        Production Skills
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-1">Crop/livestock production, soil health, pest management</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium flex items-center">
-                        <Calculator className="h-4 w-4 mr-2 text-farm-green" />
-                        Business Management
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-1">Finances, marketing, legal considerations, planning</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium flex items-center">
-                        <LineChart className="h-4 w-4 mr-2 text-farm-green" />
-                        Marketing & Sales
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-1">Building markets, customer relationships, branding</p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="border">
-                    <CardContent className="p-4">
-                      <h4 className="font-medium flex items-center">
-                        <Users className="h-4 w-4 mr-2 text-farm-green" />
-                        Farm Labor & Management
-                      </h4>
-                      <p className="text-sm text-muted-foreground mt-1">Hiring, training, and managing farm workers</p>
-                    </CardContent>
-                  </Card>
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Training Resources for Beginning Farmers</h3>
+              <p className="text-muted-foreground">
+                Continuous learning is essential for successful farming. These curated resources will help you 
+                build your knowledge and skills in various aspects of farm management and production.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-muted p-4">
+                  <h3 className="font-medium">Online Courses</h3>
                 </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("courses")}>
-                    Explore Online Courses
-                  </Button>
-                  <Button onClick={() => handleDownload("Training Resources Guide.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Guide
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="courses">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Featured Online Courses</h3>
+                <div className="p-4 space-y-4">
+                  <div className="border-b pb-3">
+                    <h4 className="font-medium">Beginning Farmer Certificate Program</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Comprehensive online course covering the fundamentals of sustainable farming.
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <div>
+                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Free</Badge>
+                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 ml-2">Self-paced</Badge>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://extension.org/courses", "Extension Courses")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Access Course
+                      </Button>
+                    </div>
+                  </div>
                   
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Beginning Farmer and Rancher Course</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Cornell Small Farms Program - Comprehensive training for new farmers</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">Self-paced</Badge>
-                            <Badge variant="outline" className="text-xs">$200-$300</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://smallfarms.cornell.edu/online-courses/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
+                  <div className="border-b pb-3">
+                    <h4 className="font-medium">Soil Health Management</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Learn to build and maintain healthy soil through organic matter management, crop rotation, and more.
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <div>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-200">$49</Badge>
+                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 ml-2">8 modules</Badge>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://soilfirst.org/courses", "Soil Health Course")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Access Course
+                      </Button>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Farm Business Course</h4>
-                          <p className="text-xs text-muted-foreground mt-1">New Entry Sustainable Farming Project - Business planning for small-scale farming</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">Instructor-led</Badge>
-                            <Badge variant="outline" className="text-xs">$150-$400</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://nesfp.org/farmer-training/farm-business-training", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
+                  </div>
+                  
+                  <div className="border-b pb-3">
+                    <h4 className="font-medium">Farm Business Planning</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Develop a comprehensive business plan, understand financial management, and marketing strategies.
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <div>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-200">$75</Badge>
+                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 ml-2">6 weeks</Badge>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://farmcommons.org/courses", "Farm Business Course")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Access Course
+                      </Button>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Organic Farming Certificate Program</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Michigan State University - Comprehensive training in organic farming methods</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">9-month program</Badge>
-                            <Badge variant="outline" className="text-xs">$2,000+</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.canr.msu.edu/organicfarmingcertificate/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium">Crop Production Techniques</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Practical methods for vegetable, fruit, and specialty crop production for small to mid-scale farms.
+                    </p>
+                    <div className="flex justify-between items-center mt-2">
+                      <div>
+                        <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Free</Badge>
+                        <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 ml-2">12 modules</Badge>
                       </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Livestock Production Courses</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Extension Foundation - Species-specific livestock production training</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">Self-paced</Badge>
-                            <Badge variant="outline" className="text-xs">Free-$50</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://extension.org/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://crops.extension.org", "Crop Production Course")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Access Course
+                      </Button>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("workshops")}>
-                    View Workshops
-                  </Button>
-                  <Button variant="outline" onClick={() => handleDownload("Online Course Catalog.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Course Guide
-                  </Button>
-                </div>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="workshops">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">In-Person Training Opportunities</h3>
+              
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-muted p-4">
+                  <h3 className="font-medium">Workshops & Field Days</h3>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div className="border-b pb-3">
+                    <h4 className="font-medium">Beginning Farmer Field Day</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Hands-on learning experiences at established farms with demonstrations of equipment and techniques.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div>
+                        <span className="text-xs text-muted-foreground">Date:</span>
+                        <p className="text-sm">June 15, 2023</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground">Location:</span>
+                        <p className="text-sm">Various Locations</p>
+                      </div>
+                    </div>
+                    <div className="flex justify-end mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://beginning.farmextension.org/events", "Field Day Events")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Find Events
+                      </Button>
+                    </div>
+                  </div>
                   
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">NCAT/ATTRA Beginning Farmer Workshops</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Hands-on workshops covering sustainable farming practices</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">Various locations</Badge>
-                            <Badge variant="outline" className="text-xs">1-2 days</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://attra.ncat.org/events/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Workshops
-                        </Button>
+                  <div className="border-b pb-3">
+                    <h4 className="font-medium">Farm Financial Management Workshop</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Interactive workshop on bookkeeping, financial analysis, and budgeting for farm businesses.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div>
+                        <span className="text-xs text-muted-foreground">Format:</span>
+                        <p className="text-sm">In-person & Virtual</p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground">Duration:</span>
+                        <p className="text-sm">One day (8 hours)</p>
                       </div>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Cooperative Extension Workshops</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Local training provided by county Extension offices</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">County-based</Badge>
-                            <Badge variant="outline" className="text-xs">Low cost</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.farmers.gov/working-with-us/service-center-locator", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Local Office
-                        </Button>
-                      </div>
+                    <div className="flex justify-end mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleExternalLink("https://farmfinance.org/workshops", "Finance Workshops")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Register
+                      </Button>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Beginning Farmer Incubator Programs</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Land access and mentoring for startup farm businesses</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">1-3 years</Badge>
-                            <Badge variant="outline" className="text-xs">Applications required</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://nesfp.org/resources/incubator-farm-projects", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Programs
-                        </Button>
-                      </div>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium">Farmer-to-Farmer Learning Network</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Join a peer learning community where farmers share knowledge, successes, and challenges.
+                    </p>
+                    <div className="mt-2">
+                      <span className="text-xs text-muted-foreground">Benefits:</span>
+                      <ul className="text-sm ml-5 list-disc">
+                        <li>Monthly virtual meetings</li>
+                        <li>Quarterly farm tours</li>
+                        <li>Online forum access</li>
+                        <li>Resource sharing library</li>
+                      </ul>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Farm Conferences</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Annual agricultural conferences with workshops and networking</p>
-                          <div className="flex gap-2 mt-2">
-                            <Badge variant="outline" className="text-xs">Seasonal</Badge>
-                            <Badge variant="outline" className="text-xs">Registration fees vary</Badge>
-                          </div>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.farmaid.org/our-work/resources-for-farmers/farm-resources/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Conferences
-                        </Button>
-                      </div>
+                    <div className="flex justify-end mt-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://farmnetwork.org/join", "Learning Network")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Join Network
+                      </Button>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("resources")}>
-                    View Free Resources
-                  </Button>
-                  <Button variant="outline" onClick={() => handleDownload("Workshop Calendar.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Calendar
-                  </Button>
-                </div>
               </div>
-            </TabsContent>
+            </div>
             
-            <TabsContent value="resources">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Free Learning Resources</h3>
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted p-4">
+                <h3 className="font-medium">Recommended Reading</h3>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="border rounded-md p-3">
+                    <h4 className="font-medium">The Market Gardener</h4>
+                    <p className="text-xs text-muted-foreground">by Jean-Martin Fortier</p>
+                    <p className="text-sm mt-2">
+                      A practical guide to small-scale organic farming with detailed information on crop planning, 
+                      tools, and techniques for profitable market gardens.
+                    </p>
+                    <div className="flex justify-end mt-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://www.themarketgardener.com/book", "Market Gardener Book")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Learn More
+                      </Button>
+                    </div>
+                  </div>
                   
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">ATTRA - National Sustainable Agriculture</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Comprehensive library of farming publications, videos, and tutorials</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://attra.ncat.org/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
+                  <div className="border rounded-md p-3">
+                    <h4 className="font-medium">Farming While Black</h4>
+                    <p className="text-xs text-muted-foreground">by Leah Penniman</p>
+                    <p className="text-sm mt-2">
+                      Essential guide to liberation and land stewardship for farmers of color, 
+                      with practical information on sustainable farming techniques.
+                    </p>
+                    <div className="flex justify-end mt-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://www.farmingwhileblack.org", "Farming While Black Book")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Learn More
+                      </Button>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">SARE Learning Center</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Sustainable Agriculture Research & Education resources and guides</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.sare.org/resources/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">eXtension - Farming Resources</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Research-based information from Cooperative Extension System</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://extension.org/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">USDA New Farmers Resources</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Government resources for beginning farmers, including funding programs</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://newfarmers.usda.gov/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Farmer to Farmer Videos</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Practical demonstrations from experienced farmers</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.youtube.com/user/soildoctorvideos/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Watch
-                        </Button>
-                      </div>
+                  </div>
+                  
+                  <div className="border rounded-md p-3">
+                    <h4 className="font-medium">The Lean Farm</h4>
+                    <p className="text-xs text-muted-foreground">by Ben Hartman</p>
+                    <p className="text-sm mt-2">
+                      How to minimize waste, increase efficiency, and maximize value and profits 
+                      with less work on small-scale farms.
+                    </p>
+                    <div className="flex justify-end mt-3">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleExternalLink("https://www.chelseagreen.com/product/the-lean-farm", "Lean Farm Book")}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-2" />
+                        Learn More
+                      </Button>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                    Back to Overview
-                  </Button>
-                  <Button onClick={() => handleDownload("Beginning Farmer Resource Library.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Resource List
-                  </Button>
-                </div>
               </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+            
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => handleExternalLink("https://www.farmers.gov/your-business/beginning-farmers", "USDA Beginning Farmer Resources")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Explore All Training Resources
+              </Button>
+            </div>
+          </div>
         );
-      
+
       case "mentor":
         return (
-          <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="programs">Mentorship Programs</TabsTrigger>
-              <TabsTrigger value="connect">How to Connect</TabsTrigger>
-              <TabsTrigger value="questions">Questions to Ask</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="overview">
-              <div className="space-y-4">
-                <p>Finding an experienced mentor is one of the most valuable steps you can take as a beginning farmer. A good mentor provides practical knowledge, helps you avoid costly mistakes, and offers guidance specific to your situation.</p>
-                
-                <h3 className="text-lg font-medium">Benefits of Farm Mentorship</h3>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Access to real-world farming experience and practical knowledge</li>
-                  <li>Opportunity to learn region-specific farming practices</li>
-                  <li>Guidance on challenging decisions and problem-solving</li>
-                  <li>Introduction to local farming networks and resources</li>
-                  <li>Emotional support and encouragement from someone who understands</li>
-                </ul>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("programs")}>
-                    Find Mentorship Programs
-                  </Button>
-                  <Button onClick={() => handleDownload("Mentorship Guide.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Guide
-                  </Button>
-                </div>
+          <div className="space-y-6">
+            <div className="bg-muted/30 p-4 rounded-lg">
+              <h3 className="text-lg font-medium mb-2">Find a Mentor</h3>
+              <p className="text-muted-foreground">
+                Connecting with experienced farmers can significantly shorten your learning curve and 
+                help you avoid common mistakes. Complete your profile to get matched with mentors who 
+                align with your farming interests and goals.
+              </p>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted p-4 flex justify-between items-center">
+                <h3 className="font-medium">Your Mentorship Profile</h3>
+                <Badge variant="outline" className="bg-amber-50 text-amber-800">
+                  Step 1 of 3
+                </Badge>
               </div>
-            </TabsContent>
-            
-            <TabsContent value="programs">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Formal Mentorship Programs</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Beginning Farmer & Rancher Development Program</h4>
-                          <p className="text-xs text-muted-foreground mt-1">USDA-funded mentorship programs operating across the country</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://nifa.usda.gov/grants/programs/beginning-farmer-rancher-development-program-bfrdp", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <h4 className="font-medium mb-2">Your Farming Interests</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Select the farming types you're interested in pursuing or learning more about.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="veg" className="rounded border-gray-300" />
+                      <label htmlFor="veg" className="text-sm">Vegetable Production</label>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Apprenticeship Programs</h4>
-                          <p className="text-xs text-muted-foreground mt-1">On-farm learning opportunities with structured mentorship</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://attra.ncat.org/internships/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Programs
-                        </Button>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="fruit" className="rounded border-gray-300" />
+                      <label htmlFor="fruit" className="text-sm">Fruit & Berry Production</label>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">State Beginning Farmer Programs</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Many states offer specific mentorship programs for new farmers</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://www.beginningfarmers.org/beginning-farmer-training-programs/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Find Programs
-                        </Button>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="livestock" className="rounded border-gray-300" />
+                      <label htmlFor="livestock" className="text-sm">Livestock & Dairy</label>
                     </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h4 className="font-medium">Farmer Veteran Coalition Mentorship</h4>
-                          <p className="text-xs text-muted-foreground mt-1">Connecting military veterans with experienced farmer mentors</p>
-                        </div>
-                        <Button size="sm" variant="outline" onClick={() => window.open("https://farmvetco.org/", "_blank")}>
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Visit
-                        </Button>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="poultry" className="rounded border-gray-300" />
+                      <label htmlFor="poultry" className="text-sm">Poultry & Eggs</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="herbs" className="rounded border-gray-300" />
+                      <label htmlFor="herbs" className="text-sm">Herbs & Medicinals</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="flowers" className="rounded border-gray-300" />
+                      <label htmlFor="flowers" className="text-sm">Cut Flowers</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="grains" className="rounded border-gray-300" />
+                      <label htmlFor="grains" className="text-sm">Grain & Field Crops</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="specialty" className="rounded border-gray-300" />
+                      <label htmlFor="specialty" className="text-sm">Specialty Crops</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="value" className="rounded border-gray-300" />
+                      <label htmlFor="value" className="text-sm">Value-Added Products</label>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("connect")}>
-                    How to Connect
-                  </Button>
-                  <Button onClick={() => handleDownload("Mentorship Programs Directory.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Directory
-                  </Button>
+
+                <div>
+                  <h4 className="font-medium mb-2">Production Practices</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Which farming approaches are you most interested in learning?
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="organic" className="rounded border-gray-300" />
+                      <label htmlFor="organic" className="text-sm">Certified Organic</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="conventional" className="rounded border-gray-300" />
+                      <label htmlFor="conventional" className="text-sm">Conventional</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="regenerative" className="rounded border-gray-300" />
+                      <label htmlFor="regenerative" className="text-sm">Regenerative</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="biodynamic" className="rounded border-gray-300" />
+                      <label htmlFor="biodynamic" className="text-sm">Biodynamic</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="permaculture" className="rounded border-gray-300" />
+                      <label htmlFor="permaculture" className="text-sm">Permaculture</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="checkbox" id="hydroponics" className="rounded border-gray-300" />
+                      <label htmlFor="hydroponics" className="text-sm">Hydroponics/Aquaponics</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Farm Size</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    What scale of farming are you planning or currently operating?
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="micro" name="size" className="rounded-full border-gray-300" />
+                      <label htmlFor="micro" className="text-sm">Micro (Under 1 acre)</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="small" name="size" className="rounded-full border-gray-300" />
+                      <label htmlFor="small" className="text-sm">Small (1-10 acres)</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="medium" name="size" className="rounded-full border-gray-300" />
+                      <label htmlFor="medium" className="text-sm">Medium (10-50 acres)</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="large" name="size" className="rounded-full border-gray-300" />
+                      <label htmlFor="large" className="text-sm">Large (50+ acres)</label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input type="radio" id="undecided" name="size" className="rounded-full border-gray-300" />
+                      <label htmlFor="undecided" className="text-sm">Still Deciding</label>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Your Location</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    We'll try to match you with mentors in your region or climate zone.
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm mb-1">State/Province</label>
+                      <input type="text" className="w-full p-2 border rounded-md" placeholder="Enter your state or province" />
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Country</label>
+                      <input type="text" className="w-full p-2 border rounded-md" placeholder="Enter your country" />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">About You</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Help potential mentors understand your background and goals.
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm mb-1">Farming Experience Level</label>
+                      <select className="w-full p-2 border rounded-md">
+                        <option value="">Select your experience level</option>
+                        <option value="none">No prior experience</option>
+                        <option value="hobby">Hobby gardener/farmer</option>
+                        <option value="apprentice">Farm apprentice or employee</option>
+                        <option value="beginner">Beginning farmer (0-3 years)</option>
+                        <option value="established">Established farmer (3+ years)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">Your Farming Goals</label>
+                      <textarea 
+                        className="w-full p-2 border rounded-md h-24" 
+                        placeholder="Briefly describe what you hope to achieve with your farm..."
+                      ></textarea>
+                    </div>
+                    <div>
+                      <label className="block text-sm mb-1">What You're Seeking in a Mentor</label>
+                      <textarea 
+                        className="w-full p-2 border rounded-md h-24" 
+                        placeholder="What kind of guidance are you looking for? Any specific skills or knowledge areas?"
+                      ></textarea>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </TabsContent>
+              <div className="bg-muted/30 p-4 flex justify-end">
+                <Button onClick={() => handleResourceClick("Find Mentors")}>
+                  Continue to Step 2
+                </Button>
+              </div>
+            </div>
+
+            <div className="border rounded-lg overflow-hidden">
+              <div className="bg-muted p-4">
+                <h3 className="font-medium">How the Mentorship Program Works</h3>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="text-center">
+                    <div className="h-12 w-12 rounded-full bg-farm-green/10 flex items-center justify-center mx-auto mb-3">
+                      <Users className="h-6 w-6 text-farm-green" />
+                    </div>
+                    <h4 className="font-medium">1. Complete Your Profile</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Tell us about your farming interests, goals, and what you're looking for in a mentor.
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="h-12 w-12 rounded-full bg-farm-green/10 flex items-center justify-center mx-auto mb-3">
+                      <Users className="h-6 w-6 text-farm-green" />
+                    </div>
+                    <h4 className="font-medium">2. Get Matched</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      We'll suggest potential mentors based on your profile and preferences.
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <div className="h-12 w-12 rounded-full bg-farm-green/10 flex items-center justify-center mx-auto mb-3">
+                      <Users className="h-6 w-6 text-farm-green" />
+                    </div>
+                    <h4 className="font-medium">3. Connect & Learn</h4>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Start connecting with your mentor through visits, calls, or online meetings.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
             
-            <TabsContent value="connect">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Finding a Mentor</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-4">
-                    <h4 className="font-medium">Where to Look</h4>
-                    <ul className="list-disc pl-5 space-y-2">
-                      <li className="text-sm">Local farming organizations and associations</li>
-                      <li className="text-sm">Farmers markets (talk to vendors with similar operations)</li>
-                      <li className="text-sm">County Extension offices (ask for recommendations)</li>
-                      <li className="text-sm">Sustainable farming conferences and workshops</li>
-                      <li className="text-sm">Online farming forums and social media groups</li>
-                      <li className="text-sm">Farm supply stores (ask staff for recommendations)</li>
-                    </ul>
-                    
-                    <h4 className="font-medium mt-4">Approaching Potential Mentors</h4>
-                    <ol className="list-decimal pl-5 space-y-2">
-                      <li className="text-sm">Do your homework - learn about their farm before approaching them</li>
-                      <li className="text-sm">Be specific about what you're looking for in a mentorship</li>
-                      <li className="text-sm">Respect their time - offer to help on their farm in exchange for knowledge</li>
-                      <li className="text-sm">Start with a specific question or challenge rather than asking for general help</li>
-                      <li className="text-sm">Be open about your experience level and what you're hoping to learn</li>
-                    </ol>
-                    
-                    <h4 className="font-medium mt-4">Formal vs. Informal Mentorship</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h5 className="text-sm font-medium">Formal Programs</h5>
-                        <ul className="list-disc pl-4 mt-2 space-y-1">
-                          <li className="text-xs">Structured curriculum or learning plan</li>
-                          <li className="text-xs">Regular scheduled meetings or work sessions</li>
-                          <li className="text-xs">Often includes specific training components</li>
-                          <li className="text-xs">May include stipends or educational credits</li>
-                        </ul>
-                      </div>
-                      
-                      <div className="p-3 bg-gray-50 rounded-md">
-                        <h5 className="text-sm font-medium">Informal Relationships</h5>
-                        <ul className="list-disc pl-4 mt-2 space-y-1">
-                          <li className="text-xs">Flexible and adaptable to both parties' needs</li>
-                          <li className="text-xs">Based on questions and specific challenges</li>
-                          <li className="text-xs">Can be as simple as occasional farm visits</li>
-                          <li className="text-xs">Often develops organically through community</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("questions")}>
-                    Questions to Ask
-                  </Button>
-                  <Button onClick={() => handleDownload("Finding a Mentor Guide.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Guide
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="questions">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <h3 className="font-medium">Questions to Ask a Potential Mentor</h3>
-                  
-                  <div className="border p-3 rounded-md space-y-4">
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <h4 className="font-medium">Getting Started Questions</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">What do you wish you had known when you started farming?</li>
-                        <li className="text-sm">What were your biggest mistakes early on?</li>
-                        <li className="text-sm">If you were starting again today, what would you do differently?</li>
-                        <li className="text-sm">What resources were most helpful to you when starting out?</li>
-                        <li className="text-sm">How did you decide what scale was right for your operation?</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <h4 className="font-medium">Production Questions</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">What are the most challenging crops/animals to raise in this region?</li>
-                        <li className="text-sm">How do you handle [specific pest or disease] in this area?</li>
-                        <li className="text-sm">What equipment has been most valuable for your operation?</li>
-                        <li className="text-sm">How do you manage your soil fertility?</li>
-                        <li className="text-sm">What's your approach to [specific production practice]?</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <h4 className="font-medium">Business Questions</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">Which marketing channels have worked best for you?</li>
-                        <li className="text-sm">How do you determine your pricing?</li>
-                        <li className="text-sm">What record-keeping systems do you use?</li>
-                        <li className="text-sm">How do you manage cash flow throughout the season?</li>
-                        <li className="text-sm">What unexpected expenses should I be prepared for?</li>
-                      </ul>
-                    </div>
-                    
-                    <div className="p-3 bg-gray-50 rounded-md">
-                      <h4 className="font-medium">Mentorship-Specific Questions</h4>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li className="text-sm">What kind of mentorship relationship would work for you?</li>
-                        <li className="text-sm">How often would you be comfortable meeting or talking?</li>
-                        <li className="text-sm">Are there specific ways I could help on your farm in exchange for knowledge?</li>
-                        <li className="text-sm">Do you prefer to communicate by phone, email, or in-person visits?</li>
-                        <li className="text-sm">Are there other beginning farmers you're currently mentoring?</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <h3 className="font-medium">Making the Most of Mentorship</h3>
-                  
-                  <div className="border p-3 rounded-md">
-                    <ol className="list-decimal pl-5 space-y-2">
-                      <li className="text-sm">Come prepared with specific questions for each interaction</li>
-                      <li className="text-sm">Take notes during conversations and farm visits</li>
-                      <li className="text-sm">Follow up on advice given and report back on results</li>
-                      <li className="text-sm">Respect boundaries and time limits</li>
-                      <li className="text-sm">Express gratitude regularly</li>
-                      <li className="text-sm">Look for ways to give back or pay it forward</li>
-                      <li className="text-sm">Apply what you learn and be willing to adapt</li>
-                    </ol>
-                  </div>
-                </div>
-                
-                <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab("overview")}>
-                    Back to Overview
-                  </Button>
-                  <Button onClick={() => handleDownload("Mentor Questions Guide.pdf")}>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download Questions Guide
-                  </Button>
-                </div>
-              </div>
-            </TabsContent>
-          </Tabs>
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={() => handleExternalLink("https://beginningfarmers.org/mentorship-programs/", "Mentorship Programs")}
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                External Mentorship Programs
+              </Button>
+              <Button variant="default" onClick={() => handleResourceClick("Find Mentors")}>
+                Find a Mentor
+              </Button>
+            </div>
+          </div>
         );
-      
+
       default:
         return (
-          <div className="p-6">
-            <h3 className="text-xl font-medium mb-4">Resource Content</h3>
-            <p>Select a resource from the Structured Guidance tab to view detailed content.</p>
+          <div className="p-4">
+            <h3 className="text-lg font-medium">Resource Content</h3>
+            <p className="text-muted-foreground">
+              Viewing: {content.title}
+            </p>
+            <div className="mt-4">
+              <p>Detailed content for {content.title} will be displayed here.</p>
+            </div>
           </div>
         );
     }
@@ -1745,11 +2040,14 @@ export function ResourceContentModal({ isOpen, onClose, content }: ResourceConte
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle>{content.title}</DialogTitle>
+          <DialogDescription>
+            Interactive resource to help you with your farming journey
+          </DialogDescription>
         </DialogHeader>
         
         <ScrollArea className="h-[calc(100vh-220px)]">
           <div className="p-4">
-            {getModalContent()}
+            {renderContent()}
           </div>
         </ScrollArea>
       </DialogContent>
