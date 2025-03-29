@@ -264,7 +264,7 @@ export function PestDiseaseModule() {
                         <ul className="text-sm space-y-2">
                           <li className="flex items-start">
                             <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs mr-2 mt-0.5">1</div>
-                            <div>High humidity (>75%) increases fungal disease risk</div>
+                            <div>High humidity ({'>'}75%) increases fungal disease risk</div>
                           </li>
                           <li className="flex items-start">
                             <div className="h-5 w-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs mr-2 mt-0.5">2</div>
