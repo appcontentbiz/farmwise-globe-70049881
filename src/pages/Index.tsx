@@ -1,4 +1,3 @@
-
 import { FarmSidebar } from "@/components/FarmSidebar";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FarmMap } from "@/components/dashboard/FarmMap";
@@ -24,7 +23,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClimateModule } from "@/components/modules/ClimateModule";
 import { EconomicModule } from "@/components/modules/EconomicModule";
-import { useLocation } from "react-router-dom";
+import { TechModule } from "@/components/modules/TechModule";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
 
 const farmModules = [
   {
@@ -100,6 +101,20 @@ const farmModules = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleModuleClick = (path: string, available: boolean) => {
+    if (available) {
+      navigate(path);
+    } else {
+      toast({
+        title: "Module Coming Soon",
+        description: "This module is under development. You can still use the Tech module to test tracking features.",
+      });
+    }
+  };
+
   return (
     <div className="p-6 animate-fade-in">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
@@ -197,7 +212,7 @@ const Dashboard = () => {
               <Button 
                 variant={module.available ? "default" : "outline"} 
                 className="w-full"
-                disabled={!module.available}
+                onClick={() => handleModuleClick(module.path, module.available)}
               >
                 {module.available ? "Open Module" : "Coming Soon"}
               </Button>
@@ -226,6 +241,7 @@ const Index = () => {
       {path === "/" && <Dashboard />}
       {path === "/climate" && <ClimateModule />}
       {path === "/economic" && <EconomicModule />}
+      {path === "/tech" && <TechModule />}
     </FarmSidebar>
   );
 };

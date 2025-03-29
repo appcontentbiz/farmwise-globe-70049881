@@ -4,6 +4,7 @@ import { BarChart, Cloud, Droplets, Leaf, Thermometer, Wind } from "lucide-react
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { TrackingInterface } from "./TrackingInterface";
 import { 
   LineChart, 
   Line, 
@@ -310,6 +311,9 @@ export function ClimateModule() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Add the new tracking interface */}
+      <TrackingInterface moduleName="Climate & Sustainability" />
     </div>
   );
 }

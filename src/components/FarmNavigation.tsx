@@ -1,4 +1,3 @@
-
 import { Link, useLocation } from "react-router-dom";
 import {
   NavigationMenu,
@@ -54,7 +53,7 @@ export const farmModules: FarmModule[] = [
     path: "/tech",
     icon: Microscope,
     description: "Implement and track technological innovations",
-    available: false
+    available: true
   },
   {
     name: "Pest & Disease",

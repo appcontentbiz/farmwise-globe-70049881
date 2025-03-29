@@ -1,68 +1,12 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  BarChart as BarChartIcon, 
-  Coins, 
-  DollarSign, 
-  Download, 
-  LineChart as LineChartIcon, 
-  RefreshCw, 
-  Share, 
-  Truck 
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Banknote, CreditCard, TrendingUp } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  LineChart, 
-  Line, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  Legend, 
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell
-} from "recharts";
-
-const marketPriceData = [
-  { month: 'Jan', corn: 5.2, wheat: 6.1, soybeans: 12.1 },
-  { month: 'Feb', corn: 5.4, wheat: 6.3, soybeans: 12.3 },
-  { month: 'Mar', corn: 5.3, wheat: 6.2, soybeans: 12.2 },
-  { month: 'Apr', corn: 5.5, wheat: 6.4, soybeans: 12.4 },
-  { month: 'May', corn: 5.7, wheat: 6.5, soybeans: 12.6 },
-  { month: 'Jun', corn: 5.8, wheat: 6.6, soybeans: 12.8 },
-  { month: 'Jul', corn: 5.6, wheat: 6.5, soybeans: 12.7 },
-];
-
-const expenseData = [
-  { name: 'Seeds', value: 25 },
-  { name: 'Fertilizer', value: 20 },
-  { name: 'Labor', value: 18 },
-  { name: 'Equipment', value: 15 },
-  { name: 'Fuel', value: 12 },
-  { name: 'Other', value: 10 },
-];
-
-const COLORS = ['#4CAF50', '#8CCF8E', '#A1887F', '#42A5F5', '#FBC02D', '#90CAF9'];
-
-const profitData = [
-  { month: 'Jan', revenue: 32000, expenses: 24000, profit: 8000 },
-  { month: 'Feb', revenue: 34000, expenses: 25000, profit: 9000 },
-  { month: 'Mar', revenue: 31000, expenses: 23000, profit: 8000 },
-  { month: 'Apr', revenue: 36000, expenses: 26000, profit: 10000 },
-  { month: 'May', revenue: 38000, expenses: 27000, profit: 11000 },
-  { month: 'Jun', revenue: 42000, expenses: 29000, profit: 13000 },
-  { month: 'Jul', revenue: 40000, expenses: 28000, profit: 12000 },
-];
+import { TrackingInterface } from "./TrackingInterface";
 
 export function EconomicModule() {
   return (
     <div className="p-6 space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="farm-module-card col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="farm-module-card-title">
@@ -370,6 +314,8 @@ export function EconomicModule() {
           </CardContent>
         </Card>
       </div>
+      
+      <TrackingInterface moduleName="Economic & Market" />
     </div>
   );
 }
