@@ -6,16 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Apple, 
-  Carrot, 
-  CloudRain, 
   ExternalLink, 
-  Leaf, 
   Share2, 
-  Sprout, 
-  Sun, 
-  Tractor, 
-  Wheat 
+  Sprout 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { farmingTypesData } from "./data/farmingTypesData";

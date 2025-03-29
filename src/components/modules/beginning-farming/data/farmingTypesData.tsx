@@ -9,12 +9,12 @@ import {
   Tractor, 
   Wheat 
 } from "lucide-react";
-import { ReactNode } from "react";
+import React from "react";
 
 interface FarmingTypeData {
   id: string;
   title: string;
-  icon: ReactNode;
+  icon: JSX.Element;
   description: string;
   expertise: number;
   initialCost: number;
