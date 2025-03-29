@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 import React from "react";
 
-interface FarmingTypeData {
+// Ensure this interface matches the one in FarmingTypes.tsx
+export interface FarmingTypeData {
   id: string;
   title: string;
   icon: JSX.Element;

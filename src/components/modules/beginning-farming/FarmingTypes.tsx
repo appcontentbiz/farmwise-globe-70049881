@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { farmingTypesData } from "./data/farmingTypesData";
 
+// Making sure the interface is the same as the one in farmingTypesData.tsx
 interface FarmingTypeData {
   id: string;
   title: string;
