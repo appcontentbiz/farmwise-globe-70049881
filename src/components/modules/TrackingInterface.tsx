@@ -1,8 +1,8 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ChevronLeft, ChevronRight, Clock, Plus, Save } from "lucide-react";
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Clock, Plus, Save } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,6 +14,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface TrackingEvent {
   id: string;
@@ -21,6 +29,8 @@ interface TrackingEvent {
   date: string;
   notes: string;
   category: "past" | "present" | "future";
+  type?: string;
+  progress?: number;
 }
 
 export function TrackingInterface({ moduleName }: { moduleName: string }) {
@@ -33,14 +43,17 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
         title: "Started tracking",
         date: new Date().toISOString().split('T')[0],
         notes: "Initial setup of tracking for this module",
-        category: "present"
+        category: "present",
+        type: "learning"
       }
     ];
   });
   const [newEvent, setNewEvent] = useState({
     title: "",
     date: new Date().toISOString().split('T')[0],
-    notes: ""
+    notes: "",
+    type: "activity",
+    progress: 0
   });
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const { toast } = useToast();
@@ -72,7 +85,9 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
     setNewEvent({
       title: "",
       date: new Date().toISOString().split('T')[0],
-      notes: ""
+      notes: "",
+      type: "activity",
+      progress: 0
     });
     
     setIsAddingEvent(false);
@@ -92,6 +107,19 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
       title: "Event Removed",
       description: "The tracking event has been removed",
     });
+  };
+
+  const eventTypeOptions = [
+    { value: "activity", label: "Daily Activity" },
+    { value: "learning", label: "Educational Progress" },
+    { value: "goal", label: "Goal Setting" },
+    { value: "note", label: "General Note" },
+    { value: "milestone", label: "Achievement" }
+  ];
+
+  const getTypeLabel = (type: string) => {
+    const option = eventTypeOptions.find(opt => opt.value === type);
+    return option?.label || type;
   };
 
   return (
@@ -128,9 +156,8 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
                     <label htmlFor="event-title" className="text-sm font-medium mb-1 block">
                       Event Title
                     </label>
-                    <input
+                    <Input
                       id="event-title"
-                      className="w-full px-3 py-2 border rounded-md text-sm"
                       placeholder="Enter event title"
                       value={newEvent.title}
                       onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
@@ -138,20 +165,65 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
                   </div>
                   
                   <div>
+                    <label htmlFor="event-type" className="text-sm font-medium mb-1 block">
+                      Event Type
+                    </label>
+                    <Select 
+                      value={newEvent.type} 
+                      onValueChange={(value) => setNewEvent({...newEvent, type: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {eventTypeOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
                     <label htmlFor="event-date" className="text-sm font-medium mb-1 block">
                       Date
                     </label>
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                      <input
+                      <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <Input
                         id="event-date"
                         type="date"
-                        className="px-3 py-2 border rounded-md text-sm"
                         value={newEvent.date}
                         onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
                       />
                     </div>
                   </div>
+                  
+                  {(newEvent.type === "learning" || newEvent.type === "goal") && (
+                    <div>
+                      <label htmlFor="event-progress" className="text-sm font-medium mb-1 block">
+                        Progress (%)
+                      </label>
+                      <Input
+                        id="event-progress"
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={newEvent.progress}
+                        onChange={(e) => setNewEvent({
+                          ...newEvent, 
+                          progress: Math.max(0, Math.min(100, parseInt(e.target.value) || 0))
+                        })}
+                      />
+                      <div className="w-full bg-muted/20 rounded-full h-2 mt-2">
+                        <div 
+                          className="bg-farm-green h-2 rounded-full" 
+                          style={{ width: `${newEvent.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
                   
                   <div>
                     <label htmlFor="event-notes" className="text-sm font-medium mb-1 block">
@@ -191,6 +263,7 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Event</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -205,7 +278,22 @@ export function TrackingInterface({ moduleName }: { moduleName: string }) {
                               {event.notes}
                             </div>
                           )}
+                          {(event.type === "learning" || event.type === "goal") && event.progress !== undefined && (
+                            <div className="mt-2">
+                              <div className="flex justify-between text-xs mb-1">
+                                <span>Progress</span>
+                                <span>{event.progress}%</span>
+                              </div>
+                              <div className="w-full bg-muted/20 rounded-full h-1.5">
+                                <div 
+                                  className="bg-farm-green h-1.5 rounded-full" 
+                                  style={{ width: `${event.progress}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          )}
                         </TableCell>
+                        <TableCell>{event.type ? getTypeLabel(event.type) : "General"}</TableCell>
                         <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <Button 

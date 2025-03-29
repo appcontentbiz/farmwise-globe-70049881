@@ -13,6 +13,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GuidanceContent } from "./beginning-farming/GuidanceContent";
 import { ResourcesContent } from "./beginning-farming/ResourcesContent";
 import { ChecklistContent } from "./beginning-farming/ChecklistContent";
+import { FarmingCalendar } from "./beginning-farming/FarmingCalendar";
+import { ProgressCharts } from "./beginning-farming/ProgressCharts";
 
 export function BeginningFarmingModule() {
   return (
@@ -150,6 +152,12 @@ export function BeginningFarmingModule() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Add Calendar Component */}
+      <FarmingCalendar />
+      
+      {/* Add Progress Charts Component */}
+      <ProgressCharts />
       
       <PredictiveInsights moduleName="Beginning Farming" />
       
