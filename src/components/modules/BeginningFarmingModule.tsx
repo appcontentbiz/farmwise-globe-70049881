@@ -15,6 +15,7 @@ import { ResourcesContent } from "./beginning-farming/ResourcesContent";
 import { ChecklistContent } from "./beginning-farming/ChecklistContent";
 import { FarmingCalendar } from "./beginning-farming/FarmingCalendar";
 import { ProgressCharts } from "./beginning-farming/ProgressCharts";
+import { FarmingTypes } from "./beginning-farming/FarmingTypes";
 
 export function BeginningFarmingModule() {
   return (
@@ -152,6 +153,9 @@ export function BeginningFarmingModule() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Add Farming Types Component */}
+      <FarmingTypes />
       
       {/* Add Calendar Component */}
       <FarmingCalendar />
