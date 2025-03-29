@@ -22,7 +22,8 @@ import {
   Sprout, 
   Tractor, 
   User2, 
-  Users 
+  Users,
+  Brain 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -82,6 +83,13 @@ export const farmModules: FarmModule[] = [
     path: "/health",
     icon: User2,
     description: "Farmer health education and tracking",
+    available: true
+  },
+  {
+    name: "AI Assistant",
+    path: "/assistant",
+    icon: Brain,
+    description: "Ask farming questions and get AI-powered help",
     available: true
   },
   {

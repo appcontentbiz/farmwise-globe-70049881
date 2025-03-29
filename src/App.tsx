@@ -43,6 +43,7 @@ const App = () => {
                 <Route path="/beginning" element={<Index />} />
                 <Route path="/types" element={<Index />} />
                 <Route path="/health" element={<Index />} />
+                <Route path="/assistant" element={<Index />} />
               </Route>
               
               {/* Catch-all route */}

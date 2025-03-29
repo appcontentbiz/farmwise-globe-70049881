@@ -7,6 +7,7 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { 
   Activity, 
   AlertCircle,
+  Brain,
   Bug, 
   Cloud, 
   Coins, 
@@ -29,10 +30,18 @@ import { PestDiseaseModule } from "@/components/modules/PestDiseaseModule";
 import { BeginningFarmingModule } from "@/components/modules/BeginningFarmingModule";
 import { FarmingTypesModule } from "@/components/modules/FarmingTypesModule";
 import { HealthInsightsModule } from "@/components/modules/HealthInsightsModule";
+import { AIAssistantModule } from "@/components/modules/AIAssistantModule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
 const farmModules = [
+  {
+    name: "Dashboard",
+    description: "Farm overview and key metrics",
+    icon: Leaf,
+    path: "/",
+    available: true
+  },
   {
     name: "Climate & Sustainability",
     description: "Track environmental impact and sustainable farming practices",
@@ -80,6 +89,13 @@ const farmModules = [
     description: "Farmer health education and tracking",
     icon: User2,
     path: "/health",
+    available: true
+  },
+  {
+    name: "AI Assistant",
+    description: "Ask farming questions and get AI-powered help",
+    icon: Brain,
+    path: "/assistant",
     available: true
   },
   {
@@ -251,6 +267,7 @@ const Index = () => {
       {path === "/beginning" && <BeginningFarmingModule />}
       {path === "/types" && <FarmingTypesModule />}
       {path === "/health" && <HealthInsightsModule />}
+      {path === "/assistant" && <AIAssistantModule />}
     </FarmSidebar>
   );
 };
