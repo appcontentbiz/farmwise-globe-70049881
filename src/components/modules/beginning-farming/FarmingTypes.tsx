@@ -48,6 +48,30 @@ export function FarmingTypes() {
     setShowDialog(true);
   };
 
+  // New function to handle resource links
+  const handleResourceClick = (url?: string, title?: string) => {
+    if (url) {
+      // Verify URL is valid before opening
+      try {
+        // Check if URL has proper protocol
+        const urlToOpen = url.startsWith('http') ? url : `https://${url}`;
+        // Open in new tab
+        window.open(urlToOpen, '_blank', 'noopener,noreferrer');
+      } catch (error) {
+        toast({
+          title: "Link Error",
+          description: `The link for "${title || 'resource'}" appears to be invalid.`,
+          variant: "destructive"
+        });
+      }
+    } else {
+      toast({
+        title: "Resource Unavailable",
+        description: "This resource doesn't have an accessible link yet.",
+      });
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6 mt-6">
       <Card className="farm-module-card">
@@ -177,12 +201,17 @@ export function FarmingTypes() {
                               <p className="text-xs text-muted-foreground mt-1">{resource.description}</p>
                             </div>
                             {resource.url && (
-                              <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                                <Button variant="outline" size="sm">
-                                  <ExternalLink className="h-3 w-3 mr-1" />
-                                  Access
-                                </Button>
-                              </a>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleResourceClick(resource.url, resource.title);
+                                }}
+                              >
+                                <ExternalLink className="h-3 w-3 mr-1" />
+                                Access
+                              </Button>
                             )}
                           </div>
                         </div>
