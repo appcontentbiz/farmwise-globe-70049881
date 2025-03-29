@@ -5,8 +5,8 @@
 [build]
   # Directory to publish (output of the build)
   publish = "dist"
-  # Build command that explicitly installs Vite before building
-  command = "npm ci && npm i -D vite && npm run build"
+  # Build command that explicitly installs dependencies and builds the app
+  command = "npm ci && npm run build"
   # Base directory (where your package.json is located)
   base = "/"
 
@@ -20,6 +20,8 @@
   NODE_ENV = "production"
   # Specify Node version to avoid compatibility issues
   NODE_VERSION = "18"
+  # Set CI to false to avoid treating warnings as errors
+  CI = "false"
 
 # Handle SPA routing
 [[redirects]]
