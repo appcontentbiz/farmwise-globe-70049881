@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, initializeSupabaseSchema } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
@@ -51,6 +51,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const hasHandledRedirect = handleAuthRedirects();
     if (hasHandledRedirect) return;
+
+    // Initialize Supabase schema
+    initializeSupabaseSchema();
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);

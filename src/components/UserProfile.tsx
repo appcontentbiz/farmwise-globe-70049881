@@ -12,6 +12,7 @@ import {
 } from "./ui/dropdown-menu";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface FarmProfile {
   farm_name: string;
@@ -30,16 +31,55 @@ export function UserProfile() {
   
   const fetchFarmProfile = async () => {
     try {
+      // First check if the farms table exists
+      const { data: tableExists, error: tableError } = await supabase
+        .from('farms')
+        .select('count(*)', { count: 'exact', head: true });
+        
+      if (tableError) {
+        console.error('Error checking farms table:', tableError);
+        return;
+      }
+      
+      // Fetch the farm profile
       const { data, error } = await supabase
         .from('farms')
         .select('farm_name, created_at')
-        .eq('user_id', user?.id)
-        .single();
+        .eq('user_id', user?.id);
         
-      if (error) throw error;
-      setFarmProfile(data);
+      if (error) {
+        console.error('Error fetching farm profile:', error);
+        return;
+      }
+      
+      // If we have farm data, use the first entry
+      if (data && data.length > 0) {
+        setFarmProfile(data[0]);
+      } else {
+        // Create a default farm profile if none exists
+        if (user) {
+          const defaultFarmName = `Farm_${user.email?.split('@')[0] || 'Default'}`;
+          const { error: insertError } = await supabase
+            .from('farms')
+            .insert([{ 
+              user_id: user.id, 
+              farm_name: defaultFarmName,
+              created_at: new Date().toISOString() 
+            }]);
+            
+          if (insertError) {
+            console.error('Error creating default farm profile:', insertError);
+          } else {
+            setFarmProfile({
+              farm_name: defaultFarmName,
+              created_at: new Date().toISOString()
+            });
+            toast.success("Default farm profile created");
+          }
+        }
+      }
     } catch (error) {
-      console.error('Error fetching farm profile:', error);
+      console.error('Error in farm profile handling:', error);
     }
   };
   
