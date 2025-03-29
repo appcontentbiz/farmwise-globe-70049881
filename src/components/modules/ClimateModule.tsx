@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Cloud, Droplets, Leaf, Thermometer, Wind } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -312,7 +311,10 @@ export function ClimateModule() {
         </Card>
       </div>
       
-      {/* Add the new tracking interface */}
+      {/* Add the predictive insights component */}
+      <PredictiveInsights moduleName="Climate & Sustainability" />
+      
+      {/* Keep the existing tracking interface */}
       <TrackingInterface moduleName="Climate & Sustainability" />
     </div>
   );

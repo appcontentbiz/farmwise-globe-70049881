@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Microscope, Lightbulb, Cpu } from "lucide-react";
 import { TrackingInterface } from "./TrackingInterface";
+import { PredictiveInsights } from "./PredictiveInsights";
 
 export function TechModule() {
   return (
@@ -48,6 +49,9 @@ export function TechModule() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Add the predictive insights component */}
+      <PredictiveInsights moduleName="Tech & Innovation" />
       
       <TrackingInterface moduleName="Tech & Innovation" />
     </div>

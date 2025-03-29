@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   AlertCircle, 
@@ -30,12 +29,10 @@ import {
   ResponsiveContainer 
 } from "recharts";
 
-// Define missing icons
 const Coins = Banknote;
 const LineChartIcon = TrendingUp;
 const BarChartIcon = TrendingUp;
 
-// Define sample data for charts
 const marketPriceData = [
   { month: 'Jan', corn: 4.2, wheat: 5.1, soybeans: 12.5 },
   { month: 'Feb', corn: 4.3, wheat: 5.3, soybeans: 12.8 },
@@ -377,7 +374,9 @@ export function EconomicModule() {
         </Card>
       </div>
       
-      <TrackingInterface moduleName="Economic & Market" />
+      <PredictiveInsights moduleName="Economic & Markets" />
+      
+      <TrackingInterface moduleName="Economic & Markets" />
     </div>
   );
 }
