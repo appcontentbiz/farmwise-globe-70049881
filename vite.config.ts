@@ -20,4 +20,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Force commonjs modules for Netlify compatibility
+  build: {
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
+  },
 }));
