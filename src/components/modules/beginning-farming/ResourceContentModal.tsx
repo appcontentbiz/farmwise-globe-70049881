@@ -11,6 +11,7 @@ import { Download, ExternalLink } from "lucide-react";
 import { FarmResource, downloadResource } from "./utils/guidanceResources";
 import ReactMarkdown from 'react-markdown';
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ResourceContentModalProps {
   resource: FarmResource | null;
@@ -23,6 +24,8 @@ export function ResourceContentModal({
   isOpen, 
   onClose 
 }: ResourceContentModalProps) {
+  const isMobile = useIsMobile();
+  
   if (!resource) return null;
   
   const handleDownload = () => {
@@ -37,7 +40,7 @@ export function ResourceContentModal({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
+      <DialogContent className={`${isMobile ? 'max-w-[95vw]' : 'max-w-4xl'} max-h-[85vh] flex flex-col`}>
         <DialogHeader>
           <DialogTitle>{resource.title}</DialogTitle>
           <DialogDescription>{resource.description}</DialogDescription>

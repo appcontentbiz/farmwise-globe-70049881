@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -19,7 +18,8 @@ import {
   CloudRain,
   Wheat,
   Download,
-  Share2
+  Share2,
+  ExternalLink
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -48,7 +48,7 @@ import {
 } from "@/components/ui/drawer"
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FarmingTypeDetail {
   id: string;
@@ -85,7 +85,7 @@ export function FarmingTypes() {
   const [selectedResource, setSelectedResource] = useState<any>(null);
   const [showCompare, setShowCompare] = useState(false);
   const [compareTypes, setCompareTypes] = useState<string[]>([]);
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const { toast } = useToast();
 
   // Load saved user data from localStorage on component mount
