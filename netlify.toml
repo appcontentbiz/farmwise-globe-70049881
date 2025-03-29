@@ -6,7 +6,7 @@
   # Directory to publish (output of the build)
   publish = "dist"
   # Build command with explicit dependency installation and npx for running vite
-  command = "npm ci && npm install vite@latest @vitejs/plugin-react-swc && npx vite build"
+  command = "npm ci && npm install vite@5.4.10 @vitejs/plugin-react-swc && npx vite build"
   # Base directory (where your package.json is located)
   base = "/"
 
