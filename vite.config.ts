@@ -6,7 +6,7 @@ import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: '/', // Ensures assets are loaded correctly in production
+  base: '/', 
   server: {
     host: "::",
     port: 8080,
@@ -20,17 +20,12 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Build configuration 
+  // Build configuration optimized for GitHub
   build: {
-    commonjsOptions: {
-      transformMixedEsModules: true,
-    },
-    outDir: 'dist', // Specify output directory for build
-    minify: true, // Use default minification instead of explicitly requiring terser
-    sourcemap: false, // Disable sourcemaps in production for smaller build
+    outDir: 'dist',
+    minify: true,
+    sourcemap: mode === 'development',
   },
-  // Ensure environment variables are properly loaded by defining explicit prefixes
-  envPrefix: ['VITE_', 'REACT_APP_'],
   // Define environment variables to ensure they're available during build
   define: {
     'process.env.REACT_APP_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || 'https://phdxahmpqvobbrqqjbut.supabase.co'),
