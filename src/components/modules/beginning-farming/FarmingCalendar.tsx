@@ -118,20 +118,20 @@ export function FarmingCalendar() {
             onSelect={(newDate) => newDate && setDate(newDate)}
             className="pointer-events-auto"
             components={{
-              DayContent: ({ day }) => (
+              DayContent: (props) => (
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="ghost" className="h-9 w-9 p-0 font-normal">
                       <div className="flex flex-col items-center justify-center">
-                        <span>{format(day, "d")}</span>
-                        {renderDay(day)}
+                        <span>{format(props.date, "d")}</span>
+                        {renderDay(props.date)}
                       </div>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-80 p-3" align="center">
                     <div className="space-y-2">
-                      <div className="font-medium">{format(day, "MMMM d, yyyy")}</div>
-                      {getDayEventsContent(day)}
+                      <div className="font-medium">{format(props.date, "MMMM d, yyyy")}</div>
+                      {getDayEventsContent(props.date)}
                     </div>
                   </PopoverContent>
                 </Popover>

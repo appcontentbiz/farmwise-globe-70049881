@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Chart as ChartIcon, 
   BarChart as BarChartIcon, 
   LineChart as LineChartIcon, 
-  PieChart as PieChartIcon 
+  PieChart as PieChartIcon,
+  BarChart3 
 } from "lucide-react";
 import { format, subDays, isAfter, startOfDay } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -103,8 +103,8 @@ export function ProgressCharts() {
       date: format(new Date(date), "MMM dd"),
       progress: Math.round(data.total / data.count)
     })).sort((a, b) => {
-      const dateA = new Date(date = a.date);
-      const dateB = new Date(date = b.date);
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
       return dateA.getTime() - dateB.getTime();
     });
   };
@@ -147,7 +147,7 @@ export function ProgressCharts() {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-xl">
-          <ChartIcon className="h-5 w-5 text-farm-green" />
+          <BarChart3 className="h-5 w-5 text-farm-green" />
           Farming Progress Insights
         </CardTitle>
       </CardHeader>
