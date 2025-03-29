@@ -35,22 +35,24 @@ export function HealthInsightsModule() {
                 <TabsTrigger value="safety">Farm Safety</TabsTrigger>
               </TabsList>
               
-              <div className="relative mt-4 overflow-hidden">
-                <TabsContent value="personal" className="mt-0">
-                  <PersonalHealthTracking />
-                </TabsContent>
-                
-                <TabsContent value="physical" className="mt-0">
-                  <PhysicalHealthContent />
-                </TabsContent>
-                
-                <TabsContent value="mental" className="mt-0">
-                  <MentalHealthContent />
-                </TabsContent>
-                
-                <TabsContent value="safety" className="mt-0">
-                  <SafetyContent />
-                </TabsContent>
+              <div className="relative mt-6 overflow-hidden">
+                <div className="tab-content-container">
+                  <TabsContent value="personal" className="mt-0">
+                    <PersonalHealthTracking />
+                  </TabsContent>
+                  
+                  <TabsContent value="physical" className="mt-0">
+                    <PhysicalHealthContent />
+                  </TabsContent>
+                  
+                  <TabsContent value="mental" className="mt-0">
+                    <MentalHealthContent />
+                  </TabsContent>
+                  
+                  <TabsContent value="safety" className="mt-0">
+                    <SafetyContent />
+                  </TabsContent>
+                </div>
               </div>
             </Tabs>
           </CardContent>
