@@ -1,3 +1,4 @@
+
 import { Link, useLocation } from "react-router-dom";
 import {
   NavigationMenu,
@@ -60,7 +61,7 @@ export const farmModules: FarmModule[] = [
     path: "/pest",
     icon: Bug,
     description: "Manage and prevent pest and disease outbreaks",
-    available: false
+    available: true
   },
   {
     name: "Regulations & Policy",
@@ -172,6 +173,18 @@ export function FarmNavigation() {
         <NavigationMenuItem>
           <Link to="/economic" className={cn(navigationMenuTriggerStyle(), location.pathname === "/economic" ? "bg-accent/50" : "")}>
             Economic
+          </Link>
+        </NavigationMenuItem>
+        
+        <NavigationMenuItem>
+          <Link to="/tech" className={cn(navigationMenuTriggerStyle(), location.pathname === "/tech" ? "bg-accent/50" : "")}>
+            Tech
+          </Link>
+        </NavigationMenuItem>
+        
+        <NavigationMenuItem>
+          <Link to="/pest" className={cn(navigationMenuTriggerStyle(), location.pathname === "/pest" ? "bg-accent/50" : "")}>
+            Pest
           </Link>
         </NavigationMenuItem>
       </NavigationMenuList>

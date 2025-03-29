@@ -1,3 +1,4 @@
+
 import { FarmSidebar } from "@/components/FarmSidebar";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { FarmMap } from "@/components/dashboard/FarmMap";
@@ -24,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { ClimateModule } from "@/components/modules/ClimateModule";
 import { EconomicModule } from "@/components/modules/EconomicModule";
 import { TechModule } from "@/components/modules/TechModule";
+import { PestDiseaseModule } from "@/components/modules/PestDiseaseModule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,14 +49,14 @@ const farmModules = [
     description: "Implement and track technological innovations",
     icon: Microscope,
     path: "/tech",
-    available: false
+    available: true
   },
   {
     name: "Pest & Disease",
     description: "Manage and prevent pest and disease outbreaks",
     icon: Bug,
     path: "/pest",
-    available: false
+    available: true
   },
   {
     name: "Regulations & Policy",
@@ -242,6 +244,7 @@ const Index = () => {
       {path === "/climate" && <ClimateModule />}
       {path === "/economic" && <EconomicModule />}
       {path === "/tech" && <TechModule />}
+      {path === "/pest" && <PestDiseaseModule />}
     </FarmSidebar>
   );
 };
