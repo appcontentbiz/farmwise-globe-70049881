@@ -1,0 +1,26 @@
+
+# netlify.toml
+# This file configures your Netlify deployment
+
+[build]
+  # Directory to publish (output of the build)
+  publish = "dist"
+  # Build command
+  command = "npm run build"
+
+# Set environment variables needed for build
+[build.environment]
+  # Tell Vite we're building for production
+  NODE_ENV = "production"
+
+# Handle SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Cache control for assets
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
