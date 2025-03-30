@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, User2, MessageSquare, ThumbsUp } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 // Sample article data
 const articleData = [
@@ -59,6 +60,30 @@ const articleData = [
 
 export function ArticlesList() {
   const [articles, setArticles] = useState(articleData);
+  const { toast } = useToast();
+  
+  // Handle article click/interaction
+  const handleReadMore = (article: typeof articleData[0]) => {
+    // In a real app, this would navigate to the article page
+    // For demo purposes, we'll just show a toast notification
+    toast({
+      title: "Article Selected",
+      description: `Reading: ${article.title}`,
+    });
+    
+    // Increment the like count when clicking "Read More" (for demo purposes)
+    setArticles(prevArticles => 
+      prevArticles.map(a => 
+        a.id === article.id ? { ...a, likes: a.likes + 1 } : a
+      )
+    );
+  };
+  
+  // Handle article title click
+  const handleTitleClick = (article: typeof articleData[0]) => {
+    // Same action as Read More for demo purposes
+    handleReadMore(article);
+  };
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -81,7 +106,10 @@ export function ArticlesList() {
                 {article.date}
               </div>
             </div>
-            <CardTitle className="text-xl line-clamp-2 hover:text-primary cursor-pointer">
+            <CardTitle 
+              className="text-xl line-clamp-2 hover:text-primary cursor-pointer"
+              onClick={() => handleTitleClick(article)}
+            >
               {article.title}
             </CardTitle>
             <div className="flex items-center text-sm text-muted-foreground">
@@ -112,7 +140,12 @@ export function ArticlesList() {
                 {article.comments}
               </div>
             </div>
-            <Button size="sm">Read More</Button>
+            <Button 
+              size="sm"
+              onClick={() => handleReadMore(article)}
+            >
+              Read More
+            </Button>
           </CardFooter>
         </Card>
       ))}

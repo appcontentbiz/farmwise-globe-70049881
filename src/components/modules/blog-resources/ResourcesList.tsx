@@ -29,7 +29,7 @@ const resourceData = [
     fileType: "pdf",
     fileSize: "2.4 MB",
     downloads: 1245,
-    downloadUrl: "/resources/organic-certification-guide.pdf"
+    downloadUrl: "#" // Changed from non-existent path
   },
   {
     id: 2,
@@ -41,7 +41,7 @@ const resourceData = [
     fileType: "xlsx",
     fileSize: "1.8 MB",
     downloads: 876,
-    downloadUrl: "/resources/crop-planning-template.xlsx"
+    downloadUrl: "#" // Changed from non-existent path
   },
   {
     id: 3,
@@ -53,7 +53,7 @@ const resourceData = [
     fileType: "zip",
     fileSize: "45.2 MB",
     downloads: 659,
-    downloadUrl: "/resources/pest-identification-pack.zip"
+    downloadUrl: "#" // Changed from non-existent path
   },
   {
     id: 4,
@@ -65,7 +65,7 @@ const resourceData = [
     fileType: "mp4",
     fileSize: "156.7 MB",
     downloads: 421,
-    downloadUrl: "/resources/regenerative-agriculture-intro.mp4"
+    downloadUrl: "#" // Changed from non-existent path
   },
   {
     id: 5,
@@ -77,7 +77,7 @@ const resourceData = [
     fileType: "docx",
     fileSize: "3.2 MB",
     downloads: 1089,
-    downloadUrl: "/resources/farm-business-plan-template.docx"
+    downloadUrl: "#" // Changed from non-existent path
   },
   {
     id: 6,
@@ -89,7 +89,7 @@ const resourceData = [
     fileType: "pdf",
     fileSize: "5.6 MB",
     downloads: 732,
-    downloadUrl: "/resources/soil-health-testing-protocol.pdf"
+    downloadUrl: "#" // Changed from non-existent path
   },
 ];
 
@@ -138,8 +138,8 @@ export function ResourcesList() {
       )
     );
     
-    // Simulate download (in a real app, use actual download mechanism)
-    window.open(resource.downloadUrl, '_blank');
+    // No actual download since files don't exist, just show toast
+    // Using # as href to prevent 404 errors
   };
   
   return (
