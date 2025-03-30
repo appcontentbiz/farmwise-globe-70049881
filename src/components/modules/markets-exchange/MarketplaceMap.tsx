@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { MapPin, Filter, Circle, Search, MapIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, Filter, Search, MapIcon, Navigation, Compass, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 // Sample data for farm markets
 const farmMarkets = [
@@ -110,6 +111,7 @@ export function MarketplaceMap() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [selectedMarket, setSelectedMarket] = useState<number | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Filter markets based on user selection
   const filteredMarkets = farmMarkets.filter(market => {
@@ -168,6 +170,26 @@ export function MarketplaceMap() {
       description: `Connecting to ${value}`,
     });
   };
+
+  // Get directions to market
+  const getDirections = (market: typeof farmMarkets[0]) => {
+    toast({
+      title: "Getting Directions",
+      description: `Finding the best route to ${market.name}`,
+    });
+    
+    // In a real app, this would integrate with a maps API to get directions
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(market.location)}`, '_blank');
+  };
+
+  // Simulate map loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMapLoaded(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -318,41 +340,107 @@ export function MarketplaceMap() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 h-full relative">
-              <div className="absolute inset-0 bg-slate-100 flex items-center justify-center">
-                <div className="relative w-full h-full bg-[url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/pin-l+1f6a1a(-86.513,33.433)/center/-86.513,33.433,9,0/800x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')]"
-                  style={{ backgroundSize: 'cover', backgroundPosition: 'center' }}>
-                  
-                  {/* Overlay to simulate interactive map */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 text-white">
-                    <div className="text-center p-6 bg-black bg-opacity-60 rounded-lg">
-                      <MapPin className="h-10 w-10 mx-auto mb-2" />
-                      <p className="text-lg font-medium mb-2">Interactive Map</p>
-                      <p className="text-sm mb-4">This would be a fully interactive map in a production environment.</p>
-                      <Button variant="outline" className="bg-opacity-30 bg-white text-white border-white">
-                        Get Directions
-                      </Button>
-                    </div>
+              <div className="absolute inset-0 bg-slate-100">
+                {/* Enhanced Map Display */}
+                <div 
+                  className={`relative w-full h-full transition-opacity duration-700 ${mapLoaded ? 'opacity-100' : 'opacity-0'}`}
+                  style={{ 
+                    backgroundImage: "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-86.513,33.433,10,0/1200x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')",
+                    backgroundSize: 'cover', 
+                    backgroundPosition: 'center' 
+                  }}
+                >
+                  {/* Map UI Elements */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    <Card className="bg-white bg-opacity-90 p-2 shadow-lg">
+                      <div className="flex flex-col gap-2">
+                        <Button size="sm" variant="outline" className="flex gap-2 items-center">
+                          <Compass className="h-4 w-4" /> Recenter
+                        </Button>
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="outline" className="w-10 h-10 p-0">+</Button>
+                          <Button size="sm" variant="outline" className="w-10 h-10 p-0">−</Button>
+                        </div>
+                      </div>
+                    </Card>
                   </div>
-                  
-                  {/* Sample market pins */}
+
+                  {/* Market pins on the map */}
                   {filteredMarkets.map((market) => (
                     <div
                       key={market.id}
                       className={`absolute rounded-full cursor-pointer transition-all duration-200 ${
-                        selectedMarket === market.id ? 'animate-pulse z-10' : ''
+                        selectedMarket === market.id ? 'z-10' : ''
                       }`}
                       style={{ left: `${market.coordinates.x}%`, top: `${market.coordinates.y}%` }}
                       onClick={() => viewMarketDetails(market.id)}
                     >
-                      <MapPin className="h-6 w-6 text-red-500 -ml-3 -mt-6" />
-                      {selectedMarket === market.id && (
-                        <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-white text-black px-2 py-1 rounded shadow-lg text-xs whitespace-nowrap">
-                          {market.name}
-                        </span>
-                      )}
+                      <div className={`${selectedMarket === market.id ? 'animate-pulse' : ''}`}>
+                        <div className="relative">
+                          <MapPin 
+                            className={`h-8 w-8 text-primary -ml-4 -mt-8 drop-shadow-md ${
+                              selectedMarket === market.id ? 'text-accent-foreground' : ''
+                            }`} 
+                            fill={selectedMarket === market.id ? '#FBC02D' : '#FFFFFF'} 
+                            strokeWidth={2} 
+                          />
+                          {selectedMarket === market.id && (
+                            <Popover open={true}>
+                              <PopoverContent 
+                                className="w-64 p-0 shadow-xl" 
+                                side="top"
+                                align="center"
+                                sideOffset={5}
+                              >
+                                <Card className="border-0 shadow-none">
+                                  <CardHeader className="pb-2 pt-3">
+                                    <CardTitle className="text-sm">{market.name}</CardTitle>
+                                    <CardDescription className="text-xs">{market.location}</CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="pb-2 pt-0">
+                                    <p className="text-xs mb-2">{market.hours}</p>
+                                  </CardContent>
+                                  <CardFooter className="pt-0 pb-3 flex justify-between">
+                                    <Button 
+                                      size="sm" 
+                                      variant="outline"
+                                      className="text-xs h-8"
+                                      onClick={() => contactMarket('phone', farmMarkets.find(m => m.id === market.id)?.phone || '')}
+                                    >
+                                      Call
+                                    </Button>
+                                    <Button 
+                                      size="sm"
+                                      className="text-xs h-8 flex items-center gap-1"
+                                      onClick={() => getDirections(market)}
+                                    >
+                                      <Navigation className="h-3 w-3" /> Directions
+                                    </Button>
+                                  </CardFooter>
+                                </Card>
+                              </PopoverContent>
+                            </Popover>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
+                  
+                  {/* Map Features - Roads, etc */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    {/* This would be part of the actual Mapbox render in a real implementation */}
+                  </div>
                 </div>
+
+                {/* Loading State */}
+                {!mapLoaded && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                      <p>Loading map...</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -390,9 +478,10 @@ export function MarketplaceMap() {
                   Call Market
                 </Button>
                 <Button 
-                  onClick={() => contactMarket('website', farmMarkets.find(m => m.id === selectedMarket)?.website || '')}
+                  className="flex items-center gap-2"
+                  onClick={() => getDirections(farmMarkets.find(m => m.id === selectedMarket) as any)}
                 >
-                  Visit Website
+                  <Navigation className="h-4 w-4" /> Get Directions
                 </Button>
               </CardFooter>
             </Card>
