@@ -39,6 +39,7 @@ const App = () => {
                 <Route path="/economic" element={<Index />} />
                 <Route path="/tech" element={<Index />} />
                 <Route path="/pest" element={<Index />} />
+                <Route path="/blog" element={<Index />} />
                 <Route path="/regulations" element={<Index />} />
                 <Route path="/infrastructure" element={<Index />} />
                 <Route path="/workforce" element={<Index />} />

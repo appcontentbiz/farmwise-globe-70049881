@@ -7,6 +7,7 @@ import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { 
   Activity, 
   AlertCircle,
+  Book,
   Brain,
   Bug, 
   Cloud, 
@@ -33,6 +34,7 @@ import { FarmingTypesModule } from "@/components/modules/FarmingTypesModule";
 import { HealthInsightsModule } from "@/components/modules/HealthInsightsModule";
 import { AIAssistantModule } from "@/components/modules/AIAssistantModule";
 import { GlobalMonitorModule } from "@/components/modules/GlobalMonitorModule";
+import { BlogResourcesModule } from "@/components/modules/BlogResourcesModule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -105,6 +107,13 @@ const farmModules = [
     description: "Ask farming questions and get AI-powered help",
     icon: Brain,
     path: "/assistant",
+    available: true
+  },
+  {
+    name: "Blog & Resources",
+    description: "Access agricultural articles, guides, and downloadable resources",
+    icon: Book,
+    path: "/blog",
     available: true
   },
   {
@@ -278,6 +287,7 @@ const Index = () => {
       {path === "/types" && <FarmingTypesModule />}
       {path === "/health" && <HealthInsightsModule />}
       {path === "/assistant" && <AIAssistantModule />}
+      {path === "/blog" && <BlogResourcesModule />}
     </FarmSidebar>
   );
 };

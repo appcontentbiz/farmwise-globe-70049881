@@ -12,6 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { FarmModule } from "@/types/farm";
 import { 
+  Book,
   Bug, 
   Cloud, 
   Coins, 
@@ -23,7 +24,8 @@ import {
   Tractor, 
   User2, 
   Users,
-  Brain 
+  Brain,
+  Globe 
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,6 +36,13 @@ export const farmModules: FarmModule[] = [
     path: "/",
     icon: Leaf,
     description: "Farm overview and key metrics",
+    available: true
+  },
+  {
+    name: "Global Monitor",
+    path: "/global",
+    icon: Globe,
+    description: "Track worldwide agricultural activities and trends",
     available: true
   },
   {
@@ -90,6 +99,13 @@ export const farmModules: FarmModule[] = [
     path: "/assistant",
     icon: Brain,
     description: "Ask farming questions and get AI-powered help",
+    available: true
+  },
+  {
+    name: "Blog & Resources",
+    path: "/blog",
+    icon: Book,
+    description: "Access agricultural articles, guides, and downloadable resources",
     available: true
   },
   {
