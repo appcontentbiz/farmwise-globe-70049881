@@ -340,19 +340,22 @@ export function MarketplaceMap() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 h-full relative">
-              <div className="absolute inset-0 bg-slate-100">
+              <div className="absolute inset-0">
                 {/* Enhanced Map Display */}
                 <div 
                   className={`relative w-full h-full transition-opacity duration-700 ${mapLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  style={{ 
-                    backgroundImage: "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-86.513,33.433,10,0/1200x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')",
-                    backgroundSize: 'cover', 
-                    backgroundPosition: 'center' 
-                  }}
                 >
+                  {/* Actual Map Background */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    style={{ 
+                      backgroundImage: "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-86.513,33.433,10,0/1200x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')"
+                    }}
+                  ></div>
+
                   {/* Map UI Elements */}
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    <Card className="bg-white bg-opacity-90 p-2 shadow-lg">
+                    <Card className="bg-white/90 p-2 shadow-lg">
                       <div className="flex flex-col gap-2">
                         <Button size="sm" variant="outline" className="flex gap-2 items-center">
                           <Compass className="h-4 w-4" /> Recenter
@@ -369,7 +372,7 @@ export function MarketplaceMap() {
                   {filteredMarkets.map((market) => (
                     <div
                       key={market.id}
-                      className={`absolute rounded-full cursor-pointer transition-all duration-200 ${
+                      className={`absolute cursor-pointer transition-all duration-200 ${
                         selectedMarket === market.id ? 'z-10' : ''
                       }`}
                       style={{ left: `${market.coordinates.x}%`, top: `${market.coordinates.y}%` }}
@@ -384,6 +387,7 @@ export function MarketplaceMap() {
                             fill={selectedMarket === market.id ? '#FBC02D' : '#FFFFFF'} 
                             strokeWidth={2} 
                           />
+                          
                           {selectedMarket === market.id && (
                             <Popover open={true}>
                               <PopoverContent 
@@ -405,14 +409,17 @@ export function MarketplaceMap() {
                                       size="sm" 
                                       variant="outline"
                                       className="text-xs h-8"
-                                      onClick={() => contactMarket('phone', farmMarkets.find(m => m.id === market.id)?.phone || '')}
+                                      onClick={() => contactMarket('phone', market.phone)}
                                     >
                                       Call
                                     </Button>
                                     <Button 
                                       size="sm"
                                       className="text-xs h-8 flex items-center gap-1"
-                                      onClick={() => getDirections(market)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        getDirections(market);
+                                      }}
                                     >
                                       <Navigation className="h-3 w-3" /> Directions
                                     </Button>
@@ -425,11 +432,6 @@ export function MarketplaceMap() {
                       </div>
                     </div>
                   ))}
-                  
-                  {/* Map Features - Roads, etc */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    {/* This would be part of the actual Mapbox render in a real implementation */}
-                  </div>
                 </div>
 
                 {/* Loading State */}
