@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import {
   Download,
   FileText,
-  FilePdf,
-  FileImage,
   FileSpreadsheet,
+  FileImage,
   FileAudio,
   FileVideo,
   Calendar,
   User2,
-  ArrowDownToLine
+  ArrowDownToLine,
+  File
 } from "lucide-react";
 
 // Sample resource data
@@ -90,7 +90,7 @@ const resourceData = [
 const getFileIcon = (fileType: string) => {
   switch (fileType) {
     case "pdf":
-      return <FilePdf className="h-5 w-5 text-red-500" />;
+      return <File className="h-5 w-5 text-red-500" />;
     case "xlsx":
     case "csv":
       return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
