@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { MapPin, Filter, Search, MapIcon, Navigation, Compass, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 // Sample data for farm markets
 const farmMarkets = [
@@ -112,6 +113,8 @@ export function MarketplaceMap() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedMarket, setSelectedMarket] = useState<number | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
+  const [selectedMarketForDirections, setSelectedMarketForDirections] = useState<typeof farmMarkets[0] | null>(null);
 
   // Filter markets based on user selection
   const filteredMarkets = farmMarkets.filter(market => {
@@ -173,13 +176,22 @@ export function MarketplaceMap() {
 
   // Get directions to market
   const getDirections = (market: typeof farmMarkets[0]) => {
+    setSelectedMarketForDirections(market);
+    setShowDirectionsDialog(true);
+  };
+
+  // Handle actually navigating to the market
+  const navigateToMarket = () => {
+    if (!selectedMarketForDirections) return;
+    
     toast({
       title: "Getting Directions",
-      description: `Finding the best route to ${market.name}`,
+      description: `Finding the best route to ${selectedMarketForDirections.name}`,
     });
     
     // In a real app, this would integrate with a maps API to get directions
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(market.location)}`, '_blank');
+    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedMarketForDirections.location)}`, '_blank');
+    setShowDirectionsDialog(false);
   };
 
   // Simulate map loading
@@ -347,9 +359,12 @@ export function MarketplaceMap() {
                 >
                   {/* Actual Map Background */}
                   <div 
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                    className="absolute inset-0 bg-white"
                     style={{ 
-                      backgroundImage: "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-86.513,33.433,10,0/1200x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')"
+                      backgroundImage: "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-86.513,33.433,10,0/1200x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')",
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat'
                     }}
                   ></div>
 
@@ -357,9 +372,18 @@ export function MarketplaceMap() {
                   <div className="absolute top-4 right-4 flex flex-col gap-2">
                     <Card className="bg-white/90 p-2 shadow-lg">
                       <div className="flex flex-col gap-2">
-                        <Button size="sm" variant="outline" className="flex gap-2 items-center">
-                          <Compass className="h-4 w-4" /> Recenter
-                        </Button>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button size="sm" variant="outline" className="flex gap-2 items-center">
+                                <Compass className="h-4 w-4" /> Recenter
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Recenter the map</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                         <div className="flex gap-2">
                           <Button size="sm" variant="outline" className="w-10 h-10 p-0">+</Button>
                           <Button size="sm" variant="outline" className="w-10 h-10 p-0">−</Button>
@@ -368,7 +392,7 @@ export function MarketplaceMap() {
                     </Card>
                   </div>
 
-                  {/* Market pins on the map */}
+                  {/* Market pins on the map - Using green pins like in the reference */}
                   {filteredMarkets.map((market) => (
                     <div
                       key={market.id}
@@ -380,13 +404,27 @@ export function MarketplaceMap() {
                     >
                       <div className={`${selectedMarket === market.id ? 'animate-pulse' : ''}`}>
                         <div className="relative">
-                          <MapPin 
-                            className={`h-8 w-8 text-primary -ml-4 -mt-8 drop-shadow-md ${
-                              selectedMarket === market.id ? 'text-accent-foreground' : ''
-                            }`} 
-                            fill={selectedMarket === market.id ? '#FBC02D' : '#FFFFFF'} 
-                            strokeWidth={2} 
-                          />
+                          <svg 
+                            width="32" 
+                            height="32" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            className="-ml-4 -mt-8"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path 
+                              d="M12 21C16 17 20 13.4183 20 9C20 4.58172 16.4183 1 12 1C7.58172 1 4 4.58172 4 9C4 13.4183 8 17 12 21Z" 
+                              fill={selectedMarket === market.id ? "#4CAF50" : "#4CAF50"} 
+                              stroke="white" 
+                              strokeWidth="2"
+                            />
+                            <circle 
+                              cx="12" 
+                              cy="9" 
+                              r="3" 
+                              fill="white" 
+                            />
+                          </svg>
                           
                           {selectedMarket === market.id && (
                             <Popover open={true}>
@@ -409,7 +447,10 @@ export function MarketplaceMap() {
                                       size="sm" 
                                       variant="outline"
                                       className="text-xs h-8"
-                                      onClick={() => contactMarket('phone', market.phone)}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        contactMarket('phone', market.phone);
+                                      }}
                                     >
                                       Call
                                     </Button>
@@ -490,6 +531,36 @@ export function MarketplaceMap() {
           )}
         </div>
       </div>
+
+      {/* Directions Dialog */}
+      <Dialog open={showDirectionsDialog} onOpenChange={setShowDirectionsDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Get Directions</DialogTitle>
+            <DialogDescription>
+              Navigate to {selectedMarketForDirections?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col space-y-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <h4 className="font-medium">Destination</h4>
+              <p>{selectedMarketForDirections?.location}</p>
+            </div>
+            <div className="flex flex-col space-y-2">
+              <h4 className="font-medium">Market Hours</h4>
+              <p>{selectedMarketForDirections?.hours}</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDirectionsDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={navigateToMarket} className="flex items-center gap-2">
+              <Navigation className="h-4 w-4" /> Navigate Now
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
