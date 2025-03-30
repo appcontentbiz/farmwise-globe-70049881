@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { MapPin, Filter, Search, MapIcon, Navigation, Compass, ArrowRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +24,7 @@ const farmMarkets = [
     type: "weekly",
     products: ["vegetables", "fruits", "dairy", "crafts"],
     hours: "Saturday & Sunday, 8am-2pm",
-    coordinates: { x: 35, y: 45 },
+    coordinates: { lat: 33.523, lng: -86.813 },
     phone: "(555) 123-4567",
     website: "www.centralvalleyfarmersmarket.com"
   },
@@ -36,7 +37,7 @@ const farmMarkets = [
     type: "daily",
     products: ["vegetables", "fruits", "organic", "honey"],
     hours: "Monday-Friday, 10am-6pm",
-    coordinates: { x: 55, y: 35 },
+    coordinates: { lat: 33.343, lng: -86.733 },
     phone: "(555) 987-6543",
     website: "www.riversideorganic.com"
   },
@@ -49,7 +50,7 @@ const farmMarkets = [
     type: "co-op",
     products: ["vegetables", "meats", "grains", "eggs"],
     hours: "Tuesday & Thursday, 9am-5pm",
-    coordinates: { x: 25, y: 60 },
+    coordinates: { lat: 33.223, lng: -86.903 },
     phone: "(555) 456-7890",
     website: "www.heritagefarmcoop.org"
   },
@@ -62,7 +63,7 @@ const farmMarkets = [
     type: "daily",
     products: ["vegetables", "fruits", "flowers", "prepared"],
     hours: "Daily, 7am-7pm",
-    coordinates: { x: 45, y: 50 },
+    coordinates: { lat: 33.513, lng: -86.793 },
     phone: "(555) 234-5678",
     website: "www.downtownfarmstand.com"
   },
@@ -75,7 +76,7 @@ const farmMarkets = [
     type: "weekly",
     products: ["vegetables", "crafts", "honey", "jams"],
     hours: "Sunday, 10am-4pm",
-    coordinates: { x: 15, y: 25 },
+    coordinates: { lat: 33.673, lng: -87.013 },
     phone: "(555) 876-5432",
     website: "www.mountainviewfarmers.com"
   }
@@ -115,6 +116,8 @@ export function MarketplaceMap() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [selectedMarketForDirections, setSelectedMarketForDirections] = useState<typeof farmMarkets[0] | null>(null);
+  const [mapInstance, setMapInstance] = useState<any>(null);
+  const mapContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Filter markets based on user selection
   const filteredMarkets = farmMarkets.filter(market => {
@@ -135,6 +138,134 @@ export function MarketplaceMap() {
     
     return true;
   });
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstance) return;
+
+    const mapboxScript = document.createElement('script');
+    mapboxScript.src = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js';
+    mapboxScript.async = true;
+
+    mapboxScript.onload = () => {
+      const mapboxgl = window.mapboxgl;
+      if (!mapboxgl) return;
+
+      mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw';
+      
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current!,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [-86.813, 33.523], // Center on Birmingham, Alabama (adjust for your needs)
+        zoom: 9
+      });
+
+      map.on('load', () => {
+        setMapLoaded(true);
+        setMapInstance(map);
+        
+        // Add markers for each market
+        filteredMarkets.forEach((market) => {
+          // Create a custom pin element
+          const el = document.createElement('div');
+          el.className = 'custom-marker';
+          el.innerHTML = `
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 21C16 17 20 13.4183 20 9C20 4.58172 16.4183 1 12 1C7.58172 1 4 4.58172 4 9C4 13.4183 8 17 12 21Z" 
+                fill="#4CAF50" stroke="white" strokeWidth="2"/>
+              <circle cx="12" cy="9" r="3" fill="white" />
+            </svg>
+          `;
+          
+          el.style.cursor = 'pointer';
+          el.addEventListener('click', () => {
+            viewMarketDetails(market.id);
+          });
+          
+          // Add marker to map
+          new mapboxgl.Marker(el)
+            .setLngLat([market.coordinates.lng, market.coordinates.lat])
+            .addTo(map);
+        });
+      });
+
+      // Add navigation controls
+      map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+      return () => {
+        map?.remove();
+      };
+    };
+
+    document.head.appendChild(mapboxScript);
+
+    // CSS for custom markers
+    const style = document.createElement('style');
+    style.textContent = `
+      .custom-marker {
+        width: 32px;
+        height: 32px;
+        cursor: pointer;
+      }
+      .custom-marker svg {
+        transform: translate(-16px, -32px);
+      }
+      .mapboxgl-map {
+        border-radius: 0.5rem;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Add Mapbox CSS
+    const mapboxCss = document.createElement('link');
+    mapboxCss.rel = 'stylesheet';
+    mapboxCss.href = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css';
+    document.head.appendChild(mapboxCss);
+
+    return () => {
+      document.head.removeChild(mapboxScript);
+      document.head.removeChild(style);
+      document.head.removeChild(mapboxCss);
+      if (mapInstance) {
+        mapInstance.remove();
+      }
+    };
+  }, []);
+
+  // Update markers when filtered markets change
+  useEffect(() => {
+    if (!mapInstance || !mapLoaded) return;
+
+    // Remove all existing markers
+    const markers = document.querySelectorAll('.custom-marker');
+    markers.forEach(marker => {
+      marker.remove();
+    });
+
+    // Add markers for each filtered market
+    filteredMarkets.forEach((market) => {
+      // Create a custom pin element
+      const el = document.createElement('div');
+      el.className = 'custom-marker';
+      el.innerHTML = `
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 21C16 17 20 13.4183 20 9C20 4.58172 16.4183 1 12 1C7.58172 1 4 4.58172 4 9C4 13.4183 8 17 12 21Z" 
+            fill="${selectedMarket === market.id ? '#FF5722' : '#4CAF50'}" stroke="white" strokeWidth="2"/>
+          <circle cx="12" cy="9" r="3" fill="white" />
+        </svg>
+      `;
+      
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', () => {
+        viewMarketDetails(market.id);
+      });
+      
+      // Add marker to map
+      new mapboxgl.Marker(el)
+        .setLngLat([market.coordinates.lng, market.coordinates.lat])
+        .addTo(mapInstance);
+    });
+  }, [filteredMarkets, selectedMarket, mapLoaded]);
 
   // Handle checkbox selections
   const toggleProductFilter = (productId: string) => {
@@ -164,6 +295,18 @@ export function MarketplaceMap() {
   // Handle market selection
   const viewMarketDetails = (id: number) => {
     setSelectedMarket(id === selectedMarket ? null : id);
+    
+    // If a market is selected, center map on it
+    if (id !== selectedMarket && mapInstance) {
+      const market = farmMarkets.find(m => m.id === id);
+      if (market) {
+        mapInstance.flyTo({
+          center: [market.coordinates.lng, market.coordinates.lat],
+          zoom: 12,
+          essential: true
+        });
+      }
+    }
   };
 
   // Handle contact actions
@@ -194,14 +337,12 @@ export function MarketplaceMap() {
     setShowDirectionsDialog(false);
   };
 
-  // Simulate map loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setMapLoaded(true);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, []);
+  // Handle viewport changes for responsive design
+  const getMapHeight = () => {
+    // Check if we're on mobile
+    const isMobile = window.innerWidth < 768;
+    return isMobile ? '350px' : '500px';
+  };
 
   return (
     <div className="space-y-6">
@@ -345,146 +486,29 @@ export function MarketplaceMap() {
         </div>
 
         <div className="md:col-span-2">
-          <Card className="h-[500px] overflow-hidden">
+          <Card className="overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center gap-2">
                 <MapIcon className="h-5 w-5" /> Market Map
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-0 h-full relative">
-              <div className="absolute inset-0">
-                {/* Enhanced Map Display */}
-                <div 
-                  className={`relative w-full h-full transition-opacity duration-700 ${mapLoaded ? 'opacity-100' : 'opacity-0'}`}
-                >
-                  {/* Actual Map Background */}
-                  <div 
-                    className="absolute inset-0 bg-white"
-                    style={{ 
-                      backgroundImage: "url('https://api.mapbox.com/styles/v1/mapbox/streets-v11/static/-86.513,33.433,10,0/1200x600?access_token=pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw')",
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat'
-                    }}
-                  ></div>
+            <CardContent className="p-0 relative">
+              {/* Real Map Container */}
+              <div 
+                ref={mapContainerRef} 
+                className="w-full"
+                style={{ height: getMapHeight() }}
+              ></div>
 
-                  {/* Map UI Elements */}
-                  <div className="absolute top-4 right-4 flex flex-col gap-2">
-                    <Card className="bg-white/90 p-2 shadow-lg">
-                      <div className="flex flex-col gap-2">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button size="sm" variant="outline" className="flex gap-2 items-center">
-                                <Compass className="h-4 w-4" /> Recenter
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>Recenter the map</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline" className="w-10 h-10 p-0">+</Button>
-                          <Button size="sm" variant="outline" className="w-10 h-10 p-0">−</Button>
-                        </div>
-                      </div>
-                    </Card>
+              {/* Loading State */}
+              {!mapLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+                    <p>Loading map...</p>
                   </div>
-
-                  {/* Market pins on the map - Using green pins like in the reference */}
-                  {filteredMarkets.map((market) => (
-                    <div
-                      key={market.id}
-                      className={`absolute cursor-pointer transition-all duration-200 ${
-                        selectedMarket === market.id ? 'z-10' : ''
-                      }`}
-                      style={{ left: `${market.coordinates.x}%`, top: `${market.coordinates.y}%` }}
-                      onClick={() => viewMarketDetails(market.id)}
-                    >
-                      <div className={`${selectedMarket === market.id ? 'animate-pulse' : ''}`}>
-                        <div className="relative">
-                          <svg 
-                            width="32" 
-                            height="32" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            className="-ml-4 -mt-8"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path 
-                              d="M12 21C16 17 20 13.4183 20 9C20 4.58172 16.4183 1 12 1C7.58172 1 4 4.58172 4 9C4 13.4183 8 17 12 21Z" 
-                              fill={selectedMarket === market.id ? "#4CAF50" : "#4CAF50"} 
-                              stroke="white" 
-                              strokeWidth="2"
-                            />
-                            <circle 
-                              cx="12" 
-                              cy="9" 
-                              r="3" 
-                              fill="white" 
-                            />
-                          </svg>
-                          
-                          {selectedMarket === market.id && (
-                            <Popover open={true}>
-                              <PopoverContent 
-                                className="w-64 p-0 shadow-xl" 
-                                side="top"
-                                align="center"
-                                sideOffset={5}
-                              >
-                                <Card className="border-0 shadow-none">
-                                  <CardHeader className="pb-2 pt-3">
-                                    <CardTitle className="text-sm">{market.name}</CardTitle>
-                                    <CardDescription className="text-xs">{market.location}</CardDescription>
-                                  </CardHeader>
-                                  <CardContent className="pb-2 pt-0">
-                                    <p className="text-xs mb-2">{market.hours}</p>
-                                  </CardContent>
-                                  <CardFooter className="pt-0 pb-3 flex justify-between">
-                                    <Button 
-                                      size="sm" 
-                                      variant="outline"
-                                      className="text-xs h-8"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        contactMarket('phone', market.phone);
-                                      }}
-                                    >
-                                      Call
-                                    </Button>
-                                    <Button 
-                                      size="sm"
-                                      className="text-xs h-8 flex items-center gap-1"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        getDirections(market);
-                                      }}
-                                    >
-                                      <Navigation className="h-3 w-3" /> Directions
-                                    </Button>
-                                  </CardFooter>
-                                </Card>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
-
-                {/* Loading State */}
-                {!mapLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-slate-100">
-                    <div className="flex flex-col items-center gap-4">
-                      <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
-                      <p>Loading map...</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -564,3 +588,4 @@ export function MarketplaceMap() {
     </div>
   );
 }
+
