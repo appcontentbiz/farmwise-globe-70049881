@@ -19,6 +19,7 @@ import {
   Leaf, 
   Microscope, 
   Sprout, 
+  Store,
   Tractor, 
   User2, 
   Users 
@@ -35,6 +36,7 @@ import { HealthInsightsModule } from "@/components/modules/HealthInsightsModule"
 import { AIAssistantModule } from "@/components/modules/AIAssistantModule";
 import { GlobalMonitorModule } from "@/components/modules/GlobalMonitorModule";
 import { BlogResourcesModule } from "@/components/modules/BlogResourcesModule";
+import { MarketsExchangeModule } from "@/components/modules/MarketsExchangeModule";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 
@@ -79,6 +81,13 @@ const farmModules = [
     description: "Manage and prevent pest and disease outbreaks",
     icon: Bug,
     path: "/pest",
+    available: true
+  },
+  {
+    name: "Markets & Exchange",
+    description: "Find local markets and participate in bartering activities",
+    icon: Store,
+    path: "/markets",
     available: true
   },
   {
@@ -288,6 +297,7 @@ const Index = () => {
       {path === "/health" && <HealthInsightsModule />}
       {path === "/assistant" && <AIAssistantModule />}
       {path === "/blog" && <BlogResourcesModule />}
+      {path === "/markets" && <MarketsExchangeModule />}
     </FarmSidebar>
   );
 };

@@ -25,7 +25,8 @@ import {
   User2, 
   Users,
   Brain,
-  Globe 
+  Globe,
+  Store
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -71,6 +72,13 @@ export const farmModules: FarmModule[] = [
     path: "/pest",
     icon: Bug,
     description: "Manage and prevent pest and disease outbreaks",
+    available: true
+  },
+  {
+    name: "Markets & Exchange",
+    path: "/markets",
+    icon: Store,
+    description: "Find local markets and participate in bartering activities",
     available: true
   },
   {
@@ -201,14 +209,14 @@ export function FarmNavigation() {
         </NavigationMenuItem>
         
         <NavigationMenuItem>
-          <Link to="/tech" className={cn(navigationMenuTriggerStyle(), location.pathname === "/tech" ? "bg-accent/50" : "")}>
-            Tech
+          <Link to="/markets" className={cn(navigationMenuTriggerStyle(), location.pathname === "/markets" ? "bg-accent/50" : "")}>
+            Markets
           </Link>
         </NavigationMenuItem>
         
         <NavigationMenuItem>
-          <Link to="/pest" className={cn(navigationMenuTriggerStyle(), location.pathname === "/pest" ? "bg-accent/50" : "")}>
-            Pest
+          <Link to="/tech" className={cn(navigationMenuTriggerStyle(), location.pathname === "/tech" ? "bg-accent/50" : "")}>
+            Tech
           </Link>
         </NavigationMenuItem>
       </NavigationMenuList>
