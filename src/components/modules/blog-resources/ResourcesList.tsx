@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import {
   Download,
   FileText,
@@ -28,6 +29,7 @@ const resourceData = [
     fileType: "pdf",
     fileSize: "2.4 MB",
     downloads: 1245,
+    downloadUrl: "/resources/organic-certification-guide.pdf"
   },
   {
     id: 2,
@@ -39,6 +41,7 @@ const resourceData = [
     fileType: "xlsx",
     fileSize: "1.8 MB",
     downloads: 876,
+    downloadUrl: "/resources/crop-planning-template.xlsx"
   },
   {
     id: 3,
@@ -50,6 +53,7 @@ const resourceData = [
     fileType: "zip",
     fileSize: "45.2 MB",
     downloads: 659,
+    downloadUrl: "/resources/pest-identification-pack.zip"
   },
   {
     id: 4,
@@ -61,6 +65,7 @@ const resourceData = [
     fileType: "mp4",
     fileSize: "156.7 MB",
     downloads: 421,
+    downloadUrl: "/resources/regenerative-agriculture-intro.mp4"
   },
   {
     id: 5,
@@ -72,6 +77,7 @@ const resourceData = [
     fileType: "docx",
     fileSize: "3.2 MB",
     downloads: 1089,
+    downloadUrl: "/resources/farm-business-plan-template.docx"
   },
   {
     id: 6,
@@ -83,6 +89,7 @@ const resourceData = [
     fileType: "pdf",
     fileSize: "5.6 MB",
     downloads: 732,
+    downloadUrl: "/resources/soil-health-testing-protocol.pdf"
   },
 ];
 
@@ -114,6 +121,26 @@ const getFileIcon = (fileType: string) => {
 
 export function ResourcesList() {
   const [resources, setResources] = useState(resourceData);
+  const { toast } = useToast();
+  
+  const handleDownload = (resource: typeof resourceData[0]) => {
+    // In a real app, this would trigger an actual download
+    // For demo purposes, we'll just show a toast notification
+    toast({
+      title: "Download Started",
+      description: `Downloading ${resource.title} (${resource.fileSize})`,
+    });
+    
+    // Increment the download count
+    setResources(prevResources => 
+      prevResources.map(r => 
+        r.id === resource.id ? { ...r, downloads: r.downloads + 1 } : r
+      )
+    );
+    
+    // Simulate download (in a real app, use actual download mechanism)
+    window.open(resource.downloadUrl, '_blank');
+  };
   
   return (
     <div className="space-y-4">
@@ -150,7 +177,11 @@ export function ResourcesList() {
               <span className="mx-3">•</span>
               <span>{resource.downloads} downloads</span>
             </div>
-            <Button size="sm" className="flex items-center gap-1">
+            <Button 
+              size="sm" 
+              className="flex items-center gap-1"
+              onClick={() => handleDownload(resource)}
+            >
               <ArrowDownToLine className="h-4 w-4" />
               Download
             </Button>
