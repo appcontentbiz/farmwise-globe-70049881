@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -320,16 +321,18 @@ export function PersonalHealthTracking() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-1">
+      {/* Health Calendar and Entry Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Health Calendar Card */}
+        <Card className="xl:col-span-1 overflow-hidden">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium flex items-center gap-2">
               <CalendarIcon className="h-5 w-5 text-farm-green" />
               Health Calendar
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="border rounded-md p-1">
+          <CardContent className="overflow-x-auto">
+            <div className="border rounded-md p-1 min-w-[280px]">
               <Calendar
                 mode="single"
                 selected={selectedDate}
@@ -354,7 +357,8 @@ export function PersonalHealthTracking() {
           </CardContent>
         </Card>
 
-        <Card className="lg:col-span-2">
+        {/* Daily Health Entry Card */}
+        <Card className="xl:col-span-2">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg font-medium flex items-center gap-2">
               <User className="h-5 w-5 text-farm-green" />
