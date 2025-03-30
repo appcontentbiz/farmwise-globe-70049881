@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Calendar, ChevronDown, ChevronUp, Download, Info, Search, Bookmark, MapPin } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -304,7 +303,7 @@ export function MarketRates() {
                 <SelectValue placeholder="All Regions" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Regions</SelectItem>
+                <SelectItem value="all-regions">All Regions</SelectItem>
                 <SelectItem value="Midwest">Midwest Region</SelectItem>
                 <SelectItem value="Great Plains">Great Plains</SelectItem>
                 <SelectItem value="Iowa">Iowa/Illinois</SelectItem>

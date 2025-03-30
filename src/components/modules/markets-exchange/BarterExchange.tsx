@@ -231,7 +231,7 @@ export function BarterExchange() {
                 <SelectValue placeholder="Offering" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Products</SelectItem>
+                <SelectItem value="all-products">Any Products</SelectItem>
                 {productCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>{category.label}</SelectItem>
                 ))}
@@ -243,7 +243,7 @@ export function BarterExchange() {
                 <SelectValue placeholder="Seeking" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Products</SelectItem>
+                <SelectItem value="all-products">Any Products</SelectItem>
                 {productCategories.map((category) => (
                   <SelectItem key={category.id} value={category.id}>{category.label}</SelectItem>
                 ))}
