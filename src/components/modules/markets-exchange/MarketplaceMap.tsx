@@ -105,6 +105,17 @@ const marketTypes = [
   { id: "co-op", label: "Co-ops" }
 ];
 
+// Define a proper MapboxMap type
+type MapboxMap = {
+  remove: () => void;
+  on: (event: string, callback: Function) => void;
+  addControl: (control: any, position?: string) => void;
+  getCenter: () => { lng: number; lat: number };
+  getZoom: () => number;
+  easeTo: (options: any) => void;
+  flyTo: (options: any) => void;
+};
+
 export function MarketplaceMap() {
   const { toast } = useToast();
   const [maxDistance, setMaxDistance] = useState<number>(20);
@@ -116,7 +127,9 @@ export function MarketplaceMap() {
   const [mapLoaded, setMapLoaded] = useState(false);
   const [showDirectionsDialog, setShowDirectionsDialog] = useState(false);
   const [selectedMarketForDirections, setSelectedMarketForDirections] = useState<typeof farmMarkets[0] | null>(null);
-  const [mapInstance, setMapInstance] = useState<any>(null);
+  const [mapInstance, setMapInstance] = useState<MapboxMap | null>(null);
+  const [mapboxApiKey, setMapboxApiKey] = useState<string>("pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsdDc5Y2JlYTA2MTgyanBkd2phMmh3NDEifQ.7OaFUrTYgMTRqaO3hxSkuw");
+  const [showMapKeyInput, setShowMapKeyInput] = useState(false);
   const mapContainerRef = React.useRef<HTMLDivElement>(null);
 
   // Filter markets based on user selection
@@ -143,30 +156,36 @@ export function MarketplaceMap() {
   useEffect(() => {
     if (!mapContainerRef.current || mapInstance) return;
 
+    // Create a script element for Mapbox
     const mapboxScript = document.createElement('script');
     mapboxScript.src = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js';
     mapboxScript.async = true;
 
     mapboxScript.onload = () => {
-      const mapboxgl = window.mapboxgl;
-      if (!mapboxgl) return;
+      // Check if mapboxgl is available on window
+      if (!window.mapboxgl) {
+        console.error("Mapbox GL JS is not loaded");
+        return;
+      }
 
-      mapboxgl.accessToken = 'pk.eyJ1IjoibG92YWJsZWFpIiwiYSI6ImNsb2NjbDlzNTAxb24ycm82OW96Mm40ZHkifQ.a4ReIYV_1DzHzS416VbIyw';
+      // Set the access token
+      window.mapboxgl.accessToken = mapboxApiKey;
       
-      const map = new mapboxgl.Map({
+      // Create the map
+      const map = new window.mapboxgl.Map({
         container: mapContainerRef.current!,
         style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-86.813, 33.523], // Center on Birmingham, Alabama (adjust for your needs)
+        center: [-86.813, 33.523], // Center on Birmingham, Alabama
         zoom: 9
       });
 
       map.on('load', () => {
         setMapLoaded(true);
-        setMapInstance(map);
+        setMapInstance(map as unknown as MapboxMap);
         
         // Add markers for each market
         filteredMarkets.forEach((market) => {
-          // Create a custom pin element
+          // Create marker element
           const el = document.createElement('div');
           el.className = 'custom-marker';
           el.innerHTML = `
@@ -183,14 +202,22 @@ export function MarketplaceMap() {
           });
           
           // Add marker to map
-          new mapboxgl.Marker(el)
+          new window.mapboxgl.Marker(el)
             .setLngLat([market.coordinates.lng, market.coordinates.lat])
             .addTo(map);
         });
+
+        // Add navigation controls
+        map.addControl(new window.mapboxgl.NavigationControl(), 'top-right');
       });
 
-      // Add navigation controls
-      map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      // Add error handling
+      map.on('error', (e) => {
+        console.error('Mapbox error:', e);
+        if (e.error && e.error.status === 401) {
+          setShowMapKeyInput(true);
+        }
+      });
 
       return () => {
         map?.remove();
@@ -198,6 +225,12 @@ export function MarketplaceMap() {
     };
 
     document.head.appendChild(mapboxScript);
+
+    // Add Mapbox CSS
+    const mapboxCss = document.createElement('link');
+    mapboxCss.rel = 'stylesheet';
+    mapboxCss.href = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css';
+    document.head.appendChild(mapboxCss);
 
     // CSS for custom markers
     const style = document.createElement('style');
@@ -216,25 +249,19 @@ export function MarketplaceMap() {
     `;
     document.head.appendChild(style);
 
-    // Add Mapbox CSS
-    const mapboxCss = document.createElement('link');
-    mapboxCss.rel = 'stylesheet';
-    mapboxCss.href = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css';
-    document.head.appendChild(mapboxCss);
-
     return () => {
       document.head.removeChild(mapboxScript);
-      document.head.removeChild(style);
-      document.head.removeChild(mapboxCss);
+      if (document.head.contains(mapboxCss)) document.head.removeChild(mapboxCss);
+      if (document.head.contains(style)) document.head.removeChild(style);
       if (mapInstance) {
         mapInstance.remove();
       }
     };
-  }, []);
+  }, [mapboxApiKey]);
 
   // Update markers when filtered markets change
   useEffect(() => {
-    if (!mapInstance || !mapLoaded) return;
+    if (!mapInstance || !mapLoaded || !window.mapboxgl) return;
 
     // Remove all existing markers
     const markers = document.querySelectorAll('.custom-marker');
@@ -261,9 +288,9 @@ export function MarketplaceMap() {
       });
       
       // Add marker to map
-      new mapboxgl.Marker(el)
+      new window.mapboxgl.Marker(el)
         .setLngLat([market.coordinates.lng, market.coordinates.lat])
-        .addTo(mapInstance);
+        .addTo(mapInstance as any);
     });
   }, [filteredMarkets, selectedMarket, mapLoaded]);
 
@@ -337,6 +364,29 @@ export function MarketplaceMap() {
     setShowDirectionsDialog(false);
   };
 
+  // Update Mapbox API key
+  const updateMapboxApiKey = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newKey = formData.get('mapboxKey') as string;
+    
+    if (newKey) {
+      setMapboxApiKey(newKey);
+      setShowMapKeyInput(false);
+      
+      // Remove old map instance to recreate with new key
+      if (mapInstance) {
+        mapInstance.remove();
+        setMapInstance(null);
+      }
+      
+      toast({
+        title: "API Key Updated",
+        description: "The map will reload with your Mapbox API key.",
+      });
+    }
+  };
+
   // Handle viewport changes for responsive design
   const getMapHeight = () => {
     // Check if we're on mobile
@@ -366,6 +416,35 @@ export function MarketplaceMap() {
           {showFilters ? "Hide Filters" : "Show Filters"}
         </Button>
       </div>
+
+      {showMapKeyInput && (
+        <Card className="mb-6 border-yellow-400 bg-yellow-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg text-yellow-800">Mapbox API Key Required</CardTitle>
+            <CardDescription className="text-yellow-700">
+              To display the interactive map, please enter your Mapbox public access token.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={updateMapboxApiKey} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="mapboxKey">Mapbox Public Access Token</Label>
+                <Input 
+                  id="mapboxKey" 
+                  name="mapboxKey" 
+                  placeholder="pk.eyJ1..." 
+                  className="w-full"
+                  defaultValue={mapboxApiKey} 
+                />
+                <p className="text-xs text-muted-foreground">
+                  Get your token from <a href="https://account.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Mapbox Account Page</a> → Access Tokens
+                </p>
+              </div>
+              <Button type="submit">Update Map</Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {showFilters && (
         <Card className="mb-6">
@@ -588,4 +667,3 @@ export function MarketplaceMap() {
     </div>
   );
 }
-
