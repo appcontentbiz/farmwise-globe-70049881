@@ -16,6 +16,7 @@ interface EventFormProps {
 
 export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
   const { addEvent } = useTracking();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -26,30 +27,38 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
     category: activeTab
   });
 
-  const handleSaveEvent = () => {
+  const handleSaveEvent = async () => {
     if (!newEvent.title.trim()) {
       return;
     }
 
-    addEvent({
-      title: newEvent.title,
-      date: newEvent.date,
-      notes: newEvent.notes,
-      type: newEvent.type,
-      progress: newEvent.progress,
-      category: activeTab
-    }, moduleName);
+    try {
+      setIsSubmitting(true);
+      
+      await addEvent({
+        title: newEvent.title,
+        date: newEvent.date,
+        notes: newEvent.notes,
+        type: newEvent.type,
+        progress: newEvent.progress,
+        category: activeTab
+      }, moduleName);
 
-    setNewEvent({
-      title: "",
-      date: new Date().toISOString().split('T')[0],
-      notes: "",
-      type: "activity",
-      progress: 0,
-      category: activeTab
-    });
-    
-    onCancel();
+      setNewEvent({
+        title: "",
+        date: new Date().toISOString().split('T')[0],
+        notes: "",
+        type: "activity",
+        progress: 0,
+        category: activeTab
+      });
+      
+      onCancel();
+    } catch (error) {
+      console.error("Error saving event:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -145,6 +154,7 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
           variant="outline" 
           size="sm"
           onClick={onCancel}
+          disabled={isSubmitting}
         >
           Cancel
         </Button>
@@ -152,9 +162,10 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
           size="sm"
           className="flex items-center gap-2"
           onClick={handleSaveEvent}
+          disabled={isSubmitting}
         >
           <Save className="h-4 w-4" />
-          Save Event
+          {isSubmitting ? "Saving..." : "Save Event"}
         </Button>
       </div>
     </div>

@@ -819,6 +819,48 @@ export type Database = {
           },
         ]
       }
+      tracking_events: {
+        Row: {
+          category: string
+          created_at: string
+          date: string
+          id: string
+          module_name: string
+          notes: string | null
+          progress: number | null
+          title: string
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          date: string
+          id?: string
+          module_name: string
+          notes?: string | null
+          progress?: number | null
+          title: string
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          date?: string
+          id?: string
+          module_name?: string
+          notes?: string | null
+          progress?: number | null
+          title?: string
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

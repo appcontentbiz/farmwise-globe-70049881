@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/table";
 import { useTracking } from "./TrackingContext";
 import { getTypeLabel } from "./types";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
 interface EventListProps {
   category: "past" | "present" | "future";
@@ -19,9 +21,17 @@ interface EventListProps {
 export function EventList({ category, moduleName }: EventListProps) {
   const { getFilteredEvents, deleteEvent } = useTracking();
   const filteredEvents = getFilteredEvents(category);
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
 
-  const handleDeleteEvent = (id: string) => {
-    deleteEvent(id, moduleName);
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      setDeletingIds(prev => [...prev, id]);
+      await deleteEvent(id, moduleName);
+    } catch (error) {
+      console.error("Error deleting event:", error);
+    } finally {
+      setDeletingIds(prev => prev.filter(itemId => itemId !== id));
+    }
   };
 
   if (filteredEvents.length === 0) {
@@ -76,8 +86,13 @@ export function EventList({ category, moduleName }: EventListProps) {
                 size="sm" 
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 onClick={() => handleDeleteEvent(event.id)}
+                disabled={deletingIds.includes(event.id)}
               >
-                Remove
+                {deletingIds.includes(event.id) ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  "Remove"
+                )}
               </Button>
             </TableCell>
           </TableRow>
