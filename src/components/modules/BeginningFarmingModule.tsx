@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
@@ -19,9 +18,16 @@ import { ProgressCharts } from "./beginning-farming/ProgressCharts";
 import { FarmingTypes } from "./beginning-farming/FarmingTypes";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 export function BeginningFarmingModule() {
   const [activeTab, setActiveTab] = useState("guidance");
+  const [showFarmingTypeDetails, setShowFarmingTypeDetails] = useState(false);
+  const [selectedFarmingType, setSelectedFarmingType] = useState<{
+    name: string;
+    description: string;
+  } | null>(null);
   const { toast } = useToast();
 
   // Handle tab change to simulate tracking user activity
@@ -33,6 +39,15 @@ export function BeginningFarmingModule() {
       title: "Progress Tracked",
       description: `Your exploration of the ${value} section has been logged.`,
     });
+  };
+
+  // Handle learn more button clicks
+  const handleLearnMoreClick = (typeName: string, description: string) => {
+    setSelectedFarmingType({
+      name: typeName,
+      description: description
+    });
+    setShowFarmingTypeDetails(true);
   };
 
   return (
@@ -177,8 +192,8 @@ export function BeginningFarmingModule() {
         </Card>
       </div>
       
-      {/* Add Farming Types Component */}
-      <FarmingTypes />
+      {/* Add Farming Types Component with learn more handler */}
+      <FarmingTypes onLearnMoreClick={handleLearnMoreClick} />
       
       {/* Add Calendar Component */}
       <FarmingCalendar />
@@ -189,6 +204,26 @@ export function BeginningFarmingModule() {
       <PredictiveInsights moduleName="Beginning Farming" />
       
       <TrackingInterface moduleName="Beginning Farming" />
+      
+      {/* Farming Type Details Dialog */}
+      <Dialog open={showFarmingTypeDetails} onOpenChange={setShowFarmingTypeDetails}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedFarmingType?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p>{selectedFarmingType?.description}</p>
+            <p>
+              Additional details about {selectedFarmingType?.name} will be available soon. 
+              This will include detailed guides, best practices, equipment requirements, 
+              and success stories from farmers using this approach.
+            </p>
+          </div>
+          <div className="flex justify-end">
+            <Button onClick={() => setShowFarmingTypeDetails(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

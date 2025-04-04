@@ -21,6 +21,12 @@ export function GuidanceContent() {
     title: "",
     type: ""
   });
+  const [showFarmingTypeInfo, setShowFarmingTypeInfo] = useState(false);
+  const [selectedFarmingType, setSelectedFarmingType] = useState<{
+    title: string;
+    description: string;
+    details: string;
+  } | null>(null);
   const { toast } = useToast();
   
   const handleGuideClick = (guide: string) => {
@@ -34,6 +40,15 @@ export function GuidanceContent() {
       type
     });
     setShowResourceModal(true);
+  };
+  
+  const handleFarmingTypeClick = (title: string, description: string) => {
+    setSelectedFarmingType({
+      title,
+      description,
+      details: `Detailed information about ${title} will be available soon. This will include best practices, required resources, expected timeline, and success factors for ${title.toLowerCase()}.`
+    });
+    setShowFarmingTypeInfo(true);
   };
 
   // Function to handle downloadable resources
@@ -342,6 +357,44 @@ export function GuidanceContent() {
         onClose={() => setShowResourceModal(false)}
         content={resourceModalContent}
       />
+      
+      {/* Farming Type Info Dialog */}
+      <Dialog open={showFarmingTypeInfo} onOpenChange={setShowFarmingTypeInfo}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{selectedFarmingType?.title}</DialogTitle>
+          </DialogHeader>
+          
+          <ScrollArea className="max-h-[60vh]">
+            <div className="space-y-4">
+              <p className="text-muted-foreground">{selectedFarmingType?.description}</p>
+              <p>{selectedFarmingType?.details}</p>
+              
+              <div className="bg-muted/20 p-4 rounded-md mt-6">
+                <h3 className="text-lg font-medium mb-2">Key Resources</h3>
+                <ul className="space-y-2">
+                  <li className="flex items-start gap-2">
+                    <BookOpen className="h-4 w-4 text-farm-green mt-1" />
+                    <span>Getting Started Guide</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <FileText className="h-4 w-4 text-farm-green mt-1" />
+                    <span>Best Practices Documentation</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Users className="h-4 w-4 text-farm-green mt-1" />
+                    <span>Community Forums</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </ScrollArea>
+          
+          <div className="flex justify-end">
+            <Button onClick={() => setShowFarmingTypeInfo(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
