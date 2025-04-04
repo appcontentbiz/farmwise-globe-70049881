@@ -192,20 +192,16 @@ export function BeginningFarmingModule() {
         </Card>
       </div>
       
-      {/* Add Farming Types Component with learn more handler */}
       <FarmingTypes onLearnMoreClick={handleLearnMoreClick} />
       
-      {/* Add Calendar Component */}
       <FarmingCalendar />
       
-      {/* Add Progress Charts Component */}
       <ProgressCharts />
       
       <PredictiveInsights moduleName="Beginning Farming" />
       
       <TrackingInterface moduleName="Beginning Farming" />
       
-      {/* Farming Type Details Dialog */}
       <Dialog open={showFarmingTypeDetails} onOpenChange={setShowFarmingTypeDetails}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
