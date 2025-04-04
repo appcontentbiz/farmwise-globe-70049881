@@ -6,6 +6,7 @@ import { MarketType } from './data/marketData';
 import { useMapbox } from './map/useMapbox';
 import { useMapStyles } from './map/MapStyles';
 import { MapContainer } from './map/MapContainer';
+import { PaginationControls } from '@/components/ui/pagination-controls';
 
 interface MapDisplayProps {
   filteredMarkets: MarketType[];
@@ -24,16 +25,40 @@ export function MapDisplay({
 }: MapDisplayProps) {
   // Apply map styles
   useMapStyles();
+  
+  // State for pagination
+  const [currentMapPage, setCurrentMapPage] = useState(1);
+  const marketsPerPage = 5;
+  const totalMapPages = Math.ceil(filteredMarkets.length / marketsPerPage);
+  
+  // Get current visible markets
+  const currentMarkets = filteredMarkets.slice(
+    (currentMapPage - 1) * marketsPerPage,
+    currentMapPage * marketsPerPage
+  );
 
   // Initialize mapbox
   const { mapContainerRef, mapLoaded, mapError } = useMapbox({
-    filteredMarkets,
+    filteredMarkets: currentMarkets,
     selectedMarket,
     mapboxApiKey,
     onMarketSelect: viewMarketDetails,
     viewMarketDetails,
     setShowMapKeyInput
   });
+
+  // Handle pagination
+  const handlePreviousPage = () => {
+    if (currentMapPage > 1) {
+      setCurrentMapPage(currentMapPage - 1);
+    }
+  };
+  
+  const handleNextPage = () => {
+    if (currentMapPage < totalMapPages) {
+      setCurrentMapPage(currentMapPage + 1);
+    }
+  };
 
   // Handle viewport changes for responsive design
   const getMapHeight = () => {
@@ -66,6 +91,17 @@ export function MapDisplay({
                 Update API Key
               </button>
             </div>
+          </div>
+        )}
+        
+        {filteredMarkets.length > marketsPerPage && (
+          <div className="bg-background/90 p-3 border-t">
+            <PaginationControls
+              currentPage={currentMapPage}
+              totalPages={totalMapPages}
+              onPrevious={handlePreviousPage}
+              onNext={handleNextPage}
+            />
           </div>
         )}
       </CardContent>

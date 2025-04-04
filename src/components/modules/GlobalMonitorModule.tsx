@@ -24,6 +24,83 @@ import { FieldReportForm } from "./global-monitor/FieldReportForm";
 export function GlobalMonitorModule() {
   const [activeTab, setActiveTab] = useState("monitor");
   const { toast } = useToast();
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Events data - in a real app, this would come from an API
+  const events = [
+    {
+      title: "Drought Conditions",
+      description: "Affecting wheat and corn crops in Southern Europe. Irrigation levels at 40% capacity.",
+      type: "weather",
+      location: "Southern Europe",
+      date: "2 days ago"
+    },
+    {
+      title: "Agricultural Policy Change",
+      description: "New subsidy program for sustainable farming practices announced in Brazil.",
+      type: "policy",
+      location: "Brazil",
+      date: "1 week ago"
+    },
+    {
+      title: "New Pest Resistant Strain",
+      description: "Scientists have developed a new wheat strain resistant to common rust.",
+      type: "innovation",
+      location: "Canada",
+      date: "2 weeks ago"
+    },
+    {
+      title: "Flooding in Rice Fields",
+      description: "Severe flooding has affected rice production in Southeast Asia.",
+      type: "weather",
+      location: "Thailand",
+      date: "3 days ago"
+    },
+    {
+      title: "Trade Agreement Update",
+      description: "New agricultural trade agreement between EU and Mercosur countries.",
+      type: "policy",
+      location: "EU/South America",
+      date: "5 days ago"
+    },
+    {
+      title: "Vertical Farming Breakthrough",
+      description: "New technology increases yields by 40% in urban vertical farming systems.",
+      type: "innovation",
+      location: "Japan",
+      date: "1 week ago"
+    }
+  ];
+  
+  // Pagination settings
+  const eventsPerPage = 3;
+  const totalPages = Math.ceil(events.length / eventsPerPage);
+  
+  const handlePrevious = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+      toast({
+        title: "Page Updated",
+        description: `Viewing page ${currentPage - 1} of ${totalPages}`
+      });
+    }
+  };
+  
+  const handleNext = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+      toast({
+        title: "Page Updated",
+        description: `Viewing page ${currentPage} of ${totalPages}`
+      });
+    }
+  };
+  
+  // Get current events
+  const currentEvents = events.slice(
+    (currentPage - 1) * eventsPerPage,
+    currentPage * eventsPerPage
+  );
   
   const handleContribute = () => {
     toast({
@@ -76,36 +153,36 @@ export function GlobalMonitorModule() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <GlobalEventCard 
-                  title="Drought Conditions"
-                  description="Affecting wheat and corn crops in Southern Europe. Irrigation levels at 40% capacity."
-                  type="weather"
-                  location="Southern Europe"
-                  date="2 days ago"
-                />
-                
-                <GlobalEventCard 
-                  title="Agricultural Policy Change"
-                  description="New subsidy program for sustainable farming practices announced in Brazil."
-                  type="policy"
-                  location="Brazil"
-                  date="1 week ago"
-                />
-                
-                <GlobalEventCard 
-                  title="New Pest Resistant Strain"
-                  description="Scientists have developed a new wheat strain resistant to common rust."
-                  type="innovation"
-                  location="Canada"
-                  date="2 weeks ago"
-                />
+                {currentEvents.map((event, index) => (
+                  <GlobalEventCard 
+                    key={`${event.title}-${index}`}
+                    title={event.title}
+                    description={event.description}
+                    type={event.type}
+                    location={event.location}
+                    date={event.date}
+                  />
+                ))}
                 
                 <div className="flex justify-between mt-4">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handlePrevious}
+                    disabled={currentPage === 1}
+                  >
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Previous
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <span className="text-sm text-muted-foreground flex items-center">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleNext}
+                    disabled={currentPage === totalPages}
+                  >
                     Next
                     <ChevronRight className="h-4 w-4 ml-1" />
                   </Button>
