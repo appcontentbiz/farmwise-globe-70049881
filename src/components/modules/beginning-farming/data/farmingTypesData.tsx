@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Carrot, Sprout, Apple, Leaf, Wheat, CloudRain, Sun, Tractor } from "lucide-react";
 import { FarmingType } from "../types/farmingTypes";
@@ -9,6 +8,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Market Gardening",
     icon: <Carrot className="h-6 w-6 text-farm-green" />,
     description: "Small-scale intensive cultivation of vegetables, fruits, and flowers for direct marketing to customers.",
+    expertise: 2,
+    initialCost: 2,
     benefits: [
       "Low startup costs compared to other farming types",
       "Can be profitable on small acreage (1-2 acres)",
@@ -53,6 +54,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Backyard Homesteading",
     icon: <Sprout className="h-6 w-6 text-farm-green" />,
     description: "Self-sufficient living combining vegetable gardening, small livestock, and food preservation on residential property.",
+    expertise: 1,
+    initialCost: 1,
     benefits: [
       "Can be started on typical residential lot",
       "Reduces household food expenses",
@@ -97,6 +100,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "U-Pick Operation",
     icon: <Apple className="h-6 w-6 text-red-500" />,
     description: "Fruit or vegetable farm where customers harvest their own produce, creating an agritourism experience.",
+    expertise: 3,
+    initialCost: 4,
     benefits: [
       "Reduced labor costs as customers harvest crops",
       "Creates direct connection with customers",
@@ -140,6 +145,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Microgreens Production",
     icon: <Leaf className="h-6 w-6 text-green-600" />,
     description: "Growing nutrient-dense seedlings harvested at an early stage for high-value culinary uses.",
+    expertise: 1,
+    initialCost: 1,
     benefits: [
       "Can be grown indoors year-round in small spaces",
       "Quick growing cycle (7-14 days) enables fast cash flow",
@@ -184,6 +191,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Pastured Poultry",
     icon: <Wheat className="h-6 w-6 text-amber-600" />,
     description: "Raising chickens, turkeys or other poultry on pasture using movable housing for eggs or meat production.",
+    expertise: 2,
+    initialCost: 3,
     benefits: [
       "Relatively quick return on investment",
       "Can start small and scale up gradually",
@@ -228,6 +237,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Mushroom Farming",
     icon: <CloudRain className="h-6 w-6 text-blue-500" />,
     description: "Indoor or outdoor cultivation of gourmet and medicinal mushrooms for local markets.",
+    expertise: 3,
+    initialCost: 2,
     benefits: [
       "Can be grown indoors year-round in small spaces",
       "Uses agricultural waste products as growing medium",
@@ -272,6 +283,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Herb Farming",
     icon: <Leaf className="h-6 w-6 text-green-700" />,
     description: "Growing culinary, medicinal, or aromatic herbs for fresh and value-added markets.",
+    expertise: 2,
+    initialCost: 2,
     benefits: [
       "High value crops can be grown in small spaces",
       "Multiple market channels (fresh, dried, value-added)",
@@ -316,6 +329,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Cut Flower Farming",
     icon: <Sun className="h-6 w-6 text-yellow-500" />,
     description: "Growing annual and perennial flowers for fresh bouquets, florists, and event markets.",
+    expertise: 3,
+    initialCost: 3,
     benefits: [
       "High-value crop with strong profit potential",
       "Can be productive on small acreage (1 acre or less)",
@@ -360,6 +375,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Small-Scale Grass-Fed Beef",
     icon: <Tractor className="h-6 w-6 text-farm-wheat-dark" />,
     description: "Raising cattle on pasture without grain finishing for direct marketing of premium beef.",
+    expertise: 4,
+    initialCost: 5,
     benefits: [
       "Premium pricing for grass-fed beef",
       "Lower daily labor than many other farm enterprises",
@@ -404,6 +421,8 @@ export const farmingTypesData: FarmingType[] = [
     title: "Aquaponics",
     icon: <CloudRain className="h-6 w-6 text-blue-400" />,
     description: "Integrated system that combines fish farming with hydroponic plant production in a symbiotic environment.",
+    expertise: 4,
+    initialCost: 4,
     benefits: [
       "Produces both fish and vegetables from one system",
       "Can be operated in non-traditional spaces (warehouses, etc.)",

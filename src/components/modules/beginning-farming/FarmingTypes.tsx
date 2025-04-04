@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,27 +15,14 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { farmingTypesData } from "./data/farmingTypesData";
+import { FarmingType } from "./types/farmingTypes";
 
-// Making sure the interface is the same as the one in farmingTypesData.tsx
-interface FarmingTypeData {
-  id: string;
-  title: string;
-  icon: JSX.Element;
-  description: string;
-  expertise: number;
-  initialCost: number;
-  benefits: string[];
-  challenges: string[];
-  startingSteps: string[];
-  resources: {
-    title: string;
-    url?: string;
-    description: string;
-  }[];
+interface FarmingTypesProps {
+  onLearnMoreClick?: (typeName: string, description: string) => void;
 }
 
-export function FarmingTypes() {
-  const [selectedType, setSelectedType] = useState<FarmingTypeData | null>(null);
+export function FarmingTypes({ onLearnMoreClick }: FarmingTypesProps) {
+  const [selectedType, setSelectedType] = useState<FarmingType | null>(null);
   const [showDialog, setShowDialog] = useState(false);
   const { toast } = useToast();
 
@@ -64,7 +50,7 @@ export function FarmingTypes() {
     }, 1000);
   };
 
-  const handleCardClick = (farmingType: FarmingTypeData) => {
+  const handleCardClick = (farmingType: FarmingType) => {
     setSelectedType(farmingType);
     setShowDialog(true);
   };
@@ -208,7 +194,11 @@ export function FarmingTypes() {
                       className="text-farm-green p-0 h-auto"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleQuickAction("learn", type.title);
+                        if (onLearnMoreClick) {
+                          onLearnMoreClick(type.title, type.description);
+                        } else {
+                          handleQuickAction("learn", type.title);
+                        }
                       }}
                     >
                       Learn more

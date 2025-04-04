@@ -14,4 +14,6 @@ export interface FarmingType {
   challenges: string[];
   startingSteps: string[];
   resources: FarmingResource[];
+  expertise: number;
+  initialCost: number;
 }
