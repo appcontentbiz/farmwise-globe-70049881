@@ -10,6 +10,8 @@ interface TrackingContextType {
   deleteEvent: (id: string, moduleName: string) => Promise<void>;
   getFilteredEvents: (category: "past" | "present" | "future") => TrackingEvent[];
   loading: boolean;
+  hasNewUpdates: boolean;
+  refreshEvents: () => Promise<void>;
 }
 
 const TrackingContext = createContext<TrackingContextType | undefined>(undefined);
@@ -32,6 +34,8 @@ export const TrackingProvider = ({ children, moduleName }: TrackingProviderProps
     events,
     setEvents,
     loading,
+    hasNewUpdates,
+    refreshEvents,
     getFilteredEvents,
     addEvent,
     deleteEvent
@@ -44,7 +48,9 @@ export const TrackingProvider = ({ children, moduleName }: TrackingProviderProps
       addEvent, 
       deleteEvent, 
       getFilteredEvents, 
-      loading 
+      loading,
+      hasNewUpdates,
+      refreshEvents 
     }}>
       {children}
     </TrackingContext.Provider>

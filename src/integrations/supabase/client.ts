@@ -14,7 +14,14 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Create Supabase client with proper fallbacks
 export const supabase = createClient(
   supabaseUrl || 'https://phdxahmpqvobbrqqjbut.supabase.co',
-  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZHhhaG1wcXZvYmJycXFqYnV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MzAyODgsImV4cCI6MjA1MjMwNjI4OH0.lVWfcAaigt8z5yskV8XLH_EhYJJiNQ9mz_5PTQKMBng'
+  supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBoZHhhaG1wcXZvYmJycXFqYnV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY3MzAyODgsImV4cCI6MjA1MjMwNjI4OH0.lVWfcAaigt8z5yskV8XLH_EhYJJiNQ9mz_5PTQKMBng',
+  {
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
+    },
+  }
 );
 
 // Utility function to check if Supabase is connected properly
@@ -51,6 +58,23 @@ export const initializeSupabaseSchema = async () => {
     if (checkError && checkError.message.includes('relation "farms" does not exist')) {
       console.log('Farms table does not exist. You need to create it in the Supabase dashboard.');
       toast.info('Please connect your Supabase project to create required tables');
+    }
+
+    // Enable realtime for the tracking_events table
+    try {
+      const { error } = await supabase.rpc('supabase_functions.enable_realtime', {
+        table_name: 'tracking_events',
+        schema: 'public'
+      });
+      
+      if (error) {
+        console.error('Error enabling realtime for tracking_events:', error);
+      } else {
+        console.log('Realtime enabled for tracking_events table');
+      }
+    } catch (err) {
+      console.error('Failed to enable realtime for tracking_events:', err);
+      // Continue anyway as this might be a permissions issue or the function might not exist
     }
   } catch (err) {
     console.error('Error initializing Supabase schema:', err);

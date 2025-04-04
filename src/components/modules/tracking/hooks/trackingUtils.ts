@@ -20,7 +20,7 @@ export const filterEventsByCategory = (
 };
 
 export const getEventActionMessage = (
-  action: "add" | "delete" | "load" | "error" | "validate",
+  action: "add" | "delete" | "load" | "error" | "validate" | "update",
   eventTitle?: string,
   category?: string,
   errorMessage?: string
@@ -52,6 +52,11 @@ export const getEventActionMessage = (
       return {
         title: "Validation Error",
         description: errorMessage || "Please check the form fields and try again"
+      };
+    case "update":
+      return {
+        title: "Real-time Update",
+        description: "Your tracking data has been updated from another session"
       };
     default:
       return {

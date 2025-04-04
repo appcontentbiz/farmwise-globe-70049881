@@ -6,10 +6,12 @@ import { useTrackingLocalStorage } from "./useTrackingLocalStorage";
 import { useTrackingSupabase } from "./useTrackingSupabase";
 import { createDefaultEvent, filterEventsByCategory, getEventActionMessage } from "./trackingUtils";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export function useTrackingEvents(moduleName: string) {
   const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -82,9 +84,107 @@ export function useTrackingEvents(moduleName: string) {
     loadEvents();
   }, [moduleName, user]);
 
+  // Set up real-time subscriptions for tracking events
+  useEffect(() => {
+    if (!user) return;
+    
+    // Subscribe to changes on the tracking_events table for this user and module
+    const channel = supabase
+      .channel('tracking-events-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tracking_events',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload);
+          setHasNewUpdates(true);
+          
+          // Handle different types of changes
+          if (payload.eventType === 'INSERT') {
+            const newEvent = payload.new as any;
+            // Check if this is for our module
+            if (newEvent.module_name === moduleName) {
+              // Only add if not already in our events list
+              setEvents(currentEvents => {
+                const exists = currentEvents.some(e => e.id === newEvent.id);
+                if (!exists) {
+                  // Convert to our TrackingEvent format
+                  const formattedEvent: TrackingEvent = {
+                    id: newEvent.id,
+                    title: newEvent.title,
+                    date: newEvent.date,
+                    notes: newEvent.notes,
+                    category: newEvent.category as "past" | "present" | "future",
+                    type: newEvent.type,
+                    progress: newEvent.progress
+                  };
+                  
+                  toast({
+                    title: "New Event Added",
+                    description: `"${newEvent.title}" has been added to your tracking`,
+                  });
+                  
+                  return [...currentEvents, formattedEvent];
+                }
+                return currentEvents;
+              });
+            }
+          } else if (payload.eventType === 'DELETE') {
+            // For deletion, we need to check against the old record
+            setEvents(currentEvents => {
+              const newEvents = currentEvents.filter(e => e.id !== payload.old.id);
+              if (newEvents.length !== currentEvents.length) {
+                toast({
+                  title: "Event Deleted",
+                  description: "A tracking event has been removed",
+                });
+              }
+              return newEvents;
+            });
+          }
+        }
+      )
+      .subscribe();
+    
+    // Clean up subscription when component unmounts or user changes
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, moduleName]);
+
   // Filter events by category
   const getFilteredEvents = (category: "past" | "present" | "future") => {
     return filterEventsByCategory(events, category);
+  };
+
+  // Refresh data from server
+  const refreshEvents = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    try {
+      const refreshedEvents = await loadSupabaseEvents(moduleName, user.id);
+      setEvents(refreshedEvents);
+      setHasNewUpdates(false);
+      
+      toast({
+        title: "Events Updated",
+        description: "Your tracking events have been refreshed",
+      });
+    } catch (error) {
+      console.error("Error refreshing events:", error);
+      toast({
+        title: "Refresh Failed",
+        description: "Unable to refresh events. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Add a new event
@@ -156,6 +256,8 @@ export function useTrackingEvents(moduleName: string) {
     events,
     setEvents,
     loading,
+    hasNewUpdates,
+    refreshEvents,
     getFilteredEvents,
     addEvent,
     deleteEvent
