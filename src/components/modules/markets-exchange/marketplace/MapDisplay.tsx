@@ -26,10 +26,11 @@ export function MapDisplay({
   useMapStyles();
 
   // Initialize mapbox
-  const { mapContainerRef, mapLoaded } = useMapbox({
-    mapboxApiKey,
+  const { mapContainerRef, mapLoaded, mapError } = useMapbox({
     filteredMarkets,
     selectedMarket,
+    mapboxApiKey,
+    onMarketSelect: viewMarketDetails,
     viewMarketDetails,
     setShowMapKeyInput
   });
@@ -54,6 +55,19 @@ export function MapDisplay({
           isLoading={!mapLoaded}
           height={getMapHeight()}
         />
+        {mapError && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/90">
+            <div className="text-center p-4">
+              <p className="text-error mb-2">{mapError}</p>
+              <button 
+                className="text-primary underline text-sm"
+                onClick={() => setShowMapKeyInput(true)}
+              >
+                Update API Key
+              </button>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

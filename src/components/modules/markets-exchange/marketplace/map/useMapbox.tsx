@@ -14,13 +14,17 @@ interface UseMapboxProps {
   selectedMarket: number | null;
   mapboxApiKey: string;
   onMarketSelect: (marketId: number) => void;
+  viewMarketDetails?: (marketId: number) => void;
+  setShowMapKeyInput?: (show: boolean) => void;
 }
 
 export const useMapbox = ({
   filteredMarkets,
   selectedMarket,
   mapboxApiKey,
-  onMarketSelect
+  onMarketSelect,
+  viewMarketDetails,
+  setShowMapKeyInput
 }: UseMapboxProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -50,6 +54,9 @@ export const useMapbox = ({
       newMap.on('error', (e) => {
         console.error('Mapbox error:', e);
         setMapError('Error loading map. Please check your API key.');
+        if (setShowMapKeyInput) {
+          setShowMapKeyInput(true);
+        }
       });
 
       return () => {
@@ -61,8 +68,11 @@ export const useMapbox = ({
     } catch (error) {
       console.error('Error initializing Mapbox:', error);
       setMapError('Error initializing map. Please check your API key.');
+      if (setShowMapKeyInput) {
+        setShowMapKeyInput(true);
+      }
     }
-  }, [mapboxApiKey]);
+  }, [mapboxApiKey, setShowMapKeyInput]);
 
   // Add markers when markets or map changes
   useEffect(() => {
@@ -85,7 +95,8 @@ export const useMapbox = ({
       el.innerHTML = `<div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">${market.id}</div>`;
       
       el.addEventListener('click', () => {
-        onMarketSelect(market.id);
+        const handleClick = viewMarketDetails || onMarketSelect;
+        handleClick(market.id);
       });
 
       const marker = new mapboxgl.Marker(el)
@@ -111,7 +122,7 @@ export const useMapbox = ({
         maxZoom: 15
       });
     }
-  }, [filteredMarkets, mapLoaded, onMarketSelect]);
+  }, [filteredMarkets, mapLoaded, onMarketSelect, viewMarketDetails]);
 
   // Focus on selected market
   useEffect(() => {
