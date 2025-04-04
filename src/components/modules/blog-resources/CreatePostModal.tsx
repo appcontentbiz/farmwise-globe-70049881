@@ -7,51 +7,85 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 interface CreatePostModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onPostCreated?: (post: PostFormData) => void;
 }
 
-export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [postType, setPostType] = useState("article");
-  const [category, setCategory] = useState("");
-  const [tags, setTags] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+// Define the form schema with validation rules
+const formSchema = z.object({
+  postType: z.enum(["article", "resource"]),
+  title: z.string().min(3, "Title must be at least 3 characters").max(100, "Title cannot exceed 100 characters"),
+  content: z.string().min(10, "Content must be at least 10 characters"),
+  category: z.string().min(2, "Category must be at least 2 characters"),
+  tags: z.string().optional(),
+  file: z.instanceof(File).optional().or(z.literal(null))
+});
+
+export type PostFormData = z.infer<typeof formSchema>;
+
+export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostModalProps) {
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Initialize the form
+  const form = useForm<PostFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      postType: "article",
+      title: "",
+      content: "",
+      category: "",
+      tags: "",
+      file: null
+    }
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log({
-      title,
-      content,
-      postType,
-      category,
-      tags: tags.split(",").map(tag => tag.trim()),
-      file
-    });
+  const handleSubmit = async (values: PostFormData) => {
+    setIsSubmitting(true);
     
-    toast({
-      title: "Post created successfully!",
-      description: "Your content has been submitted for review and will be published soon.",
-    });
-    
-    // Reset form
-    setTitle("");
-    setContent("");
-    setPostType("article");
-    setCategory("");
-    setTags("");
-    setFile(null);
-    
-    onClose();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+    try {
+      // In a real app, this would be an API call to save the data
+      console.log("Form data to submit:", values);
+      
+      // Process the tags from comma-separated string to array
+      const processedValues = {
+        ...values,
+        tags: values.tags ? values.tags.split(",").map(tag => tag.trim()).filter(Boolean) : []
+      };
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      // Show success message
+      toast({
+        title: "Post created successfully!",
+        description: "Your content has been submitted and will be published soon.",
+      });
+      
+      // If callback provided, pass the data
+      if (onPostCreated) {
+        onPostCreated(processedValues);
+      }
+      
+      // Close modal and reset form
+      form.reset();
+      onClose();
+    } catch (error) {
+      console.error("Error submitting post:", error);
+      toast({
+        title: "Error creating post",
+        description: "There was a problem submitting your content. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -65,94 +99,146 @@ export function CreatePostModal({ isOpen, onClose }: CreatePostModalProps) {
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="post-type">Post Type</Label>
-            <RadioGroup 
-              id="post-type" 
-              value={postType} 
-              onValueChange={setPostType}
-              className="flex space-x-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="article" id="article" />
-                <Label htmlFor="article">Article</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="resource" id="resource" />
-                <Label htmlFor="resource">Resource</Label>
-              </div>
-            </RadioGroup>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter a descriptive title..."
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="postType"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Post Type</FormLabel>
+                  <RadioGroup 
+                    onValueChange={field.onChange} 
+                    value={field.value} 
+                    className="flex space-x-4"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="article" id="article" />
+                      <Label htmlFor="article">Article</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="resource" id="resource" />
+                      <Label htmlFor="resource">Resource</Label>
+                    </div>
+                  </RadioGroup>
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="content">Content</Label>
-            <Textarea
-              id="content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              placeholder="Write your article or describe your resource..."
-              rows={6}
-              required
+            
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Title</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter a descriptive title..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Input
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="E.g., Sustainability, Technology"
-                required
+            
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem className="space-y-2">
+                  <FormLabel>Content</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Write your article or describe your resource..."
+                      rows={6}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Category</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="E.g., Sustainability, Technology"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="tags"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Tags (comma separated)</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="E.g., organic, soil health, irrigation"
+                        {...field}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
               />
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="tags">Tags (comma separated)</Label>
-              <Input
-                id="tags"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="E.g., organic, soil health, irrigation"
+            {form.watch("postType") === "resource" && (
+              <FormField
+                control={form.control}
+                name="file"
+                render={({ field: { value, onChange, ...fieldProps } }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Upload File</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        {...fieldProps}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0] || null;
+                          onChange(file);
+                        }}
+                      />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">
+                      Supported formats: PDF, DOCX, XLSX, JPG, PNG, MP3, MP4 (max 100MB)
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-          </div>
-          
-          {postType === "resource" && (
-            <div className="space-y-2">
-              <Label htmlFor="file">Upload File</Label>
-              <Input
-                id="file"
-                type="file"
-                onChange={handleFileChange}
-                required={postType === "resource"}
-              />
-              <p className="text-xs text-muted-foreground">
-                Supported formats: PDF, DOCX, XLSX, JPG, PNG, MP3, MP4 (max 100MB)
-              </p>
-            </div>
-          )}
-          
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit">Submit</Button>
-          </DialogFooter>
-        </form>
+            )}
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Submitting..." : "Submit"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
