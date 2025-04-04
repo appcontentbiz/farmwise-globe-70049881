@@ -20,7 +20,7 @@ export const filterEventsByCategory = (
 };
 
 export const getEventActionMessage = (
-  action: "add" | "delete" | "load" | "error",
+  action: "add" | "delete" | "load" | "error" | "validate",
   eventTitle?: string,
   category?: string,
   errorMessage?: string
@@ -48,10 +48,40 @@ export const getEventActionMessage = (
         title: "Operation Failed",
         description: errorMessage || "There was an issue with your tracking data"
       };
+    case "validate":
+      return {
+        title: "Validation Error",
+        description: errorMessage || "Please check the form fields and try again"
+      };
     default:
       return {
         title: "Tracking Updated",
         description: "Your tracking data has been updated"
       };
   }
+};
+
+export const validateEventForm = (
+  event: Omit<TrackingEvent, "id">
+): { isValid: boolean; message?: string } => {
+  if (!event.title.trim()) {
+    return { isValid: false, message: "Event title is required" };
+  }
+  
+  if (!event.date) {
+    return { isValid: false, message: "Event date is required" };
+  }
+  
+  // Check if date is in valid format (YYYY-MM-DD)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (!dateRegex.test(event.date)) {
+    return { isValid: false, message: "Date format should be YYYY-MM-DD" };
+  }
+  
+  // If progress is provided, it should be between 0 and 100
+  if (event.progress !== undefined && (event.progress < 0 || event.progress > 100)) {
+    return { isValid: false, message: "Progress must be between 0 and 100" };
+  }
+  
+  return { isValid: true };
 };

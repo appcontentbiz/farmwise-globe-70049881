@@ -1,12 +1,15 @@
 
-import { useState } from "react";
-import { CalendarIcon, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { CalendarIcon, Save, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useTracking } from "./TrackingContext";
 import { eventTypeOptions } from "./types";
+import { validateEventForm, getEventActionMessage } from "./hooks/trackingUtils";
+import { useToast } from "@/hooks/use-toast";
 
 interface EventFormProps {
   activeTab: "past" | "present" | "future";
@@ -16,7 +19,9 @@ interface EventFormProps {
 
 export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
   const { addEvent } = useTracking();
+  const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   
   const [newEvent, setNewEvent] = useState({
     title: "",
@@ -27,15 +32,32 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
     category: activeTab
   });
 
+  // Update category when activeTab changes
+  useEffect(() => {
+    setNewEvent(prev => ({ ...prev, category: activeTab }));
+  }, [activeTab]);
+
   const handleSaveEvent = async () => {
-    if (!newEvent.title.trim()) {
+    // Clear previous validation errors
+    setValidationError(null);
+    
+    // Validate form before submission
+    const validation = validateEventForm(newEvent);
+    if (!validation.isValid) {
+      setValidationError(validation.message || "Please check your form inputs");
+      const errorMsg = getEventActionMessage("validate", undefined, undefined, validation.message);
+      toast({
+        title: errorMsg.title,
+        description: errorMsg.description,
+        variant: "destructive",
+      });
       return;
     }
 
     try {
       setIsSubmitting(true);
       
-      await addEvent({
+      const result = await addEvent({
         title: newEvent.title,
         date: newEvent.date,
         notes: newEvent.notes,
@@ -44,18 +66,29 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
         category: activeTab
       }, moduleName);
 
-      setNewEvent({
-        title: "",
-        date: new Date().toISOString().split('T')[0],
-        notes: "",
-        type: "activity",
-        progress: 0,
-        category: activeTab
-      });
-      
-      onCancel();
-    } catch (error) {
+      if (result) {
+        setNewEvent({
+          title: "",
+          date: new Date().toISOString().split('T')[0],
+          notes: "",
+          type: "activity",
+          progress: 0,
+          category: activeTab
+        });
+        
+        onCancel();
+      } else {
+        // This will be handled by the error in the catch block or in the useTrackingEvents hook
+        throw new Error("Failed to save event");
+      }
+    } catch (error: any) {
       console.error("Error saving event:", error);
+      setValidationError(error.message || "Failed to save event. Please try again.");
+      toast({
+        title: "Save Failed",
+        description: error.message || "There was a problem saving your event",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -63,21 +96,30 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
 
   return (
     <div className="bg-muted/50 p-4 rounded-lg space-y-3">
+      {validationError && (
+        <Alert variant="destructive" className="py-2">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{validationError}</AlertDescription>
+        </Alert>
+      )}
+      
       <div>
         <label htmlFor="event-title" className="text-sm font-medium mb-1 block">
-          Event Title
+          Event Title <span className="text-destructive">*</span>
         </label>
         <Input
           id="event-title"
           placeholder="Enter event title"
           value={newEvent.title}
           onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+          required
+          aria-required="true"
         />
       </div>
       
       <div>
         <label htmlFor="event-type" className="text-sm font-medium mb-1 block">
-          Event Type
+          Event Type <span className="text-destructive">*</span>
         </label>
         <Select 
           value={newEvent.type} 
@@ -98,7 +140,7 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
       
       <div>
         <label htmlFor="event-date" className="text-sm font-medium mb-1 block">
-          Date
+          Date <span className="text-destructive">*</span>
         </label>
         <div className="flex items-center">
           <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
@@ -107,6 +149,8 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
             type="date"
             value={newEvent.date}
             onChange={(e) => setNewEvent({...newEvent, date: e.target.value})}
+            required
+            aria-required="true"
           />
         </div>
       </div>
@@ -129,7 +173,7 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
           />
           <div className="w-full bg-muted/20 rounded-full h-2 mt-2">
             <div 
-              className="bg-farm-green h-2 rounded-full" 
+              className="bg-farm-green h-2 rounded-full transition-all duration-300" 
               style={{ width: `${newEvent.progress}%` }}
             ></div>
           </div>
@@ -155,6 +199,7 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
           size="sm"
           onClick={onCancel}
           disabled={isSubmitting}
+          type="button"
         >
           Cancel
         </Button>
@@ -163,6 +208,7 @@ export function EventForm({ activeTab, onCancel, moduleName }: EventFormProps) {
           className="flex items-center gap-2"
           onClick={handleSaveEvent}
           disabled={isSubmitting}
+          type="button"
         >
           <Save className="h-4 w-4" />
           {isSubmitting ? "Saving..." : "Save Event"}

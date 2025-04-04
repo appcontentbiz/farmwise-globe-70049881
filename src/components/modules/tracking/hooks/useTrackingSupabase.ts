@@ -3,6 +3,7 @@ import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { getEventActionMessage } from "./trackingUtils";
 
 export function useTrackingSupabase() {
   const { toast } = useToast();
@@ -13,6 +14,7 @@ export function useTrackingSupabase() {
         .from('tracking_events')
         .select('*')
         .eq('module_name', moduleName)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -20,8 +22,9 @@ export function useTrackingSupabase() {
       }
 
       if (data && data.length > 0) {
+        const successMessage = getEventActionMessage("load");
         toast({
-          title: "Events Loaded",
+          title: successMessage.title,
           description: `Successfully loaded ${data.length} tracking events.`,
         });
         
@@ -38,11 +41,14 @@ export function useTrackingSupabase() {
 
       // Return empty array if no events found
       return [];
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading tracking events from Supabase:", error);
+      const errorMessage = getEventActionMessage("error", undefined, undefined, 
+        error.message || "There was an issue loading your tracking data. Please try again.");
+      
       toast({
-        title: "Failed to load tracking events",
-        description: "There was an issue loading your tracking data. Please try again.",
+        title: errorMessage.title,
+        description: errorMessage.description,
         variant: "destructive",
       });
       return [];
@@ -84,17 +90,21 @@ export function useTrackingSupabase() {
         progress: data.progress
       };
       
+      const successMessage = getEventActionMessage("add", event.title, event.category);
       toast({
-        title: "Event Added",
-        description: `Added "${event.title}" to your ${event.category} tracking`,
+        title: successMessage.title,
+        description: successMessage.description,
       });
       
       return newEvent;
     } catch (error: any) {
       console.error("Error adding tracking event to Supabase:", error);
+      const errorMessage = getEventActionMessage("error", undefined, undefined, 
+        error.message || "There was an issue adding your tracking event.");
+      
       toast({
-        title: "Failed to Add Event",
-        description: error.message || "There was an issue adding your tracking event.",
+        title: errorMessage.title,
+        description: errorMessage.description,
         variant: "destructive",
       });
       return null;
@@ -112,17 +122,21 @@ export function useTrackingSupabase() {
         throw error;
       }
       
+      const successMessage = getEventActionMessage("delete");
       toast({
-        title: "Event Removed",
-        description: "The tracking event has been removed",
+        title: successMessage.title,
+        description: successMessage.description,
       });
       
       return true;
     } catch (error: any) {
       console.error("Error deleting tracking event from Supabase:", error);
+      const errorMessage = getEventActionMessage("error", undefined, undefined, 
+        error.message || "There was an issue removing your tracking event.");
+      
       toast({
-        title: "Failed to Remove Event",
-        description: error.message || "There was an issue removing your tracking event.",
+        title: errorMessage.title,
+        description: errorMessage.description,
         variant: "destructive",
       });
       return false;

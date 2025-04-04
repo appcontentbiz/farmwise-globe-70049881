@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
+import { getEventActionMessage } from "./trackingUtils";
 
 export function useTrackingLocalStorage(moduleName: string) {
   const { toast } = useToast();
@@ -10,13 +11,25 @@ export function useTrackingLocalStorage(moduleName: string) {
     try {
       const savedEvents = localStorage.getItem(`farm-tracking-${moduleName}`);
       if (savedEvents) {
-        return JSON.parse(savedEvents);
+        const events = JSON.parse(savedEvents);
+        
+        // Show success toast
+        const message = getEventActionMessage("load");
+        toast({
+          title: message.title,
+          description: message.description,
+        });
+        
+        return events;
       }
     } catch (error) {
       console.error("Error loading tracking events from localStorage:", error);
+      const errorMessage = getEventActionMessage("error", undefined, undefined, 
+        "Failed to load tracking data from local storage. Using default data instead.");
+      
       toast({
-        title: "Failed to Load",
-        description: "There was an issue loading your tracking data. Using default data instead.",
+        title: errorMessage.title,
+        description: errorMessage.description,
         variant: "destructive",
       });
     }
@@ -37,9 +50,12 @@ export function useTrackingLocalStorage(moduleName: string) {
       localStorage.setItem(`farm-tracking-${moduleName}`, JSON.stringify(events));
     } catch (error) {
       console.error("Error saving tracking events to localStorage:", error);
+      const errorMessage = getEventActionMessage("error", undefined, undefined, 
+        "There was an issue saving your tracking data locally.");
+      
       toast({
-        title: "Failed to Save",
-        description: "There was an issue saving your tracking data locally.",
+        title: errorMessage.title,
+        description: errorMessage.description,
         variant: "destructive",
       });
     }
@@ -53,9 +69,10 @@ export function useTrackingLocalStorage(moduleName: string) {
     
     saveLocalEvents([...events, newEvent]);
     
+    const successMessage = getEventActionMessage("add", event.title, event.category);
     toast({
-      title: "Event Added",
-      description: `Added "${event.title}" to your ${event.category} tracking`,
+      title: successMessage.title,
+      description: successMessage.description,
     });
     
     return newEvent;
@@ -65,9 +82,10 @@ export function useTrackingLocalStorage(moduleName: string) {
     const updatedEvents = events.filter(event => event.id !== id);
     saveLocalEvents(updatedEvents);
     
+    const message = getEventActionMessage("delete");
     toast({
-      title: "Event Removed",
-      description: "The tracking event has been removed",
+      title: message.title,
+      description: message.description,
     });
     
     return updatedEvents;
