@@ -39,8 +39,9 @@ const formSchema = z.object({
   description: z.string()
     .min(20, "Description must be at least 20 characters")
     .max(1000, "Description cannot exceed 1000 characters"),
-  acknowledgement: z.literal(true, {
-    errorMap: () => ({ message: "You must acknowledge this" }),
+  // Fix: Change literal validation to boolean with refinement for "true" value
+  acknowledgement: z.boolean().refine(val => val === true, {
+    message: "You must acknowledge this"
   })
 });
 
