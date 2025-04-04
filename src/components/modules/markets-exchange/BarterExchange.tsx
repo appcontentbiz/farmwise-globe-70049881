@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   ArrowLeftRight, 
@@ -18,6 +17,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CreateBarterListingForm } from './barter/CreateBarterListingForm';
 
 // Sample data for barter listings
 const barterListings = [
@@ -139,6 +139,7 @@ export function BarterExchange() {
   const [offeringFilter, setOfferingFilter] = useState<string>("");
   const [seekingFilter, setSeekingFilter] = useState<string>("");
   const [contactMessage, setContactMessage] = useState("");
+  const [showCreateForm, setShowCreateForm] = useState(false);
 
   // Filter listings based on search and filters
   const filteredListings = barterListings.filter(listing => {
@@ -180,12 +181,9 @@ export function BarterExchange() {
     setContactMessage("");
   };
 
-  // Handle creating a new listing
+  // Updated handler for creating a new listing
   const handleCreateListing = () => {
-    toast({
-      title: "Create New Listing",
-      description: "This would open a form to create a new barter listing"
-    });
+    setShowCreateForm(true);
   };
 
   // Handle view listing details
@@ -491,6 +489,11 @@ export function BarterExchange() {
           )}
         </TabsContent>
       </Tabs>
+
+      <CreateBarterListingForm
+        open={showCreateForm}
+        onOpenChange={setShowCreateForm}
+      />
     </div>
   );
 }
