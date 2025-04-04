@@ -1,157 +1,140 @@
-import { useState, useEffect, useRef } from 'react';
-import { MapboxMap, MarketType } from '../data/marketData';
+
+import React, { useState, useEffect, useRef } from 'react';
+import mapboxgl from 'mapbox-gl';
+import { MarketType } from '../data/marketData';
+
+// Mapbox specific types
+export type MapboxMarker = {
+  market: MarketType;
+  marker: mapboxgl.Marker;
+};
 
 interface UseMapboxProps {
-  mapboxApiKey: string;
   filteredMarkets: MarketType[];
   selectedMarket: number | null;
-  viewMarketDetails: (id: number) => void;
-  setShowMapKeyInput: (show: boolean) => void;
+  mapboxApiKey: string;
+  onMarketSelect: (marketId: number) => void;
 }
 
-export function useMapbox({
-  mapboxApiKey,
+export const useMapbox = ({
   filteredMarkets,
   selectedMarket,
-  viewMarketDetails,
-  setShowMapKeyInput
-}: UseMapboxProps) {
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const [mapInstance, setMapInstance] = useState<MapboxMap | null>(null);
+  mapboxApiKey,
+  onMarketSelect
+}: UseMapboxProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<MapboxMarker[]>([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
 
   // Initialize map
   useEffect(() => {
-    if (!mapContainerRef.current || mapInstance) return;
+    if (!mapboxApiKey || !mapContainerRef.current || mapRef.current) return;
 
-    // Create a script element for Mapbox
-    const mapboxScript = document.createElement('script');
-    mapboxScript.src = 'https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js';
-    mapboxScript.async = true;
+    try {
+      mapboxgl.accessToken = mapboxApiKey;
 
-    mapboxScript.onload = () => {
-      // Check if mapboxgl is available on window
-      if (!window.mapboxgl) {
-        console.error("Mapbox GL JS is not loaded");
-        return;
-      }
-
-      // Set the access token
-      window.mapboxgl.accessToken = mapboxApiKey;
-      
-      // Create the map
-      const map = new window.mapboxgl.Map({
-        container: mapContainerRef.current!,
-        style: 'mapbox://styles/mapbox/streets-v11',
-        center: [-86.813, 33.523], // Center on Birmingham, Alabama
-        zoom: 9
+      const newMap = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [-122.419, 37.775], // Default center (San Francisco)
+        zoom: 11
       });
 
-      map.on('load', () => {
+      newMap.on('load', () => {
         setMapLoaded(true);
-        setMapInstance(map as unknown as MapboxMap);
-        
-        // Add markers for each market
-        filteredMarkets.forEach((market) => {
-          // Create marker element
-          const el = document.createElement('div');
-          el.className = 'custom-marker';
-          el.innerHTML = `
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 21C16 17 20 13.4183 20 9C20 4.58172 16.4183 1 12 1C7.58172 1 4 4.58172 4 9C4 13.4183 8 17 12 21Z" 
-                fill="#4CAF50" stroke="white" strokeWidth="2"/>
-              <circle cx="12" cy="9" r="3" fill="white" />
-            </svg>
-          `;
-          
-          el.style.cursor = 'pointer';
-          el.addEventListener('click', () => {
-            viewMarketDetails(market.id);
-          });
-          
-          // Add marker to map
-          new window.mapboxgl.Marker(el)
-            .setLngLat([market.coordinates.lng, market.coordinates.lat])
-            .addTo(map);
-        });
-
-        // Add navigation controls
-        map.addControl(new window.mapboxgl.NavigationControl(), 'top-right');
+        mapRef.current = newMap;
       });
 
-      // Add error handling
-      map.on('error', (e) => {
+      newMap.on('error', (e) => {
         console.error('Mapbox error:', e);
-        if (e.error && e.error.status === 401) {
-          setShowMapKeyInput(true);
-        }
+        setMapError('Error loading map. Please check your API key.');
       });
 
       return () => {
-        map?.remove();
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
       };
-    };
-
-    document.head.appendChild(mapboxScript);
-
-    return () => {
-      document.head.removeChild(mapboxScript);
-      if (mapInstance) {
-        mapInstance.remove();
-      }
-    };
+    } catch (error) {
+      console.error('Error initializing Mapbox:', error);
+      setMapError('Error initializing map. Please check your API key.');
+    }
   }, [mapboxApiKey]);
 
-  // Update markers when filtered markets change
+  // Add markers when markets or map changes
   useEffect(() => {
-    if (!mapInstance || !mapLoaded || !window.mapboxgl) return;
+    if (!mapLoaded || !mapRef.current) return;
 
-    // Remove all existing markers
-    const markers = document.querySelectorAll('.custom-marker');
-    markers.forEach(marker => {
+    // Clear existing markers
+    markersRef.current.forEach(({ marker }) => {
       marker.remove();
     });
+    markersRef.current = [];
 
-    // Add markers for each filtered market
-    filteredMarkets.forEach((market) => {
-      // Create a custom pin element
-      const el = document.createElement('div');
-      el.className = 'custom-marker';
-      el.innerHTML = `
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 21C16 17 20 13.4183 20 9C20 4.58172 16.4183 1 12 1C7.58172 1 4 4.58172 4 9C4 13.4183 8 17 12 21Z" 
-            fill="${selectedMarket === market.id ? '#FF5722' : '#4CAF50'}" stroke="white" strokeWidth="2"/>
-          <circle cx="12" cy="9" r="3" fill="white" />
-        </svg>
-      `;
+    if (filteredMarkets.length === 0) return;
+
+    // Add new markers
+    const newMarkers: MapboxMarker[] = filteredMarkets.map(market => {
+      const [longitude, latitude] = market.coordinates;
       
-      el.style.cursor = 'pointer';
+      const el = document.createElement('div');
+      el.className = 'marker';
+      el.innerHTML = `<div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">${market.id}</div>`;
+      
       el.addEventListener('click', () => {
-        viewMarketDetails(market.id);
+        onMarketSelect(market.id);
+      });
+
+      const marker = new mapboxgl.Marker(el)
+        .setLngLat([longitude, latitude])
+        .addTo(mapRef.current!);
+
+      return { market, marker };
+    });
+
+    markersRef.current = newMarkers;
+
+    // Fit bounds to show all markers
+    if (newMarkers.length > 0) {
+      const bounds = new mapboxgl.LngLatBounds();
+      
+      newMarkers.forEach(({ market }) => {
+        const [longitude, latitude] = market.coordinates;
+        bounds.extend([longitude, latitude]);
       });
       
-      // Add marker to map
-      new window.mapboxgl.Marker(el)
-        .setLngLat([market.coordinates.lng, market.coordinates.lat])
-        .addTo(mapInstance as any);
-    });
-  }, [filteredMarkets, selectedMarket, mapLoaded]);
+      mapRef.current.fitBounds(bounds, {
+        padding: 50,
+        maxZoom: 15
+      });
+    }
+  }, [filteredMarkets, mapLoaded, onMarketSelect]);
 
-  // Handle map center change when a market is selected
+  // Focus on selected market
   useEffect(() => {
-    if (!mapInstance || !mapLoaded) return;
-    
-    if (selectedMarket !== null) {
-      const market = filteredMarkets.find(m => m.id === selectedMarket);
-      if (market) {
-        mapInstance.flyTo({
-          center: [market.coordinates.lng, market.coordinates.lat],
-          zoom: 12,
-          essential: true
-        });
-      }
+    if (!mapLoaded || !mapRef.current || selectedMarket === null) return;
+
+    const marketMarker = markersRef.current.find(
+      ({ market }) => market.id === selectedMarket
+    );
+
+    if (marketMarker) {
+      const [longitude, latitude] = marketMarker.market.coordinates;
+      
+      mapRef.current.flyTo({
+        center: [longitude, latitude],
+        zoom: 14,
+        essential: true
+      });
     }
   }, [selectedMarket, mapLoaded]);
 
-  return { mapContainerRef, mapLoaded, mapInstance };
-}
+  return {
+    mapContainerRef,
+    mapError,
+    mapLoaded
+  };
+};

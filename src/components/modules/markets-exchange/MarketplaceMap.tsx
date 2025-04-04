@@ -5,7 +5,7 @@ import { MarketList } from './marketplace/MarketList';
 import { MapDisplay } from './marketplace/MapDisplay';
 import { MarketDetails } from './marketplace/MarketDetails';
 import { MarketDirectionsDialog } from './marketplace/MarketDirectionsDialog';
-import { farmMarkets } from './marketplace/data/marketData';
+import { marketData } from './marketplace/data/marketData';
 import { useMarketFilters } from './marketplace/hooks/useMarketFilters';
 import { useMarketDisplay } from './marketplace/hooks/useMarketDisplay';
 
@@ -15,7 +15,7 @@ export function MarketplaceMap() {
     setters: filterSetters,
     handlers: filterHandlers,
     filteredMarkets
-  } = useMarketFilters(farmMarkets);
+  } = useMarketFilters(marketData);
 
   const {
     display,
@@ -25,7 +25,7 @@ export function MarketplaceMap() {
 
   // Find market by ID for display
   const selectedMarketDetails = display.selectedMarket 
-    ? farmMarkets.find(m => m.id === display.selectedMarket)!
+    ? marketData.find(m => m.id === display.selectedMarket)!
     : null;
 
   return (

@@ -3,15 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { MapPin, Layers, Plus } from "lucide-react";
 import { useState } from "react";
+import { AddFieldDialog } from "./AddFieldDialog";
 
 export function FarmMap() {
   const [activeField, setActiveField] = useState<string | null>(null);
-  
-  const fields = [
+  const [fields, setFields] = useState([
     { id: "field1", name: "North Field", crop: "Corn", size: "12 acres", health: "Good" },
     { id: "field2", name: "South Field", crop: "Wheat", size: "8 acres", health: "Excellent" },
     { id: "field3", name: "East Field", crop: "Soybeans", size: "10 acres", health: "Fair" },
-  ];
+  ]);
+
+  const handleAddField = (newField: { id: string, name: string, crop: string, size: string, health: string }) => {
+    setFields([...fields, newField]);
+  };
 
   return (
     <Card className="farm-module-card col-span-2 h-full">
@@ -26,10 +30,7 @@ export function FarmMap() {
               <Layers className="h-4 w-4 mr-2" />
               Layers
             </Button>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Field
-            </Button>
+            <AddFieldDialog onFieldAdded={handleAddField} />
           </div>
         </div>
       </CardHeader>
@@ -42,32 +43,23 @@ export function FarmMap() {
           </div>
           
           {/* Field indicators positioned absolutely over the map */}
-          <div className="absolute top-1/4 left-1/4 cursor-pointer">
+          {fields.map((field, index) => (
             <div 
-              className={`w-6 h-6 rounded-full ${activeField === 'field1' ? 'bg-farm-green' : 'bg-farm-green/60'} flex items-center justify-center text-white hover:scale-110 transition-transform`}
-              onClick={() => setActiveField('field1')}
+              key={field.id} 
+              className="absolute cursor-pointer" 
+              style={{
+                top: `${25 + (index * 20)}%`,
+                left: `${25 + (index * 15)}%`
+              }}
             >
-              1
+              <div 
+                className={`w-6 h-6 rounded-full ${activeField === field.id ? 'bg-farm-green' : 'bg-farm-green/60'} flex items-center justify-center text-white hover:scale-110 transition-transform`}
+                onClick={() => setActiveField(field.id)}
+              >
+                {index + 1}
+              </div>
             </div>
-          </div>
-          
-          <div className="absolute top-2/3 left-1/2 cursor-pointer">
-            <div 
-              className={`w-6 h-6 rounded-full ${activeField === 'field2' ? 'bg-farm-green' : 'bg-farm-green/60'} flex items-center justify-center text-white hover:scale-110 transition-transform`}
-              onClick={() => setActiveField('field2')}
-            >
-              2
-            </div>
-          </div>
-          
-          <div className="absolute top-1/3 right-1/4 cursor-pointer">
-            <div 
-              className={`w-6 h-6 rounded-full ${activeField === 'field3' ? 'bg-farm-green' : 'bg-farm-green/60'} flex items-center justify-center text-white hover:scale-110 transition-transform`}
-              onClick={() => setActiveField('field3')}
-            >
-              3
-            </div>
-          </div>
+          ))}
         </div>
         
         <div className="mt-4">
