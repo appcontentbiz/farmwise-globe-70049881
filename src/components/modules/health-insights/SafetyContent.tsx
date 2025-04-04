@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   PieChart, 
@@ -14,6 +15,7 @@ import {
   CartesianGrid
 } from "recharts";
 import { AlertTriangle, CheckCircle, FileText, ShieldCheck } from "lucide-react";
+import { SafetyResourcesModal } from "./SafetyResourcesModal";
 
 // Sample data for safety incidents
 const incidentData = [
@@ -36,6 +38,8 @@ const complianceData = [
 ];
 
 export function SafetyContent() {
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -44,7 +48,11 @@ export function SafetyContent() {
           <p className="text-sm text-muted-foreground">Safety performance and incident prevention</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" size="sm">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowResourcesModal(true)}
+          >
             <FileText className="h-4 w-4 mr-2" />
             Safety Plan
           </Button>
@@ -174,6 +182,11 @@ export function SafetyContent() {
           </li>
         </ul>
       </div>
+
+      <SafetyResourcesModal 
+        isOpen={showResourcesModal}
+        onClose={() => setShowResourcesModal(false)}
+      />
     </div>
   );
 }

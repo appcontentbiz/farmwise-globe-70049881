@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   LineChart, 
@@ -13,6 +14,7 @@ import {
   Bar
 } from "recharts";
 import { Activity, ArrowUpDown, Calendar, Heart } from "lucide-react";
+import { PhysicalHealthResourcesModal } from "./PhysicalHealthResourcesModal";
 
 // Sample data for physical health
 const activityData = [
@@ -33,6 +35,8 @@ const healthMetrics = [
 ];
 
 export function PhysicalHealthContent() {
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -41,6 +45,14 @@ export function PhysicalHealthContent() {
           <p className="text-sm text-muted-foreground">Tracking key health metrics for farm work</p>
         </div>
         <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => setShowResourcesModal(true)}
+          >
+            <Heart className="h-4 w-4 mr-2" />
+            Resources
+          </Button>
           <Button variant="outline" size="sm">
             <Calendar className="h-4 w-4 mr-2" />
             Select Period
@@ -136,6 +148,11 @@ export function PhysicalHealthContent() {
           </li>
         </ul>
       </div>
+
+      <PhysicalHealthResourcesModal 
+        isOpen={showResourcesModal}
+        onClose={() => setShowResourcesModal(false)}
+      />
     </div>
   );
 }

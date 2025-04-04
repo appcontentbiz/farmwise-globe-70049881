@@ -1,4 +1,5 @@
 
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   LineChart, 
@@ -17,6 +18,7 @@ import {
 } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Brain, Phone, Sun, SunMedium } from "lucide-react";
+import { MentalHealthResourcesModal } from "./MentalHealthResourcesModal";
 
 // Sample data for mental health
 const stressData = [
@@ -39,6 +41,8 @@ const wellbeingData = [
 ];
 
 export function MentalHealthContent() {
+  const [showResourcesModal, setShowResourcesModal] = useState(false);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -46,7 +50,11 @@ export function MentalHealthContent() {
           <h4 className="font-medium">Mental Wellbeing Tracking</h4>
           <p className="text-sm text-muted-foreground">Monitoring stress levels and overall mental health</p>
         </div>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setShowResourcesModal(true)}
+        >
           <Brain className="h-4 w-4 mr-2" />
           Resources
         </Button>
@@ -121,7 +129,12 @@ export function MentalHealthContent() {
                 <div className="text-sm">
                   <h5 className="font-medium">Seasonal Stress Management</h5>
                   <p className="text-xs text-muted-foreground mt-1">Planning strategies to manage stress during high-pressure seasons like planting and harvest</p>
-                  <Button variant="outline" size="sm" className="mt-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="mt-2"
+                    onClick={() => setShowResourcesModal(true)}
+                  >
                     <Sun className="h-3.5 w-3.5 mr-1" />
                     Seasonal Plan
                   </Button>
@@ -157,6 +170,11 @@ export function MentalHealthContent() {
         </ul>
         <p className="text-xs text-muted-foreground mt-3">If you notice these signs persisting, consider reaching out to a mental health professional who understands agricultural challenges.</p>
       </div>
+
+      <MentalHealthResourcesModal 
+        isOpen={showResourcesModal} 
+        onClose={() => setShowResourcesModal(false)} 
+      />
     </div>
   );
 }

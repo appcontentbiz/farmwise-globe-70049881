@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Download, Sparkles } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface GuidedStepsProps {
   onCustomizeClick: () => void;
@@ -8,6 +9,17 @@ interface GuidedStepsProps {
 }
 
 export function GuidedSteps({ onCustomizeClick, onDownload }: GuidedStepsProps) {
+  const { toast } = useToast();
+
+  const handleDownload = (resourceName: string) => {
+    toast({
+      title: "Download Started",
+      description: `${resourceName} will be downloaded shortly.`
+    });
+    
+    onDownload(resourceName);
+  };
+
   return (
     <div className="bg-farm-green/10 p-4 rounded-lg border border-farm-green/20">
       <h2 className="text-xl font-semibold mb-2">Structured Guidance for New Farmers</h2>
@@ -27,7 +39,7 @@ export function GuidedSteps({ onCustomizeClick, onDownload }: GuidedStepsProps) 
         
         <Button 
           variant="outline"
-          onClick={() => onDownload("Complete Farming Guide.pdf")}
+          onClick={() => handleDownload("Complete Farming Guide.pdf")}
         >
           <Download className="h-4 w-4 mr-2" />
           Print Guide

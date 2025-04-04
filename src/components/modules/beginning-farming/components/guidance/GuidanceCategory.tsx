@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight } from "lucide-react";
 import { FarmResource } from "../../utils/guidanceResources";
+import { useState } from "react";
 
 interface GuidanceCategoryProps {
   guides: FarmResource[];
@@ -10,13 +11,21 @@ interface GuidanceCategoryProps {
 }
 
 export function GuidanceCategory({ guides, onGuideClick }: GuidanceCategoryProps) {
+  const [hoveredGuide, setHoveredGuide] = useState<string | null>(null);
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {guides.map((guide) => (
         <Card 
           key={guide.id} 
-          className="border hover:border-farm-green cursor-pointer transition-all"
+          className={`border transition-all ${
+            hoveredGuide === guide.id 
+              ? "border-farm-green shadow-sm" 
+              : "hover:border-farm-green"
+          } cursor-pointer`}
           onClick={() => onGuideClick(guide.id)}
+          onMouseEnter={() => setHoveredGuide(guide.id)}
+          onMouseLeave={() => setHoveredGuide(null)}
         >
           <CardContent className="p-4 flex justify-between items-start">
             <div>
@@ -28,7 +37,11 @@ export function GuidanceCategory({ guides, onGuideClick }: GuidanceCategoryProps
                 </Badge>
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            <ChevronRight className={`h-5 w-5 ${
+              hoveredGuide === guide.id 
+                ? "text-farm-green" 
+                : "text-muted-foreground"
+            } transition-colors`} />
           </CardContent>
         </Card>
       ))}
