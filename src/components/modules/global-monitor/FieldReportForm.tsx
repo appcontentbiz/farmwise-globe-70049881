@@ -15,30 +15,108 @@ import {
 import { 
   Globe, 
   Upload,
-  Send 
+  Send,
+  Loader2
 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface FieldReportFormProps {
   onSubmit: () => void;
 }
 
+// Define the form schema with validation rules
+const formSchema = z.object({
+  reportType: z.string({
+    required_error: "Please select a report type",
+  }),
+  location: z.string().min(3, "Location must be at least 3 characters"),
+  title: z.string().min(5, "Title must be at least 5 characters").max(100, "Title cannot exceed 100 characters"),
+  description: z.string()
+    .min(20, "Description must be at least 20 characters")
+    .max(1000, "Description cannot exceed 1000 characters"),
+  acknowledgement: z.literal(true, {
+    errorMap: () => ({ message: "You must acknowledge this" }),
+  })
+});
+
+type FieldReportFormValues = z.infer<typeof formSchema>;
+
 export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
-  const [reportType, setReportType] = useState<string>("");
-  const [location, setLocation] = useState<string>("");
-  const [title, setTitle] = useState<string>("");
-  const [description, setDescription] = useState<string>("");
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
   
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In a real application, this would send the data to a server
-    console.log({ reportType, location, title, description });
-    onSubmit();
+  // Initialize form with React Hook Form
+  const form = useForm<FieldReportFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      reportType: "",
+      location: "",
+      title: "",
+      description: "",
+      acknowledgement: false
+    }
+  });
+  
+  const handleSubmit = async (values: FieldReportFormValues) => {
+    setIsSubmitting(true);
     
-    // Reset form
-    setReportType("");
-    setLocation("");
-    setTitle("");
-    setDescription("");
+    try {
+      // In a real application, this would send the data to a server
+      console.log("Form data to submit:", { ...values, files });
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Show success message
+      toast({
+        title: "Report Submitted Successfully",
+        description: "Thank you for contributing to the global farming community.",
+      });
+      
+      // Reset form
+      form.reset();
+      setFiles([]);
+      
+      // Callback to parent
+      onSubmit();
+    } catch (error) {
+      console.error("Error submitting report:", error);
+      toast({
+        title: "Submission Failed",
+        description: "There was an error submitting your report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const fileArray = Array.from(e.target.files);
+      // Check file size (5MB limit)
+      const validFiles = fileArray.filter(file => file.size <= 5 * 1024 * 1024);
+      
+      if (validFiles.length !== fileArray.length) {
+        toast({
+          title: "File Size Exceeded",
+          description: "Some files were not added because they exceed the 5MB limit.",
+          variant: "destructive",
+        });
+      }
+      
+      setFiles(prev => [...prev, ...validFiles]);
+    }
+  };
+  
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
   };
   
   return (
@@ -51,72 +129,172 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="report-type">Report Type</Label>
-              <Select value={reportType} onValueChange={setReportType}>
-                <SelectTrigger id="report-type">
-                  <SelectValue placeholder="Select report type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="weather">Weather Event</SelectItem>
-                  <SelectItem value="disease">Crop Disease/Pest</SelectItem>
-                  <SelectItem value="innovation">Farming Technique</SelectItem>
-                  <SelectItem value="market">Market Insight</SelectItem>
-                  <SelectItem value="policy">Policy Impact</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input 
-                id="location" 
-                placeholder="City, Region, Country" 
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="reportType"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Report Type</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select report type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="weather">Weather Event</SelectItem>
+                        <SelectItem value="disease">Crop Disease/Pest</SelectItem>
+                        <SelectItem value="innovation">Farming Technique</SelectItem>
+                        <SelectItem value="market">Market Insight</SelectItem>
+                        <SelectItem value="policy">Policy Impact</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="title">Report Title</Label>
-              <Input 
-                id="title" 
-                placeholder="Brief title of your report" 
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+              
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Location</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="City, Region, Country"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea 
-                id="description" 
-                placeholder="Detailed information about your observation or insight" 
-                className="min-h-[120px]"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+              
+              <FormField
+                control={form.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Report Title</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Brief title of your report"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="attachments">Attachments (Optional)</Label>
-              <div className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors">
-                <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  Drag & drop files or click to browse
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Supports: JPG, PNG, PDF (max 5MB)
-                </p>
+              
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="space-y-2">
+                    <FormLabel>Description</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Detailed information about your observation or insight"
+                        className="min-h-[120px]"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="space-y-2">
+                <Label htmlFor="attachments">Attachments (Optional)</Label>
+                <div 
+                  className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    Drag & drop files or click to browse
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Supports: JPG, PNG, PDF (max 5MB)
+                  </p>
+                  <input
+                    id="file-upload"
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    className="hidden"
+                  />
+                </div>
+                
+                {files.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <Label>Selected Files</Label>
+                    <div className="space-y-2 max-h-[120px] overflow-y-auto">
+                      {files.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between bg-muted p-2 rounded-md">
+                          <span className="text-sm truncate max-w-[80%]">{file.name}</span>
+                          <Button 
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFile(index)}
+                          >
+                            ✕
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-            
-            <Button type="submit" className="w-full">
-              <Send className="h-4 w-4 mr-2" />
-              Submit Report
-            </Button>
-          </form>
+              
+              <FormField
+                control={form.control}
+                name="acknowledgement"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        I confirm this report is accurate and can be shared with the farming community.
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Submit Report
+                  </>
+                )}
+              </Button>
+            </form>
+          </Form>
         </CardContent>
       </Card>
       
