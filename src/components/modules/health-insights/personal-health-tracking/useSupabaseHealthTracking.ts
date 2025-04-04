@@ -1,33 +1,28 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { MoodEntry } from "./types";
-import { getMoodColor, getMoodScore, moodOptions } from "./types";
 import { useToast } from "@/hooks/use-toast";
-import { toast } from "sonner";
-
-interface HealthTrackingData {
-  id: string;
-  user_id: string;
-  date: string;
-  mood: string;
-  energy: number;
-  sleep: number;
-  physical_symptoms?: string;
-  thoughts?: string;
-}
+import { 
+  fetchHealthData, 
+  saveEntryToLocalStorage, 
+  saveEntryToSupabase 
+} from "./utils/supabaseHealthUtils";
+import { 
+  generateChartData, 
+  getMoodDistributionData, 
+  calculateAverageSleep, 
+  calculateAverageEnergy,
+  getDateRange 
+} from "./utils/chartUtils";
+import { findEntryForDate, getDefaultEntry } from "./utils/entryUtils";
+import { useRealtimeHealthTracking } from "./hooks/useRealtimeHealthTracking";
+import { getMoodColor } from "./types";
 
 export const useSupabaseHealthTracking = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentEntry, setCurrentEntry] = useState<Omit<MoodEntry, "date">>({
-    mood: "okay",
-    energy: 5,
-    sleep: 7,
-    physicalSymptoms: "",
-    thoughts: "",
-  });
+  const [currentEntry, setCurrentEntry] = useState<Omit<MoodEntry, "date">>(getDefaultEntry());
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [chartView, setChartView] = useState<"line" | "bar" | "area" | "distribution">("line");
   const [timeRange, setTimeRange] = useState<"7days" | "30days" | "90days" | "all">("30days");
@@ -36,8 +31,8 @@ export const useSupabaseHealthTracking = () => {
   const { user } = useAuth();
   const { toast } = useToast();
 
-  // Load entries from Supabase when user changes
-  useEffect(() => {
+  // Fetch data callback that can be used for initial load and realtime updates
+  const loadHealthData = useCallback(async () => {
     if (!user) {
       // If user not authenticated, load from localStorage as fallback
       const savedEntries = localStorage.getItem("health-tracking-entries");
@@ -48,61 +43,17 @@ export const useSupabaseHealthTracking = () => {
       return;
     }
     
-    fetchHealthData();
-    
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('health-tracking-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'health_tracking',
-        filter: `user_id=eq.${user.id}`
-      }, () => {
-        // Refresh data when any change happens
-        fetchHealthData();
-      })
-      .subscribe();
-      
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  // Fetch health data from Supabase
-  const fetchHealthData = async () => {
-    if (!user) return;
-    
     try {
       setIsLoading(true);
       
-      const { data, error } = await supabase
-        .from('health_tracking')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
-
-      // Transform Supabase data to match our MoodEntry interface
-      const transformedEntries: MoodEntry[] = data.map((item: HealthTrackingData) => ({
-        date: new Date(item.date),
-        mood: item.mood,
-        energy: item.energy,
-        sleep: item.sleep,
-        physicalSymptoms: item.physical_symptoms || "",
-        thoughts: item.thoughts || "",
-      }));
-
-      setEntries(transformedEntries);
+      const data = await fetchHealthData(user.id);
+      setEntries(data);
       
       // Also store in localStorage as backup
-      localStorage.setItem("health-tracking-entries", JSON.stringify(transformedEntries));
+      localStorage.setItem("health-tracking-entries", JSON.stringify(data));
       
     } catch (error: any) {
-      console.error("Error fetching health data:", error);
+      console.error("Error loading health data:", error);
       toast({
         title: "Error loading health data",
         description: error.message || "Failed to load your health tracking data",
@@ -117,90 +68,17 @@ export const useSupabaseHealthTracking = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, toast]);
 
-  // Get date range based on selected time range
-  const getDateRange = () => {
-    const endDate = new Date();
-    const startDate = new Date();
-    
-    switch (timeRange) {
-      case "7days":
-        startDate.setDate(endDate.getDate() - 7);
-        break;
-      case "30days":
-        startDate.setDate(endDate.getDate() - 30);
-        break;
-      case "90days":
-        startDate.setDate(endDate.getDate() - 90);
-        break;
-      case "all":
-        if (entries.length > 0) {
-          // Find the earliest entry date
-          const dates = entries.map(e => new Date(e.date).getTime());
-          startDate.setTime(Math.min(...dates));
-        } else {
-          startDate.setDate(endDate.getDate() - 30); // Default to 30 days if no entries
-        }
-        break;
-    }
-    
-    return { startDate, endDate };
-  };
+  // Load entries from Supabase when user changes
+  useEffect(() => {
+    loadHealthData();
+  }, [loadHealthData]);
 
-  // Generate chart data based on time range
-  const generateChartData = () => {
-    const { startDate, endDate } = getDateRange();
-    const filteredEntries = entries.filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startDate && entryDate <= endDate;
-    });
-    
-    // Sort entries by date
-    filteredEntries.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    
-    return filteredEntries.map(entry => ({
-      date: format(new Date(entry.date), "MMM dd"),
-      rawDate: new Date(entry.date),
-      mood: getMoodScore(entry.mood),
-      moodLabel: entry.mood,
-      moodColor: getMoodColor(entry.mood),
-      energy: entry.energy,
-      sleep: entry.sleep,
-    }));
-  };
+  // Set up realtime subscription
+  useRealtimeHealthTracking(user?.id, loadHealthData);
 
-  // Calculate mood distribution data
-  const getMoodDistributionData = () => {
-    const { startDate, endDate } = getDateRange();
-    const filteredEntries = entries.filter(entry => {
-      const entryDate = new Date(entry.date);
-      return entryDate >= startDate && entryDate <= endDate;
-    });
-    
-    const distribution = moodOptions.map(option => ({
-      name: option.label,
-      value: filteredEntries.filter(entry => entry.mood === option.value).length,
-      color: option.color,
-    }));
-    
-    return distribution.filter(item => item.value > 0);
-  };
-
-  // Calculate health insights
-  const calculateAverageSleep = () => {
-    if (entries.length === 0) return "N/A";
-    const total = entries.reduce((sum, entry) => sum + entry.sleep, 0);
-    return (total / entries.length).toFixed(1);
-  };
-
-  const calculateAverageEnergy = () => {
-    if (entries.length === 0) return "N/A";
-    const total = entries.reduce((sum, entry) => sum + entry.energy, 0);
-    return (total / entries.length).toFixed(1);
-  };
-
-  // Handle saving entry to Supabase
+  // Handle saving entry to Supabase or localStorage
   const handleSaveEntry = async () => {
     // Format date to YYYY-MM-DD for database storage
     const formattedDate = format(selectedDate, "yyyy-MM-dd");
@@ -212,23 +90,8 @@ export const useSupabaseHealthTracking = () => {
         ...currentEntry,
       };
 
-      // Check if an entry for this date already exists
-      const existingEntryIndex = entries.findIndex(
-        (entry) => format(new Date(entry.date), "yyyy-MM-dd") === format(selectedDate, "yyyy-MM-dd")
-      );
-
-      let updatedEntries;
-      if (existingEntryIndex >= 0) {
-        // Update existing entry
-        updatedEntries = [...entries];
-        updatedEntries[existingEntryIndex] = newEntry;
-      } else {
-        // Add new entry
-        updatedEntries = [...entries, newEntry];
-      }
-
+      const updatedEntries = saveEntryToLocalStorage(entries, newEntry);
       setEntries(updatedEntries);
-      localStorage.setItem("health-tracking-entries", JSON.stringify(updatedEntries));
       
       toast({
         title: "Entry Saved Locally",
@@ -242,67 +105,8 @@ export const useSupabaseHealthTracking = () => {
     try {
       setIsSaving(true);
       
-      // Check if entry for this date already exists
-      const { data: existingEntries, error: fetchError } = await supabase
-        .from('health_tracking')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('date', formattedDate);
-        
-      if (fetchError) throw fetchError;
-      
-      let result;
-      
-      if (existingEntries && existingEntries.length > 0) {
-        // Update existing entry
-        result = await supabase
-          .from('health_tracking')
-          .update({
-            mood: currentEntry.mood,
-            energy: currentEntry.energy,
-            sleep: currentEntry.sleep,
-            physical_symptoms: currentEntry.physicalSymptoms,
-            thoughts: currentEntry.thoughts,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', existingEntries[0].id);
-          
-        toast({
-          title: "Entry Updated",
-          description: "Your health data has been updated for " + format(selectedDate, "MMMM d, yyyy"),
-        });
-      } else {
-        // Create new entry
-        result = await supabase
-          .from('health_tracking')
-          .insert({
-            user_id: user.id,
-            date: formattedDate,
-            mood: currentEntry.mood,
-            energy: currentEntry.energy,
-            sleep: currentEntry.sleep,
-            physical_symptoms: currentEntry.physicalSymptoms,
-            thoughts: currentEntry.thoughts
-          });
-          
-        toast({
-          title: "Entry Saved",
-          description: "Your health data has been saved for " + format(selectedDate, "MMMM d, yyyy"),
-        });
-      }
-      
-      if (result.error) throw result.error;
-      
-      // Fetch updated data (will happen via realtime subscription)
-      return true;
-    } catch (error: any) {
-      console.error("Error saving health entry:", error);
-      toast({
-        title: "Save Failed",
-        description: error.message || "Failed to save your health data",
-        variant: "destructive",
-      });
-      return false;
+      const result = await saveEntryToSupabase(user.id, formattedDate, currentEntry);
+      return result;
     } finally {
       setIsSaving(false);
     }
@@ -314,9 +118,7 @@ export const useSupabaseHealthTracking = () => {
     setSelectedDate(date);
     
     // Find if an entry exists for this date
-    const existingEntry = entries.find(
-      (entry) => format(new Date(entry.date), "yyyy-MM-dd") === format(date, "yyyy-MM-dd")
-    );
+    const existingEntry = findEntryForDate(entries, date);
     
     if (existingEntry) {
       setCurrentEntry({
@@ -328,18 +130,12 @@ export const useSupabaseHealthTracking = () => {
       });
     } else {
       // Reset form for a new entry
-      setCurrentEntry({
-        mood: "okay",
-        energy: 5,
-        sleep: 7,
-        physicalSymptoms: "",
-        thoughts: "",
-      });
+      setCurrentEntry(getDefaultEntry());
     }
   };
 
-  const chartData = generateChartData();
-  const distributionData = getMoodDistributionData();
+  const chartData = generateChartData(entries, timeRange);
+  const distributionData = getMoodDistributionData(entries, timeRange);
 
   return {
     selectedDate,
@@ -355,12 +151,12 @@ export const useSupabaseHealthTracking = () => {
     setCurrentEntry,
     setChartView,
     setTimeRange,
-    getDateRange,
-    calculateAverageSleep,
-    calculateAverageEnergy,
+    getDateRange: () => getDateRange(timeRange, entries),
+    calculateAverageSleep: () => calculateAverageSleep(entries),
+    calculateAverageEnergy: () => calculateAverageEnergy(entries),
     handleSaveEntry,
     handleDateSelect,
     getMoodColor,
-    fetchHealthData
+    fetchHealthData: loadHealthData
   };
 };
