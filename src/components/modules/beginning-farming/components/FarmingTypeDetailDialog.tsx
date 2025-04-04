@@ -21,8 +21,12 @@ export function FarmingTypeDetailDialog({
   farmingType,
   contentType = 'general'
 }: FarmingTypeDetailDialogProps) {
+  // We need to ensure we have valid content to render before opening the dialog
+  // This check prevents the instability when transitioning between content types
+  const safeToRender = !!farmingType || contentType !== 'general';
+  
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open && safeToRender} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -35,7 +39,8 @@ export function FarmingTypeDetailDialog({
           </DialogTitle>
         </DialogHeader>
         
-        {contentType === 'general' && (
+        {/* Only render the content if we have valid data */}
+        {contentType === 'general' && farmingType && (
           <div className="space-y-4 py-4">
             <p>{farmingType?.description}</p>
             <p>

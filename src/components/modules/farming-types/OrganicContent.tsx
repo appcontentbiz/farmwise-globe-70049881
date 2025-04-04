@@ -20,8 +20,19 @@ export function OrganicContent() {
   const [dialogType, setDialogType] = useState<'certification' | 'market' | 'transition'>('certification');
 
   const handleDetailClick = (type: 'certification' | 'market' | 'transition') => {
+    // First set the dialog type
     setDialogType(type);
-    setShowDialog(true);
+    // Then show the dialog
+    setTimeout(() => {
+      setShowDialog(true);
+    }, 0);
+  };
+
+  // Safely close the dialog
+  const handleCloseDialog = (open: boolean) => {
+    if (!open) {
+      setShowDialog(false);
+    }
   };
 
   return (
@@ -149,7 +160,7 @@ export function OrganicContent() {
 
       <FarmingTypeDetailDialog
         open={showDialog}
-        onOpenChange={setShowDialog}
+        onOpenChange={handleCloseDialog}
         farmingType={{ name: "Organic Farming", description: "Farming without synthetic inputs" }}
         contentType={dialogType}
       />
