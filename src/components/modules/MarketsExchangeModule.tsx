@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MarketplaceMap } from './markets-exchange/MarketplaceMap';
-import { BarterExchange } from './markets-exchange/BarterExchange';
-import { MarketRates } from './markets-exchange/MarketRates';
+import { MarketplaceTab } from './markets-exchange/tabs/MarketplaceTab';
+import { BarterTab } from './markets-exchange/tabs/BarterTab';
+import { RatesTab } from './markets-exchange/tabs/RatesTab';
 
 export function MarketsExchangeModule() {
   return (
@@ -24,15 +24,15 @@ export function MarketsExchangeModule() {
         </TabsList>
         
         <TabsContent value="markets" className="space-y-6">
-          <MarketplaceMap />
+          <MarketplaceTab />
         </TabsContent>
         
         <TabsContent value="barter" className="space-y-6">
-          <BarterExchange />
+          <BarterTab />
         </TabsContent>
         
         <TabsContent value="rates" className="space-y-6">
-          <MarketRates />
+          <RatesTab />
         </TabsContent>
       </Tabs>
     </div>
