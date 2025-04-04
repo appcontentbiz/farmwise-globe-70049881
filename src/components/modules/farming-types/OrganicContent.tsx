@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Card } from "@/components/ui/card";
 import { Download, ExternalLink, Leaf, PlusCircle, Sprout } from "lucide-react";
+import { useState } from "react";
+import { FarmingTypeDetailDialog } from "@/components/modules/beginning-farming/components/FarmingTypeDetailDialog";
 
 // Sample data for organic practices
 const organicData = [
@@ -14,6 +16,14 @@ const organicData = [
 ];
 
 export function OrganicContent() {
+  const [showDialog, setShowDialog] = useState(false);
+  const [dialogType, setDialogType] = useState<'certification' | 'market' | 'transition'>('certification');
+
+  const handleDetailClick = (type: 'certification' | 'market' | 'transition') => {
+    setDialogType(type);
+    setShowDialog(true);
+  };
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -60,7 +70,12 @@ export function OrganicContent() {
             <div className="text-sm text-muted-foreground">Status:</div>
             <div className="text-lg font-semibold text-farm-green">USDA Certified Organic</div>
             <div className="text-xs text-muted-foreground">Certified since 2020</div>
-            <Button variant="outline" size="sm" className="mt-2 w-full">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 w-full"
+              onClick={() => handleDetailClick('certification')}
+            >
               <PlusCircle className="h-3.5 w-3.5 mr-1" />
               Certification Details
             </Button>
@@ -76,7 +91,12 @@ export function OrganicContent() {
             <div className="text-sm text-muted-foreground">Average Price Premium:</div>
             <div className="text-lg font-semibold text-farm-green">32%</div>
             <div className="text-xs text-muted-foreground">Above conventional market prices</div>
-            <Button variant="outline" size="sm" className="mt-2 w-full">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 w-full"
+              onClick={() => handleDetailClick('market')}
+            >
               <ExternalLink className="h-3.5 w-3.5 mr-1" />
               Market Analysis
             </Button>
@@ -92,7 +112,12 @@ export function OrganicContent() {
             <div className="text-sm text-muted-foreground">Fields in Transition:</div>
             <div className="text-lg font-semibold text-amber-500">2 fields (15 acres)</div>
             <div className="text-xs text-muted-foreground">Est. completion: June 2025</div>
-            <Button variant="outline" size="sm" className="mt-2 w-full">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 w-full"
+              onClick={() => handleDetailClick('transition')}
+            >
               <PlusCircle className="h-3.5 w-3.5 mr-1" />
               Transition Plan
             </Button>
@@ -121,6 +146,13 @@ export function OrganicContent() {
           </li>
         </ul>
       </div>
+
+      <FarmingTypeDetailDialog
+        open={showDialog}
+        onOpenChange={setShowDialog}
+        farmingType={{ name: "Organic Farming", description: "Farming without synthetic inputs" }}
+        contentType={dialogType}
+      />
     </div>
   );
 }
