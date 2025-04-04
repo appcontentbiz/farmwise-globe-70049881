@@ -6,7 +6,7 @@ import { useTrackingEvents } from "./hooks/useTrackingEvents";
 interface TrackingContextType {
   events: TrackingEvent[];
   setEvents: React.Dispatch<React.SetStateAction<TrackingEvent[]>>;
-  addEvent: (event: Omit<TrackingEvent, "id">, moduleName: string) => Promise<void>;
+  addEvent: (event: Omit<TrackingEvent, "id">, moduleName: string) => Promise<TrackingEvent | null>;
   deleteEvent: (id: string, moduleName: string) => Promise<void>;
   getFilteredEvents: (category: "past" | "present" | "future") => TrackingEvent[];
   loading: boolean;

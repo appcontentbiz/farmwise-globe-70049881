@@ -103,7 +103,7 @@ export function useTrackingEvents(moduleName: string) {
   };
 
   // Add a new event
-  const addEvent = async (event: Omit<TrackingEvent, "id">, moduleName: string) => {
+  const addEvent = async (event: Omit<TrackingEvent, "id">, moduleName: string): Promise<TrackingEvent | null> => {
     try {
       if (!user) {
         // Fallback to localStorage if user is not logged in
