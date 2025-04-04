@@ -4,3 +4,4 @@
 interface Window {
   mapboxgl: any;
 }
+
