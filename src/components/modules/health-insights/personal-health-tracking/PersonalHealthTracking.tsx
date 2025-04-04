@@ -1,11 +1,16 @@
 
-import { useHealthTracking } from "./useHealthTracking";
+import { useSupabaseHealthTracking } from "./useSupabaseHealthTracking";
 import { HealthCalendar } from "./HealthCalendar";
 import { DailyEntryForm } from "./DailyEntryForm";
 import { HealthCharts } from "./HealthCharts";
 import { HealthInsights } from "./HealthInsights";
+import { HealthLoadingState } from "./HealthLoadingState";
+import { useAuth } from "@/contexts/AuthContext";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export function PersonalHealthTracking() {
+  const { user } = useAuth();
   const {
     selectedDate,
     currentEntry,
@@ -14,6 +19,8 @@ export function PersonalHealthTracking() {
     timeRange,
     chartData,
     distributionData,
+    isLoading,
+    isSaving,
     setCurrentEntry,
     setChartView,
     setTimeRange,
@@ -22,10 +29,23 @@ export function PersonalHealthTracking() {
     calculateAverageEnergy,
     handleSaveEntry,
     handleDateSelect
-  } = useHealthTracking();
+  } = useSupabaseHealthTracking();
+
+  if (isLoading) {
+    return <HealthLoadingState />;
+  }
 
   return (
     <div className="space-y-6">
+      {!user && (
+        <Alert className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Sign in to save your health data across devices. Currently working in local mode.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Health Calendar and Entry Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <HealthCalendar 
@@ -39,6 +59,7 @@ export function PersonalHealthTracking() {
           currentEntry={currentEntry}
           onEntryChange={setCurrentEntry}
           onSave={handleSaveEntry}
+          isSaving={isSaving}
         />
       </div>
 
