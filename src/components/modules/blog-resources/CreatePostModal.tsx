@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -54,12 +53,6 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
       // In a real app, this would be an API call to save the data
       console.log("Form data to submit:", values);
       
-      // Process the tags from comma-separated string to array
-      const processedValues = {
-        ...values,
-        tags: values.tags ? values.tags.split(",").map(tag => tag.trim()).filter(Boolean) : []
-      };
-      
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 800));
       
@@ -71,7 +64,7 @@ export function CreatePostModal({ isOpen, onClose, onPostCreated }: CreatePostMo
       
       // If callback provided, pass the data
       if (onPostCreated) {
-        onPostCreated(processedValues);
+        onPostCreated(values);
       }
       
       // Close modal and reset form
