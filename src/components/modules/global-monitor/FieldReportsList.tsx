@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Globe, Clock, MapPin, Loader2 } from "lucide-react";
+import { Search, Filter, Globe, Clock, MapPin, Loader2, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useFieldReports } from "@/contexts/FieldReportContext";
 import {
@@ -14,11 +13,26 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 export function FieldReportsList() {
-  const { reports, loading } = useFieldReports();
+  const { reports, loading, refreshReports } = useFieldReports();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
+  const [refreshing, setRefreshing] = useState(false);
+  
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await refreshReports();
+      toast.success("Field reports refreshed");
+    } catch (error) {
+      console.error("Failed to refresh reports", error);
+      toast.error("Failed to refresh reports");
+    } finally {
+      setRefreshing(false);
+    }
+  };
   
   const filteredReports = reports.filter(report => {
     const matchesSearchTerm = 
@@ -56,10 +70,22 @@ export function FieldReportsList() {
   return (
     <Card>
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-xl">
-          <Globe className="h-5 w-5 text-farm-green" />
-          Field Reports
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <Globe className="h-5 w-5 text-farm-green" />
+            Field Reports
+          </CardTitle>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh} 
+            disabled={loading || refreshing}
+            className="flex items-center gap-1"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex flex-col sm:flex-row gap-2">

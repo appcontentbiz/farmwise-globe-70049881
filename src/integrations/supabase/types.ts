@@ -442,6 +442,42 @@ export type Database = {
         }
         Relationships: []
       }
+      field_reports: {
+        Row: {
+          created_at: string
+          description: string
+          files: Json | null
+          id: string
+          location: string
+          report_type: string
+          submitted_at: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          files?: Json | null
+          id?: string
+          location: string
+          report_type: string
+          submitted_at?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          files?: Json | null
+          id?: string
+          location?: string
+          report_type?: string
+          submitted_at?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

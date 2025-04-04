@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,8 @@ import {
   Globe, 
   Upload,
   Send,
-  Loader2
+  Loader2,
+  AlertCircle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,6 +25,8 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useFieldReports } from "@/contexts/FieldReportContext";
+import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FieldReportFormProps {
   onSubmit: () => void;
@@ -40,7 +42,6 @@ const formSchema = z.object({
   description: z.string()
     .min(20, "Description must be at least 20 characters")
     .max(1000, "Description cannot exceed 1000 characters"),
-  // Fix: Change literal validation to boolean with refinement for "true" value
   acknowledgement: z.boolean().refine(val => val === true, {
     message: "You must acknowledge this"
   })
@@ -52,6 +53,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
   const { toast } = useToast();
   const { addReport, isSubmitting, setIsSubmitting } = useFieldReports();
   const [files, setFiles] = useState<File[]>([]);
+  const { user } = useAuth();
   
   // Initialize form with React Hook Form
   const form = useForm<FieldReportFormValues>({
@@ -66,6 +68,15 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
   });
   
   const handleSubmit = async (values: FieldReportFormValues) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "You need to be signed in to submit reports",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
       // Convert files to serializable format
       const fileData = files.map(file => ({
@@ -127,6 +138,22 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
   const removeFile = (index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
+  
+  if (!user) {
+    return (
+      <Card className="farm-module-card">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center justify-center py-8 text-center space-y-4">
+            <AlertCircle className="h-12 w-12 text-amber-500" />
+            <h3 className="text-lg font-semibold">Authentication Required</h3>
+            <p className="text-muted-foreground">
+              You need to sign in to submit field reports.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
   
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

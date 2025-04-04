@@ -1,6 +1,9 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useAuth } from "./AuthContext";
 
 export interface FieldReport {
   id: string;
@@ -22,6 +25,7 @@ interface FieldReportContextType {
   loading: boolean;
   isSubmitting: boolean;
   setIsSubmitting: (value: boolean) => void;
+  refreshReports: () => Promise<void>;
 }
 
 const FieldReportContext = createContext<FieldReportContextType | undefined>(undefined);
@@ -43,54 +47,100 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  // Load reports from localStorage on initial render
+  // Set up realtime subscription
   useEffect(() => {
-    const loadReports = () => {
-      try {
-        const savedReports = localStorage.getItem("field-reports");
-        if (savedReports) {
-          setReports(JSON.parse(savedReports));
-        }
-      } catch (error) {
-        console.error("Error loading field reports:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load saved reports",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
+    const channel = supabase
+      .channel('field-reports-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'field_reports'
+      }, () => {
+        // Refresh reports when any change happens
+        refreshReports();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
     };
+  }, []);
 
-    // Simulate network delay for demo purposes
-    setTimeout(() => {
-      loadReports();
-    }, 600);
-  }, [toast]);
-
-  // Save reports to localStorage whenever they change
+  // Load reports from Supabase on initial render
   useEffect(() => {
-    if (reports.length > 0) {
-      localStorage.setItem("field-reports", JSON.stringify(reports));
+    refreshReports();
+  }, [user]);
+
+  const refreshReports = async () => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('field_reports')
+        .select('*')
+        .order('submitted_at', { ascending: false });
+      
+      if (error) {
+        throw error;
+      }
+      
+      // Transform the data to match our FieldReport interface
+      const transformedReports = data.map(report => ({
+        id: report.id,
+        reportType: report.report_type,
+        location: report.location,
+        title: report.title,
+        description: report.description,
+        submittedAt: report.submitted_at,
+        files: report.files
+      }));
+      
+      setReports(transformedReports);
+    } catch (error) {
+      console.error("Error loading field reports:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load reports",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
-  }, [reports]);
+  };
 
   const addReport = async (report: Omit<FieldReport, "id" | "submittedAt">) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "You must be signed in to submit reports",
+        variant: "destructive",
+      });
+      return Promise.reject("Authentication required");
+    }
+    
     setIsSubmitting(true);
     
     try {
-      // Simulate network request delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Insert the report into Supabase
+      const { error } = await supabase
+        .from('field_reports')
+        .insert({
+          user_id: user.id,
+          report_type: report.reportType,
+          location: report.location,
+          title: report.title,
+          description: report.description,
+          files: report.files
+        });
       
-      const newReport: FieldReport = {
-        ...report,
-        id: Date.now().toString(),
-        submittedAt: new Date().toISOString(),
-      };
+      if (error) {
+        throw error;
+      }
       
-      setReports(prev => [newReport, ...prev]);
+      // We don't need to manually add to the reports array since the realtime subscription
+      // will trigger a refresh
       
       return Promise.resolve();
     } catch (error) {
@@ -108,7 +158,8 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
         addReport,
         loading,
         isSubmitting,
-        setIsSubmitting
+        setIsSubmitting,
+        refreshReports
       }}
     >
       {children}
