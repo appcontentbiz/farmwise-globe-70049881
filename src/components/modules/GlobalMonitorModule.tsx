@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,6 +19,7 @@ import { GlobalEventCard } from "./global-monitor/GlobalEventCard";
 import { GlobalMap } from "./global-monitor/GlobalMap";
 import { AgriculturalIndexChart } from "./global-monitor/AgriculturalIndexChart";
 import { FieldReportForm } from "./global-monitor/FieldReportForm";
+import { PaginationControls } from "@/components/ui/pagination-controls";
 
 export function GlobalMonitorModule() {
   const [activeTab, setActiveTab] = useState("monitor");
@@ -31,42 +31,42 @@ export function GlobalMonitorModule() {
     {
       title: "Drought Conditions",
       description: "Affecting wheat and corn crops in Southern Europe. Irrigation levels at 40% capacity.",
-      type: "weather",
+      type: "weather" as const,
       location: "Southern Europe",
       date: "2 days ago"
     },
     {
       title: "Agricultural Policy Change",
       description: "New subsidy program for sustainable farming practices announced in Brazil.",
-      type: "policy",
+      type: "policy" as const,
       location: "Brazil",
       date: "1 week ago"
     },
     {
       title: "New Pest Resistant Strain",
       description: "Scientists have developed a new wheat strain resistant to common rust.",
-      type: "innovation",
+      type: "innovation" as const,
       location: "Canada",
       date: "2 weeks ago"
     },
     {
       title: "Flooding in Rice Fields",
       description: "Severe flooding has affected rice production in Southeast Asia.",
-      type: "weather",
+      type: "weather" as const,
       location: "Thailand",
       date: "3 days ago"
     },
     {
       title: "Trade Agreement Update",
       description: "New agricultural trade agreement between EU and Mercosur countries.",
-      type: "policy",
+      type: "policy" as const,
       location: "EU/South America",
       date: "5 days ago"
     },
     {
       title: "Vertical Farming Breakthrough",
       description: "New technology increases yields by 40% in urban vertical farming systems.",
-      type: "innovation",
+      type: "innovation" as const,
       location: "Japan",
       date: "1 week ago"
     }
@@ -164,29 +164,13 @@ export function GlobalMonitorModule() {
                   />
                 ))}
                 
-                <div className="flex justify-between mt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handlePrevious}
-                    disabled={currentPage === 1}
-                  >
-                    <ChevronLeft className="h-4 w-4 mr-1" />
-                    Previous
-                  </Button>
-                  <span className="text-sm text-muted-foreground flex items-center">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={handleNext}
-                    disabled={currentPage === totalPages}
-                  >
-                    Next
-                    <ChevronRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </div>
+                <PaginationControls
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPrevious={handlePrevious}
+                  onNext={handleNext}
+                  className="mt-4"
+                />
               </CardContent>
             </Card>
           </div>
