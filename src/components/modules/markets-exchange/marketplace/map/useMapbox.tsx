@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { MarketType } from '../data/marketData';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Mapbox specific types
 export type MapboxMarker = {
@@ -31,8 +32,9 @@ export const useMapbox = ({
   const markersRef = useRef<MapboxMarker[]>([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
-  // Initialize map
+  // Initialize map with responsive settings
   useEffect(() => {
     if (!mapboxApiKey || !mapContainerRef.current || mapRef.current) return;
 
@@ -43,12 +45,29 @@ export const useMapbox = ({
         container: mapContainerRef.current,
         style: 'mapbox://styles/mapbox/streets-v12',
         center: [-122.419, 37.775], // Default center (San Francisco)
-        zoom: 11
+        zoom: isMobile ? 9 : 11, // Lower zoom level on mobile
+        attributionControl: !isMobile, // Hide attribution on mobile
+        dragRotate: !isMobile // Disable rotation on mobile for simpler interaction
       });
 
       newMap.on('load', () => {
         setMapLoaded(true);
         mapRef.current = newMap;
+        
+        // Add responsive controls
+        newMap.addControl(new mapboxgl.NavigationControl({
+          visualizePitch: !isMobile,
+          showZoom: true,
+          showCompass: !isMobile
+        }), 'top-right');
+        
+        // Only add geolocation on mobile as it's more commonly used there
+        if (isMobile) {
+          newMap.addControl(new mapboxgl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true },
+            trackUserLocation: true
+          }), 'top-right');
+        }
       });
 
       newMap.on('error', (e) => {
@@ -72,7 +91,7 @@ export const useMapbox = ({
         setShowMapKeyInput(true);
       }
     }
-  }, [mapboxApiKey, setShowMapKeyInput]);
+  }, [mapboxApiKey, setShowMapKeyInput, isMobile]);
 
   // Add markers when markets or map changes
   useEffect(() => {
@@ -92,7 +111,12 @@ export const useMapbox = ({
       
       const el = document.createElement('div');
       el.className = 'marker';
-      el.innerHTML = `<div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">${market.id}</div>`;
+      
+      // Make markers slightly smaller on mobile
+      const markerSize = isMobile ? 'w-5 h-5' : 'w-6 h-6';
+      const fontSize = isMobile ? 'text-[10px]' : 'text-xs';
+      
+      el.innerHTML = `<div class="${markerSize} bg-red-500 rounded-full flex items-center justify-center text-white ${fontSize} font-bold">${market.id}</div>`;
       
       el.addEventListener('click', () => {
         const handleClick = viewMarketDetails || onMarketSelect;
@@ -118,11 +142,11 @@ export const useMapbox = ({
       });
       
       mapRef.current.fitBounds(bounds, {
-        padding: 50,
-        maxZoom: 15
+        padding: isMobile ? 30 : 50, // Less padding on mobile
+        maxZoom: isMobile ? 13 : 15  // Lower max zoom on mobile
       });
     }
-  }, [filteredMarkets, mapLoaded, onMarketSelect, viewMarketDetails]);
+  }, [filteredMarkets, mapLoaded, onMarketSelect, viewMarketDetails, isMobile]);
 
   // Focus on selected market
   useEffect(() => {
@@ -137,11 +161,11 @@ export const useMapbox = ({
       
       mapRef.current.flyTo({
         center: [longitude, latitude],
-        zoom: 14,
+        zoom: isMobile ? 12 : 14, // Less zoom on mobile
         essential: true
       });
     }
-  }, [selectedMarket, mapLoaded]);
+  }, [selectedMarket, mapLoaded, isMobile]);
 
   return {
     mapContainerRef,

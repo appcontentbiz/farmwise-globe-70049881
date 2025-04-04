@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EventForm } from "./EventForm";
 import { EventList } from "./EventList";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TrackingTabProps {
   activeTab: "past" | "present" | "future";
@@ -12,6 +13,14 @@ interface TrackingTabProps {
 
 export function TrackingTab({ activeTab, moduleName }: TrackingTabProps) {
   const [isAddingEvent, setIsAddingEvent] = useState(false);
+  const isMobile = useIsMobile();
+  
+  const getButtonLabel = () => {
+    if (isMobile) {
+      return `Add ${activeTab === "past" ? "Past" : activeTab === "present" ? "Current" : "Future"}`;
+    }
+    return `Add ${activeTab === "past" ? "Previous" : activeTab === "present" ? "Current" : "Planned"} Event`;
+  };
   
   return (
     <>
@@ -23,7 +32,7 @@ export function TrackingTab({ activeTab, moduleName }: TrackingTabProps) {
           onClick={() => setIsAddingEvent(true)}
         >
           <Plus className="h-4 w-4" />
-          Add {activeTab === "past" ? "Previous" : activeTab === "present" ? "Current" : "Planned"} Event
+          {getButtonLabel()}
         </Button>
       ) : (
         <EventForm 

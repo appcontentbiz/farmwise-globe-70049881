@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MarketType } from './data/marketData';
@@ -7,6 +7,7 @@ import { useMapbox } from './map/useMapbox';
 import { useMapStyles } from './map/MapStyles';
 import { MapContainer } from './map/MapContainer';
 import { PaginationControls } from '@/components/ui/pagination-controls';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface MapDisplayProps {
   filteredMarkets: MarketType[];
@@ -25,10 +26,11 @@ export function MapDisplay({
 }: MapDisplayProps) {
   // Apply map styles
   useMapStyles();
+  const isMobile = useIsMobile();
   
   // State for pagination
   const [currentMapPage, setCurrentMapPage] = useState(1);
-  const marketsPerPage = 5;
+  const marketsPerPage = isMobile ? 3 : 5; // Show fewer markets per page on mobile
   const totalMapPages = Math.ceil(filteredMarkets.length / marketsPerPage);
   
   // Get current visible markets
@@ -60,17 +62,20 @@ export function MapDisplay({
     }
   };
 
-  // Handle viewport changes for responsive design
+  // Reset to first page when filteredMarkets changes
+  useEffect(() => {
+    setCurrentMapPage(1);
+  }, [filteredMarkets.length]);
+
+  // Handle responsive map height
   const getMapHeight = () => {
-    // Check if we're on mobile
-    const isMobile = window.innerWidth < 768;
-    return isMobile ? '350px' : '500px';
+    return isMobile ? '300px' : '500px';
   };
 
   return (
     <Card className="overflow-hidden">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center gap-2">
+      <CardHeader className={`${isMobile ? 'py-2 px-3' : 'pb-2'}`}>
+        <CardTitle className={`text-lg flex items-center gap-2 ${isMobile ? 'text-base' : ''}`}>
           <MapIcon className="h-5 w-5" /> Market Map
         </CardTitle>
       </CardHeader>
