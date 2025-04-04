@@ -24,6 +24,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useFieldReports } from "@/contexts/FieldReportContext";
 
 interface FieldReportFormProps {
   onSubmit: () => void;
@@ -49,7 +50,7 @@ type FieldReportFormValues = z.infer<typeof formSchema>;
 
 export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addReport, isSubmitting, setIsSubmitting } = useFieldReports();
   const [files, setFiles] = useState<File[]>([]);
   
   // Initialize form with React Hook Form
@@ -65,14 +66,22 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
   });
   
   const handleSubmit = async (values: FieldReportFormValues) => {
-    setIsSubmitting(true);
-    
     try {
-      // In a real application, this would send the data to a server
-      console.log("Form data to submit:", { ...values, files });
+      // Convert files to serializable format
+      const fileData = files.map(file => ({
+        name: file.name,
+        size: file.size,
+        type: file.type
+      }));
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Add the report to our context
+      await addReport({
+        reportType: values.reportType,
+        location: values.location,
+        title: values.title,
+        description: values.description,
+        files: fileData
+      });
       
       // Show success message
       toast({
@@ -93,7 +102,6 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
         description: "There was an error submitting your report. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -141,6 +149,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                     <Select
                       onValueChange={field.onChange}
                       value={field.value}
+                      disabled={isSubmitting}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -170,6 +179,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                       <Input
                         placeholder="City, Region, Country"
                         {...field}
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -187,6 +197,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                       <Input
                         placeholder="Brief title of your report"
                         {...field}
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -205,6 +216,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                         placeholder="Detailed information about your observation or insight"
                         className="min-h-[120px]"
                         {...field}
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -215,8 +227,10 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
               <div className="space-y-2">
                 <Label htmlFor="attachments">Attachments (Optional)</Label>
                 <div 
-                  className="border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => document.getElementById('file-upload')?.click()}
+                  className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer hover:bg-muted/50 transition-colors ${
+                    isSubmitting ? 'opacity-50 pointer-events-none' : ''
+                  }`}
+                  onClick={() => !isSubmitting && document.getElementById('file-upload')?.click()}
                 >
                   <Upload className="h-6 w-6 mx-auto text-muted-foreground mb-2" />
                   <p className="text-sm text-muted-foreground">
@@ -232,6 +246,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                     onChange={handleFileChange}
                     accept=".jpg,.jpeg,.png,.pdf"
                     className="hidden"
+                    disabled={isSubmitting}
                   />
                 </div>
                 
@@ -246,6 +261,8 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFile(index)}
+                            disabled={isSubmitting}
+                            type="button"
                           >
                             ✕
                           </Button>
@@ -265,6 +282,7 @@ export function FieldReportForm({ onSubmit }: FieldReportFormProps) {
                       <Checkbox
                         checked={field.value}
                         onCheckedChange={field.onChange}
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
