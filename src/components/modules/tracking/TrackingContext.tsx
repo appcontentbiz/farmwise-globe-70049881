@@ -4,7 +4,6 @@ import { TrackingEvent } from "./types";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 interface TrackingContextType {
   events: TrackingEvent[];
@@ -52,7 +51,7 @@ export const TrackingProvider = ({ children, moduleName }: TrackingProviderProps
                 title: "Started tracking",
                 date: new Date().toISOString().split('T')[0],
                 notes: "Initial setup of tracking for this module",
-                category: "present",
+                category: "present" as "past" | "present" | "future",
                 type: "learning"
               }
             ]);
@@ -83,7 +82,7 @@ export const TrackingProvider = ({ children, moduleName }: TrackingProviderProps
             title: event.title,
             date: event.date,
             notes: event.notes,
-            category: event.category,
+            category: event.category as "past" | "present" | "future",
             type: event.type,
             progress: event.progress
           })));
@@ -93,7 +92,7 @@ export const TrackingProvider = ({ children, moduleName }: TrackingProviderProps
             title: "Started tracking",
             date: new Date().toISOString().split('T')[0],
             notes: "Initial setup of tracking for this module",
-            category: "present",
+            category: "present" as "past" | "present" | "future",
             type: "learning"
           };
           
@@ -170,7 +169,7 @@ export const TrackingProvider = ({ children, moduleName }: TrackingProviderProps
         title: data.title,
         date: data.date,
         notes: data.notes,
-        category: data.category,
+        category: data.category as "past" | "present" | "future",
         type: data.type,
         progress: data.progress
       };
