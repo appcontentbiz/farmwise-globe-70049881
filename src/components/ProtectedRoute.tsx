@@ -1,9 +1,17 @@
 
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import { useEffect } from "react";
 
 export function ProtectedRoute() {
   const { user, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      toast.error("Please sign in to access this page");
+    }
+  }, [isLoading, user]);
 
   if (isLoading) {
     return (

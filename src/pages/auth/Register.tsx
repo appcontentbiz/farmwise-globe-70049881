@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { Leaf } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
 
 export function Register() {
   const [email, setEmail] = useState("");
@@ -15,25 +16,45 @@ export function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { signUp, isLoading } = useAuth();
+  const navigate = useNavigate();
+
+  const validateForm = () => {
+    if (!email.trim()) {
+      setError("Email is required");
+      return false;
+    }
+    
+    if (!farmName.trim()) {
+      setError("Farm name is required");
+      return false;
+    }
+
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long");
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setSuccess("");
     
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       await signUp(email, password, farmName);
       setSuccess("Account created! Please check your email for verification.");
+      toast.success("Account created! Please check your email for verification.");
+      // Redirect to login with a state parameter
+      navigate('/login', { state: { fromRegister: true } });
     } catch (err: any) {
       // Handle rate limiting errors specifically
       if (err.message && err.message.includes("request this after")) {
@@ -78,6 +99,7 @@ export function Register() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full"
           />
         </div>
 
@@ -92,6 +114,7 @@ export function Register() {
             required
             value={farmName}
             onChange={(e) => setFarmName(e.target.value)}
+            className="w-full"
           />
         </div>
 
@@ -106,7 +129,9 @@ export function Register() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full"
           />
+          <p className="text-xs text-gray-500">Must be at least 6 characters</p>
         </div>
 
         <div className="space-y-2">
@@ -120,6 +145,7 @@ export function Register() {
             required
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            className="w-full"
           />
         </div>
 

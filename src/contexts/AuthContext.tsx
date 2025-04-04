@@ -1,7 +1,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, initializeSupabaseSchema } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
@@ -55,18 +55,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Initialize Supabase schema
     initializeSupabaseSchema();
 
+    // First set up the auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    // Then check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     }).catch(error => {
       console.error('Failed to get session:', error);
-      setIsLoading(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
       setIsLoading(false);
     });
 
@@ -81,6 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       navigate('/');
       toast.success("Welcome back!");
     } catch (error: any) {
+      console.error('Sign in error:', error);
       toast.error(error.message || "Failed to sign in");
       throw error;
     } finally {
@@ -97,19 +100,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       
       if (user) {
-        const { error: profileError } = await supabase
-          .from('farms')
-          .insert([{ 
-            user_id: user.id, 
-            farm_name: farmName,
-            created_at: new Date().toISOString() 
-          }]);
-          
-        if (profileError) {
-          console.error('Failed to create farm profile:', profileError);
-          toast.error("Failed to create farm profile");
-          // Continue with signup even if profile creation fails
-          // We'll handle this case separately
+        // Create farm profile after successful signup
+        try {
+          const { error: profileError } = await supabase
+            .from('farms')
+            .insert([{ 
+              user_id: user.id, 
+              farm_name: farmName,
+              created_at: new Date().toISOString() 
+            }]);
+            
+          if (profileError) {
+            console.error('Failed to create farm profile:', profileError);
+          }
+        } catch (profileError) {
+          console.error('Error creating farm profile:', profileError);
+          // Continue even if profile creation fails
         }
       }
       
@@ -118,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       console.error('Signup error:', error);
       toast.error(error.message || "Failed to sign up");
-      throw error; // Rethrow for component-level handling
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -131,6 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error) throw error;
       navigate('/login');
     } catch (error: any) {
+      console.error('Sign out error:', error);
       toast.error(error.message || "Failed to sign out");
     } finally {
       setIsLoading(false);
@@ -150,4 +157,23 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
+}
+
+// Initialize Supabase schema 
+async function initializeSupabaseSchema() {
+  try {
+    // Check if the farms table exists
+    const { error } = await supabase
+      .from('farms')
+      .select('count(*)', { count: 'exact', head: true })
+      .limit(1);
+      
+    // If the table doesn't exist, we'll get an error
+    if (error && error.message.includes('relation "farms" does not exist')) {
+      console.warn('Farms table does not exist. Please make sure the Supabase schema is correctly set up.');
+      toast.info('Setting up database schema...');
+    }
+  } catch (err) {
+    console.error('Error initializing Supabase schema:', err);
+  }
 }

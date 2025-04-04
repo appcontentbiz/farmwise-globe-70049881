@@ -23,11 +23,28 @@ export function Login() {
         type: "success"
       });
     }
+    
+    // Check if redirected from registration
+    const fromRegister = location.state?.fromRegister;
+    if (fromRegister) {
+      setMessage({
+        text: "Account created successfully! Please check your email for verification.",
+        type: "success"
+      });
+    }
   }, [location]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
+    
+    if (!email.trim() || !password.trim()) {
+      setMessage({
+        text: "Please enter both email and password.",
+        type: "error"
+      });
+      return;
+    }
     
     try {
       await signIn(email, password);
@@ -73,6 +90,7 @@ export function Login() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className="w-full"
           />
         </div>
 
@@ -92,6 +110,7 @@ export function Login() {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className="w-full"
           />
         </div>
 
