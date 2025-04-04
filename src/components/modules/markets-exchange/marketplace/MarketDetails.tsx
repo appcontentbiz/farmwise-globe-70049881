@@ -1,11 +1,10 @@
-
 import React from 'react';
 import { Navigation } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { productCategories, MarketType } from '../MarketplaceMap';
+import { productCategories, MarketType } from './data/marketData';
 
 interface MarketDetailsProps {
   market: MarketType;

@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { MarketType } from '../MarketplaceMap';
+import { MarketType } from './data/marketData';
 
 interface MarketDirectionsDialogProps {
   showDirectionsDialog: boolean;

@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { productCategories, MarketType } from '../MarketplaceMap';
+import { productCategories, MarketType } from './data/marketData';
 
 interface MarketListProps {
   filteredMarkets: MarketType[];

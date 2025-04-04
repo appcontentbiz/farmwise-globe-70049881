@@ -1,6 +1,5 @@
-
 import { useState, useEffect, useRef } from 'react';
-import { MapboxMap, MarketType } from '../../MarketplaceMap';
+import { MapboxMap, MarketType } from '../data/marketData';
 
 interface UseMapboxProps {
   mapboxApiKey: string;

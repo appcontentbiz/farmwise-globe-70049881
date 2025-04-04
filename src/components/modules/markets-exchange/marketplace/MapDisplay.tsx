@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { MapIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MarketType } from '../MarketplaceMap';
+import { MarketType } from './data/marketData';
 import { useMapbox } from './map/useMapbox';
 import { useMapStyles } from './map/MapStyles';
 import { MapContainer } from './map/MapContainer';

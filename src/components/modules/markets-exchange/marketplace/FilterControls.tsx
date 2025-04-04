@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Filter, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { productCategories, marketTypes } from '../MarketplaceMap';
+import { productCategories, marketTypes } from './data/marketData';
 
 interface FilterControlsProps {
   searchTerm: string;
