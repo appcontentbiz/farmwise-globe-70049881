@@ -20,6 +20,11 @@ export function useTrackingSupabase() {
       }
 
       if (data && data.length > 0) {
+        toast({
+          title: "Events Loaded",
+          description: `Successfully loaded ${data.length} tracking events.`,
+        });
+        
         return data.map(event => ({
           id: event.id,
           title: event.title,

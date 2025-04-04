@@ -4,12 +4,14 @@ import { TrackingEvent } from "../types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTrackingLocalStorage } from "./useTrackingLocalStorage";
 import { useTrackingSupabase } from "./useTrackingSupabase";
-import { createDefaultEvent, filterEventsByCategory } from "./trackingUtils";
+import { createDefaultEvent, filterEventsByCategory, getEventActionMessage } from "./trackingUtils";
+import { useToast } from "@/hooks/use-toast";
 
 export function useTrackingEvents(moduleName: string) {
   const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const { toast } = useToast();
   
   const { 
     loadLocalEvents, 
@@ -33,6 +35,12 @@ export function useTrackingEvents(moduleName: string) {
           // If user is not logged in, use localStorage
           const localEvents = loadLocalEvents();
           setEvents(localEvents);
+          if (localEvents.length > 0) {
+            toast({
+              title: "Events Loaded",
+              description: `Loaded ${localEvents.length} events from local storage`,
+            });
+          }
         } else {
           // Try to load events from Supabase
           const supabaseEvents = await loadSupabaseEvents(moduleName, user.id);
@@ -44,8 +52,16 @@ export function useTrackingEvents(moduleName: string) {
             
             if (addResult) {
               setEvents([addResult]);
+              toast({
+                title: "Welcome to Tracking",
+                description: "Created your first tracking event to get you started",
+              });
             } else {
               setEvents([defaultEvent]);
+              toast({
+                title: "Using Default Event",
+                description: "We've added a default event to get you started",
+              });
             }
           } else {
             setEvents(supabaseEvents);
@@ -53,6 +69,11 @@ export function useTrackingEvents(moduleName: string) {
         }
       } catch (error) {
         console.error("Error loading tracking events:", error);
+        toast({
+          title: "Failed to Load Events",
+          description: "There was a problem loading your events. Please try refreshing the page.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -86,6 +107,15 @@ export function useTrackingEvents(moduleName: string) {
       return newEvent;
     } catch (error: any) {
       console.error("Error adding tracking event:", error);
+      const errorMessage = getEventActionMessage("error", undefined, undefined, 
+        error.message || "Failed to add event. Please try again.");
+      
+      toast({
+        title: errorMessage.title,
+        description: errorMessage.description,
+        variant: "destructive",
+      });
+      
       return null;
     }
   };
@@ -106,9 +136,19 @@ export function useTrackingEvents(moduleName: string) {
       if (success) {
         // Update local state
         setEvents(prevEvents => prevEvents.filter(event => event.id !== id));
+        
+        toast({
+          title: "Event Deleted",
+          description: "The event has been successfully removed from your tracking",
+        });
       }
     } catch (error) {
       console.error("Error deleting tracking event:", error);
+      toast({
+        title: "Delete Failed",
+        description: "Unable to delete the event. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

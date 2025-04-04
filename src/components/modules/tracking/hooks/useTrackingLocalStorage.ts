@@ -14,6 +14,11 @@ export function useTrackingLocalStorage(moduleName: string) {
       }
     } catch (error) {
       console.error("Error loading tracking events from localStorage:", error);
+      toast({
+        title: "Failed to Load",
+        description: "There was an issue loading your tracking data. Using default data instead.",
+        variant: "destructive",
+      });
     }
     
     // Default event if nothing exists
