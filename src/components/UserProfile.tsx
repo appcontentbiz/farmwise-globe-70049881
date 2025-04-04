@@ -13,6 +13,7 @@ import {
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { handleSessionRecovery } from "@/utils/authUtils";
 
 interface FarmProfile {
   farm_name: string;
@@ -20,14 +21,31 @@ interface FarmProfile {
 }
 
 export function UserProfile() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshSession } = useAuth();
   const [farmProfile, setFarmProfile] = useState<FarmProfile | null>(null);
   
   useEffect(() => {
     if (user) {
       fetchFarmProfile();
+      
+      // Set up periodic session validation
+      const intervalId = setInterval(async () => {
+        const { valid } = await supabase.auth.getSession().then(({ data, error }) => ({
+          valid: !!data.session && !error
+        }));
+        
+        if (!valid) {
+          const refreshed = await refreshSession();
+          if (!refreshed) {
+            toast.error("Your session has expired. Please sign in again.");
+            signOut(); // Force sign out if refresh fails
+          }
+        }
+      }, 5 * 60 * 1000); // Check every 5 minutes
+      
+      return () => clearInterval(intervalId);
     }
-  }, [user]);
+  }, [user, refreshSession, signOut]);
   
   const fetchFarmProfile = async () => {
     try {
@@ -80,6 +98,13 @@ export function UserProfile() {
       }
     } catch (error) {
       console.error('Error in farm profile handling:', error);
+      // Attempt to recover from session-related errors
+      if (error instanceof Error && 
+          (error.message.includes("JWT") || error.message.includes("token") || error.message.includes("session"))) {
+        await handleSessionRecovery();
+        // Retry farm profile fetch after session recovery
+        fetchFarmProfile();
+      }
     }
   };
   

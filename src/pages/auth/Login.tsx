@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,10 +11,19 @@ export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<{text: string, type: "success" | "error"} | null>(null);
-  const { signIn, isLoading } = useAuth();
+  const { signIn, isLoading, user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Get the redirect path from location state or default to '/'
+  const from = location.state?.from || "/";
 
   useEffect(() => {
+    // If user is already authenticated, redirect them
+    if (user) {
+      navigate(from, { replace: true });
+    }
+    
     // Check if redirected from verification
     const isVerified = location.search.includes('email_confirmed=true');
     if (isVerified) {
@@ -32,7 +41,16 @@ export function Login() {
         type: "success"
       });
     }
-  }, [location]);
+    
+    // Check if redirected due to session expiration
+    const sessionExpired = location.state?.sessionExpired;
+    if (sessionExpired) {
+      setMessage({
+        text: "Your session has expired. Please sign in again.",
+        type: "error"
+      });
+    }
+  }, [location, user, navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +66,7 @@ export function Login() {
     
     try {
       await signIn(email, password);
+      // The auth provider will handle the navigation after successful login
     } catch (error: any) {
       setMessage({
         text: error.message || "Failed to sign in. Please check your credentials.",
