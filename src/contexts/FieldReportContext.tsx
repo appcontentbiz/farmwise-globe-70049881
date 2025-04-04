@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
+import { isSessionValid } from "@/utils/authUtils";
 
 export interface FieldReport {
   id: string;
@@ -26,6 +27,8 @@ interface FieldReportContextType {
   isSubmitting: boolean;
   setIsSubmitting: (value: boolean) => void;
   refreshReports: () => Promise<void>;
+  hasError: boolean;
+  isOffline: boolean;
 }
 
 const FieldReportContext = createContext<FieldReportContextType | undefined>(undefined);
@@ -42,15 +45,43 @@ interface FieldReportProviderProps {
   children: ReactNode;
 }
 
+// Key for storing reports in localStorage
+const OFFLINE_REPORTS_KEY = 'offline-field-reports';
+
 export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
   const [reports, setReports] = useState<FieldReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [retryCount, setRetryCount] = useState(0);
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Monitor online/offline status
+  useEffect(() => {
+    function handleOnline() {
+      setIsOffline(false);
+      refreshReports();
+    }
+    
+    function handleOffline() {
+      setIsOffline(true);
+    }
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   // Set up realtime subscription
   useEffect(() => {
+    if (!user || isOffline) return;
+    
     const channel = supabase
       .channel('field-reports-changes')
       .on('postgres_changes', {
@@ -61,21 +92,66 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
         // Refresh reports when any change happens
         refreshReports();
       })
-      .subscribe();
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') {
+          console.warn("Realtime subscription not established", status);
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user, isOffline]);
 
   // Load reports from Supabase on initial render
   useEffect(() => {
     refreshReports();
   }, [user]);
 
+  // Helper function to save reports to localStorage
+  const saveReportsLocally = (data: FieldReport[]) => {
+    try {
+      localStorage.setItem(OFFLINE_REPORTS_KEY, JSON.stringify(data));
+    } catch (error) {
+      console.warn('Failed to save reports to localStorage:', error);
+    }
+  };
+
+  // Helper function to load reports from localStorage
+  const loadLocalReports = (): FieldReport[] => {
+    try {
+      const savedReports = localStorage.getItem(OFFLINE_REPORTS_KEY);
+      return savedReports ? JSON.parse(savedReports) : [];
+    } catch (error) {
+      console.warn('Failed to load reports from localStorage:', error);
+      return [];
+    }
+  };
+
   const refreshReports = async () => {
     try {
       setLoading(true);
+      
+      if (isOffline) {
+        const localReports = loadLocalReports();
+        setReports(localReports);
+        setLoading(false);
+        setHasError(false);
+        return;
+      }
+
+      // Check if we have a valid session before making the request
+      const { valid } = await isSessionValid();
+      if (!valid && user) {
+        setHasError(true);
+        toast({
+          title: "Session Error",
+          description: "Your session is invalid. Please sign in again.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
       
       const { data, error } = await supabase
         .from('field_reports')
@@ -83,8 +159,23 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
         .order('submitted_at', { ascending: false });
       
       if (error) {
+        if (retryCount < 3) {
+          // Add exponential backoff for retries
+          const delay = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying after ${delay}ms (attempt ${retryCount + 1})`);
+          setTimeout(() => {
+            setRetryCount(retryCount + 1);
+            refreshReports();
+          }, delay);
+          return;
+        }
+        
         throw error;
       }
+      
+      // Reset retry count on success
+      setRetryCount(0);
+      setHasError(false);
       
       // Transform the data to match our FieldReport interface
       const transformedReports = data.map(report => ({
@@ -98,13 +189,29 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
       }));
       
       setReports(transformedReports);
-    } catch (error) {
+      
+      // Also store reports locally for offline access
+      saveReportsLocally(transformedReports);
+    } catch (error: any) {
       console.error("Error loading field reports:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load reports",
-        variant: "destructive",
-      });
+      setHasError(true);
+      
+      // Fall back to cached data
+      const localReports = loadLocalReports();
+      if (localReports.length > 0) {
+        setReports(localReports);
+        toast({
+          title: "Using Cached Data",
+          description: "Showing locally stored reports due to connection issues.",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Failed to Load Reports",
+          description: "Check your internet connection and try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -123,6 +230,28 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
     setIsSubmitting(true);
     
     try {
+      // If offline, store locally to sync later
+      if (isOffline) {
+        const tempReport: FieldReport = {
+          id: `temp-${Date.now()}`,
+          ...report,
+          submittedAt: new Date().toISOString(),
+        };
+        
+        const localReports = loadLocalReports();
+        localReports.unshift(tempReport); // Add to beginning of array
+        saveReportsLocally(localReports);
+        
+        setReports([tempReport, ...reports]);
+        toast({
+          title: "Report Saved Offline",
+          description: "Your report will be uploaded when you're back online.",
+          variant: "default",
+        });
+        
+        return Promise.resolve();
+      }
+      
       // Insert the report into Supabase
       const { error } = await supabase
         .from('field_reports')
@@ -139,12 +268,11 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
         throw error;
       }
       
-      // We don't need to manually add to the reports array since the realtime subscription
-      // will trigger a refresh
-      
+      toast.success("Report submitted successfully");
       return Promise.resolve();
     } catch (error) {
       console.error("Error adding report:", error);
+      toast.error("Failed to submit report");
       return Promise.reject(error);
     } finally {
       setIsSubmitting(false);
@@ -159,7 +287,9 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
         loading,
         isSubmitting,
         setIsSubmitting,
-        refreshReports
+        refreshReports,
+        hasError,
+        isOffline
       }}
     >
       {children}

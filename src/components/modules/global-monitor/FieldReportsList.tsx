@@ -1,7 +1,8 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, Globe, Clock, MapPin, Loader2, RefreshCw } from "lucide-react";
+import { Search, Filter, Globe, Clock, MapPin, Loader2, RefreshCw, WifiOff, AlertTriangle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useFieldReports } from "@/contexts/FieldReportContext";
 import {
@@ -14,9 +15,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export function FieldReportsList() {
-  const { reports, loading, refreshReports } = useFieldReports();
+  const { reports, loading, refreshReports, hasError, isOffline } = useFieldReports();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
@@ -74,6 +76,11 @@ export function FieldReportsList() {
           <CardTitle className="flex items-center gap-2 text-xl">
             <Globe className="h-5 w-5 text-farm-green" />
             Field Reports
+            {isOffline && (
+              <Badge variant="outline" className="ml-2 bg-amber-100 text-amber-800 border-amber-200">
+                <WifiOff className="h-3 w-3 mr-1" /> Offline
+              </Badge>
+            )}
           </CardTitle>
           <Button 
             variant="outline" 
@@ -88,6 +95,24 @@ export function FieldReportsList() {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {isOffline && (
+          <Alert className="bg-amber-50 border-amber-200 text-amber-800">
+            <WifiOff className="h-4 w-4" />
+            <AlertDescription>
+              You're currently offline. Showing locally saved reports.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {hasError && !isOffline && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load reports. Click refresh to try again.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex flex-col sm:flex-row gap-2">
           <div className="relative flex-grow">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -125,8 +150,13 @@ export function FieldReportsList() {
         ) : filteredReports.length > 0 ? (
           <div className="space-y-4">
             {filteredReports.map((report) => (
-              <Card key={report.id} className="overflow-hidden">
+              <Card key={report.id} className={`overflow-hidden ${report.id.startsWith('temp-') ? 'border-dashed border-amber-300' : ''}`}>
                 <div className="p-4">
+                  {report.id.startsWith('temp-') && (
+                    <Badge className="mb-2 bg-amber-100 text-amber-800 border-amber-200">
+                      Pending Upload
+                    </Badge>
+                  )}
                   <div className="flex justify-between items-start gap-2 mb-2">
                     <h3 className="font-medium text-lg">{report.title}</h3>
                     <Badge className={`${getReportTypeBadgeColor(report.reportType)}`}>
