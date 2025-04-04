@@ -55,7 +55,7 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
   const [hasError, setHasError] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [retryCount, setRetryCount] = useState(0);
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast(); // Renamed to avoid conflict with sonner toast
   const { user } = useAuth();
 
   // Monitor online/offline status
@@ -144,7 +144,7 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
       const { valid } = await isSessionValid();
       if (!valid && user) {
         setHasError(true);
-        toast({
+        uiToast({
           title: "Session Error",
           description: "Your session is invalid. Please sign in again.",
           variant: "destructive",
@@ -200,13 +200,13 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
       const localReports = loadLocalReports();
       if (localReports.length > 0) {
         setReports(localReports);
-        toast({
+        uiToast({
           title: "Using Cached Data",
           description: "Showing locally stored reports due to connection issues.",
           variant: "default",
         });
       } else {
-        toast({
+        uiToast({
           title: "Failed to Load Reports",
           description: "Check your internet connection and try again.",
           variant: "destructive",
@@ -219,7 +219,7 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
 
   const addReport = async (report: Omit<FieldReport, "id" | "submittedAt">) => {
     if (!user) {
-      toast({
+      uiToast({
         title: "Authentication Required",
         description: "You must be signed in to submit reports",
         variant: "destructive",
@@ -243,10 +243,8 @@ export const FieldReportProvider = ({ children }: FieldReportProviderProps) => {
         saveReportsLocally(localReports);
         
         setReports([tempReport, ...reports]);
-        toast({
-          title: "Report Saved Offline",
-          description: "Your report will be uploaded when you're back online.",
-          variant: "default",
+        toast("Report Saved Offline", {
+          description: "Your report will be uploaded when you're back online."
         });
         
         return Promise.resolve();
