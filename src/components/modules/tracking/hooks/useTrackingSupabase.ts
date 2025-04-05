@@ -129,30 +129,18 @@ export function useTrackingSupabase() {
         return false;
       }
       
-      const { error, count } = await supabase
+      // Fix: Don't use count in the returning clause which causes the aggregate function error
+      const { error } = await supabase
         .from('tracking_events')
         .delete()
-        .eq('id', id)
-        .select('count');
+        .eq('id', id);
       
       if (error) {
         console.error("Supabase deletion error:", error);
         throw error;
       }
       
-      console.log(`Delete operation completed for event ID: ${id}, affected rows:`, count);
-      
-      if (count === 0) {
-        console.warn(`No rows affected when deleting event ID: ${id}`);
-        toast({
-          title: "Warning",
-          description: "No event found with that ID",
-          // Fix: Changed "warning" to "default" since "warning" is not a supported variant
-          variant: "default",
-        });
-        // Return true anyway so UI updates
-        return true;
-      }
+      console.log(`Delete operation completed for event ID: ${id}`);
       
       // Show success toast
       toast({
@@ -169,6 +157,13 @@ export function useTrackingSupabase() {
         toast({
           title: "Error Removing Event",
           description: formattedError.message,
+          variant: "destructive",
+        });
+      } else {
+        // Generic error if not caught by handleSupabaseError
+        toast({
+          title: "Error Removing Event",
+          description: error.message || "Failed to delete event. Please try again.",
           variant: "destructive",
         });
       }

@@ -35,7 +35,7 @@ export function EventList({ category, moduleName }: EventListProps) {
       setDeleteError(null);
       setDeletingIds(prev => [...prev, id]);
       
-      console.log(`Initiating delete for event: ${id}`);
+      console.log(`Initiating delete for event: ${id} in module: ${moduleName}`);
       
       const success = await deleteEvent(id, moduleName);
       
@@ -44,7 +44,7 @@ export function EventList({ category, moduleName }: EventListProps) {
         console.error(`Delete operation failed for event: ${id}`);
       } else {
         console.log(`Event deleted successfully: ${id}`);
-        // Refresh events list after successful deletion to ensure UI is in sync with database
+        // Always refresh events after successful deletion to ensure UI is in sync with database
         await refreshEvents();
       }
     } catch (error) {
