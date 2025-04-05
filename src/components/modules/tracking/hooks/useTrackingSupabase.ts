@@ -116,7 +116,7 @@ export function useTrackingSupabase() {
 
   const deleteSupabaseEvent = async (id: string): Promise<boolean> => {
     try {
-      console.log(`Attempting to delete event with id: ${id}`);
+      console.log(`Attempting to delete event with ID: ${id}`);
       
       // Validate the ID before attempting deletion
       if (!id) {
@@ -129,17 +129,29 @@ export function useTrackingSupabase() {
         return false;
       }
       
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('tracking_events')
         .delete()
-        .eq('id', id);
+        .eq('id', id)
+        .select('count');
       
       if (error) {
         console.error("Supabase deletion error:", error);
         throw error;
       }
       
-      console.log(`Successfully deleted event with id: ${id}`);
+      console.log(`Delete operation completed for event ID: ${id}, affected rows:`, count);
+      
+      if (count === 0) {
+        console.warn(`No rows affected when deleting event ID: ${id}`);
+        toast({
+          title: "Warning",
+          description: "No event found with that ID",
+          variant: "warning",
+        });
+        // Return true anyway so UI updates
+        return true;
+      }
       
       // Show success toast
       toast({

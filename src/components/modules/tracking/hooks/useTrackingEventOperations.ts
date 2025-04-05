@@ -83,11 +83,6 @@ export function useTrackingEventOperations(
         // Immediately update the UI by filtering out the deleted event
         setEvents(prevEvents => prevEvents.filter(event => event.id !== id));
         
-        showToast(
-          "Event Deleted",
-          "The event has been successfully removed from your tracking"
-        );
-        
         return true;
       } else {
         console.error(`Delete operation failed for event ${id}`);
