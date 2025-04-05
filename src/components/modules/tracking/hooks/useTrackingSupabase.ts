@@ -116,11 +116,11 @@ export function useTrackingSupabase() {
 
   const deleteSupabaseEvent = async (id: string): Promise<boolean> => {
     try {
-      console.log(`Attempting to delete event with ID: ${id}`);
+      console.log(`[DELETION DEBUG] Attempting to delete event with ID: ${id}`);
       
       // Validate the ID before attempting deletion
       if (!id) {
-        console.error("Invalid event ID: ID is empty");
+        console.error("[DELETION DEBUG] Invalid event ID: ID is empty");
         toast({
           title: "Error Removing Event",
           description: "Invalid event ID",
@@ -129,18 +129,40 @@ export function useTrackingSupabase() {
         return false;
       }
       
-      // Simple delete operation without any select/count - this was causing issues
+      // First verify the record exists
+      const { data: checkData, error: checkError } = await supabase
+        .from('tracking_events')
+        .select('id')
+        .eq('id', id)
+        .single();
+        
+      if (checkError) {
+        if (checkError.code === 'PGRST116') {
+          console.error(`[DELETION DEBUG] Event with ID ${id} not found in database`);
+          // If the record doesn't exist, consider this a "success" since the end goal is reached
+          toast({
+            title: "Event Removed",
+            description: "The event has been removed from your tracking"
+          });
+          return true;
+        }
+        console.error("[DELETION DEBUG] Error checking if event exists:", checkError);
+      }
+      
+      console.log(`[DELETION DEBUG] Event found in database, proceeding with deletion: ${!!checkData}`);
+      
+      // Proceed with deletion, using a direct and simple approach
       const { error } = await supabase
         .from('tracking_events')
         .delete()
         .eq('id', id);
       
       if (error) {
-        console.error("Supabase deletion error:", error);
+        console.error("[DELETION DEBUG] Supabase deletion error:", error);
         throw error;
       }
       
-      console.log(`Delete operation completed successfully for event ID: ${id}`);
+      console.log(`[DELETION DEBUG] Delete operation completed successfully for event ID: ${id}`);
       
       // Show success toast
       toast({
@@ -150,7 +172,7 @@ export function useTrackingSupabase() {
       
       return true;
     } catch (error: any) {
-      console.error("Error deleting tracking event from Supabase:", error);
+      console.error("[DELETION DEBUG] Error deleting tracking event from Supabase:", error);
       
       const formattedError = handleSupabaseError(error);
       if (formattedError) {

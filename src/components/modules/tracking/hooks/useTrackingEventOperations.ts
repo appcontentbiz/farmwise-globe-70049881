@@ -59,7 +59,7 @@ export function useTrackingEventOperations(
 
   const deleteEvent = async (id: string, moduleName: string): Promise<boolean> => {
     try {
-      console.log(`useTrackingEventOperations: Deleting event ${id} in module ${moduleName}`);
+      console.log(`[DELETION DEBUG] useTrackingEventOperations: Deleting event ${id} in module ${moduleName}`);
       
       // Keep a copy of the current events for rollback if needed
       const currentEvents = [...events];
@@ -67,8 +67,10 @@ export function useTrackingEventOperations(
       // Optimistically update the UI by removing the event immediately
       setEvents(events => events.filter(event => event.id !== id));
       
+      let success = false;
+      
       if (!user) {
-        console.log("No user found, using local storage for deletion");
+        console.log("[DELETION DEBUG] No user found, using local storage for deletion");
         const updatedEvents = deleteLocalEvent(id, currentEvents, moduleName);
         
         showToast(
@@ -76,23 +78,35 @@ export function useTrackingEventOperations(
           "The event has been successfully removed from your tracking"
         );
         
-        return true;
+        success = true;
+      } else {
+        console.log(`[DELETION DEBUG] Delegating delete to Supabase for event ${id}`);
+        // Force a fresh database call to delete the event
+        success = await deleteSupabaseEvent(id);
+        
+        // Log the result
+        console.log(`[DELETION DEBUG] Delete operation result: ${success ? "Success" : "Failed"}`);
+        
+        if (!success) {
+          // Only rollback UI if we know the operation failed
+          console.error(`[DELETION DEBUG] Delete operation failed for event ${id}, rolling back UI`);
+          setEvents(currentEvents);
+          return false;
+        }
       }
-
-      console.log(`Delegating delete to Supabase for event ${id}`);
-      const success = await deleteSupabaseEvent(id);
       
-      if (!success) {
-        // Rollback the UI if the operation failed
-        console.error(`Delete operation failed for event ${id}, rolling back UI`);
-        setEvents(currentEvents);
+      if (success) {
+        console.log(`[DELETION DEBUG] Delete successful for event ${id}`);
+        
+        // Double-check that the event was removed from state
+        setEvents(current => current.filter(e => e.id !== id));
+        
+        return true;
+      } else {
         return false;
       }
-      
-      console.log(`Delete successful for event ${id}`);
-      return true;
     } catch (error) {
-      console.error("Error deleting tracking event:", error);
+      console.error("[DELETION DEBUG] Error deleting tracking event:", error);
       
       showToast(
         "Delete Failed",

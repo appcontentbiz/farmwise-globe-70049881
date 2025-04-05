@@ -10,9 +10,10 @@ import {
 } from "@/components/ui/table";
 import { useTracking } from "./TrackingContext";
 import { getTypeLabel } from "./types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
 
 interface EventListProps {
   category: "past" | "present" | "future";
@@ -21,14 +22,23 @@ interface EventListProps {
 
 export function EventList({ category, moduleName }: EventListProps) {
   const { getFilteredEvents, deleteEvent, refreshEvents } = useTracking();
-  const filteredEvents = getFilteredEvents(category);
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const [events, setEvents] = useState(getFilteredEvents(category));
+  
+  // Update events when the category changes or when tracking context changes
+  useEffect(() => {
+    setEvents(getFilteredEvents(category));
+  }, [getFilteredEvents, category]);
   
   // Clear error after 5 seconds
-  if (deleteError) {
-    setTimeout(() => setDeleteError(null), 5000);
-  }
+  useEffect(() => {
+    if (deleteError) {
+      const timer = setTimeout(() => setDeleteError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [deleteError]);
 
   const handleDeleteEvent = async (id: string) => {
     try {
@@ -40,27 +50,64 @@ export function EventList({ category, moduleName }: EventListProps) {
       setDeleteError(null);
       setDeletingIds(prev => [...prev, id]);
       
-      console.log(`Initiating delete for event: ${id} in module: ${moduleName}`);
+      console.log(`[DELETION DEBUG] Initiating delete for event: ${id} in module: ${moduleName}`);
+      
+      // Optimistically remove from UI first
+      setEvents(current => current.filter(event => event.id !== id));
       
       const success = await deleteEvent(id, moduleName);
       
       if (!success) {
         setDeleteError(`Failed to delete event. Please try again.`);
-        console.error(`Delete operation failed for event: ${id}`);
+        console.error(`[DELETION DEBUG] Delete operation failed for event: ${id}`);
+        
+        // Refresh to ensure UI matches backend state
+        const refreshedEvents = getFilteredEvents(category);
+        setEvents(refreshedEvents);
+        
+        toast({
+          title: "Delete Failed",
+          description: "The event could not be removed. Please try again.",
+          variant: "destructive"
+        });
       } else {
-        console.log(`Event deleted successfully: ${id}`);
-        // Always refresh events after successful deletion to ensure UI is in sync with database
-        await refreshEvents();
+        console.log(`[DELETION DEBUG] Event deleted successfully: ${id}`);
+        // Make sure our local state matches what's in the tracking context
+        setEvents(getFilteredEvents(category));
+        
+        toast({
+          title: "Event Deleted",
+          description: "The event has been successfully removed"
+        });
       }
+      
+      // Always refresh events after deletion attempt to ensure UI is in sync with database
+      await refreshEvents();
+      // Update our local events again after refresh
+      setEvents(getFilteredEvents(category));
+      
     } catch (error) {
-      console.error("Error in delete handler:", error);
+      console.error("[DELETION DEBUG] Error in delete handler:", error);
       setDeleteError(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
+      
+      // Refresh to ensure UI matches backend state
+      setEvents(getFilteredEvents(category));
     } finally {
       setDeletingIds(prev => prev.filter(itemId => itemId !== id));
     }
   };
 
-  if (filteredEvents.length === 0) {
+  // This ensures we're always showing the latest data
+  useEffect(() => {
+    const refreshData = async () => {
+      await refreshEvents();
+      setEvents(getFilteredEvents(category));
+    };
+    
+    refreshData();
+  }, [category, moduleName]);
+
+  if (events.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <p>No {category} events recorded yet.</p>
@@ -88,7 +135,7 @@ export function EventList({ category, moduleName }: EventListProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredEvents.map((event) => (
+          {events.map((event) => (
             <TableRow key={event.id}>
               <TableCell className="font-medium">
                 <div>{event.title}</div>
