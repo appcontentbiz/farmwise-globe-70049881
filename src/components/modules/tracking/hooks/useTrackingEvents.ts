@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { TrackingEvent } from "../types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTrackingEventOperations } from "./useTrackingEventOperations";
@@ -29,17 +29,19 @@ export function useTrackingEvents(moduleName: string) {
   useTrackingRealtimeUpdates(user?.id, moduleName, setEvents, setHasNewUpdates);
   
   // Function to refresh events on demand
-  const refreshEvents = async () => {
+  const refreshEvents = useCallback(async () => {
     if (!user) return;
     
     try {
+      console.log(`[REFRESH] Manually refreshing events for module ${moduleName}`);
       const refreshedEvents = await loadSupabaseEvents(moduleName, user.id);
+      console.log(`[REFRESH] Got ${refreshedEvents.length} events from server`);
       setEvents(refreshedEvents);
       setHasNewUpdates(false);
     } catch (error) {
-      console.error("Error refreshing events:", error);
+      console.error("[REFRESH] Error refreshing events:", error);
     }
-  };
+  }, [user, moduleName, loadSupabaseEvents]);
 
   return {
     events,

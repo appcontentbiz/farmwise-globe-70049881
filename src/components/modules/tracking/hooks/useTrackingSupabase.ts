@@ -118,40 +118,20 @@ export function useTrackingSupabase() {
     try {
       console.log(`[DELETION DEBUG] Attempting to delete event with ID: ${id}`);
       
-      // Validate the ID before attempting deletion
-      if (!id) {
-        console.error("[DELETION DEBUG] Invalid event ID: ID is empty");
+      if (!id || typeof id !== 'string' || id.trim() === '') {
+        console.error("[DELETION DEBUG] Invalid event ID:", id);
         toast({
           title: "Error Removing Event",
-          description: "Invalid event ID",
+          description: "Invalid event ID provided",
           variant: "destructive",
         });
         return false;
       }
       
-      // First verify the record exists
-      const { data: checkData, error: checkError } = await supabase
-        .from('tracking_events')
-        .select('id')
-        .eq('id', id)
-        .single();
-        
-      if (checkError) {
-        if (checkError.code === 'PGRST116') {
-          console.error(`[DELETION DEBUG] Event with ID ${id} not found in database`);
-          // If the record doesn't exist, consider this a "success" since the end goal is reached
-          toast({
-            title: "Event Removed",
-            description: "The event has been removed from your tracking"
-          });
-          return true;
-        }
-        console.error("[DELETION DEBUG] Error checking if event exists:", checkError);
-      }
+      // Enhanced logging to track the exact query being sent
+      console.log(`[DELETION DEBUG] Sending delete query for ID: '${id.trim()}'`);
       
-      console.log(`[DELETION DEBUG] Event found in database, proceeding with deletion: ${!!checkData}`);
-      
-      // Proceed with deletion, using a direct and simple approach
+      // Direct deletion approach - using a simpler, more direct query pattern
       const { error } = await supabase
         .from('tracking_events')
         .delete()
@@ -159,6 +139,7 @@ export function useTrackingSupabase() {
       
       if (error) {
         console.error("[DELETION DEBUG] Supabase deletion error:", error);
+        console.error("[DELETION DEBUG] Error details:", JSON.stringify(error, null, 2));
         throw error;
       }
       
@@ -173,21 +154,22 @@ export function useTrackingSupabase() {
       return true;
     } catch (error: any) {
       console.error("[DELETION DEBUG] Error deleting tracking event from Supabase:", error);
+      console.error("[DELETION DEBUG] Error details:", JSON.stringify(error, null, 2));
+      
+      // Enhanced error handling with more specific messages
+      let errorMessage = "Failed to delete event. Please try again.";
       
       const formattedError = handleSupabaseError(error);
       if (formattedError) {
-        toast({
-          title: "Error Removing Event",
-          description: formattedError.message,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "Error Removing Event",
-          description: error.message || "Failed to delete event. Please try again.",
-          variant: "destructive",
-        });
+        errorMessage = formattedError.message;
+        console.error(`[DELETION DEBUG] Formatted error: ${formattedError.type} - ${formattedError.message}`);
       }
+      
+      toast({
+        title: "Error Removing Event",
+        description: errorMessage,
+        variant: "destructive",
+      });
       
       return false;
     }

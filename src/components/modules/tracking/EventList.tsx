@@ -1,19 +1,12 @@
 
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useEffect, useState } from "react";
+import { TrashIcon } from "lucide-react";
+import { format } from "date-fns";
 import { useTracking } from "./TrackingContext";
-import { getTypeLabel } from "./types";
-import { useState, useEffect } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { TrackingEvent } from "./types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface EventListProps {
   category: "past" | "present" | "future";
@@ -21,165 +14,97 @@ interface EventListProps {
 }
 
 export function EventList({ category, moduleName }: EventListProps) {
-  const { getFilteredEvents, deleteEvent, refreshEvents } = useTracking();
-  const [deletingIds, setDeletingIds] = useState<string[]>([]);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const { toast } = useToast();
-  const [events, setEvents] = useState(getFilteredEvents(category));
+  const { getFilteredEvents, deleteEvent, loading } = useTracking();
+  const [localEvents, setLocalEvents] = useState<TrackingEvent[]>([]);
+  const [isDeleting, setIsDeleting] = useState<{[key: string]: boolean}>({});
   
-  // Update events when the category changes or when tracking context changes
+  // Update local state when filtered events change
   useEffect(() => {
-    setEvents(getFilteredEvents(category));
+    setLocalEvents(getFilteredEvents(category));
   }, [getFilteredEvents, category]);
   
-  // Clear error after 5 seconds
-  useEffect(() => {
-    if (deleteError) {
-      const timer = setTimeout(() => setDeleteError(null), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [deleteError]);
-
-  const handleDeleteEvent = async (id: string) => {
+  const handleDelete = async (id: string) => {
     try {
-      // Skip if already deleting this ID
-      if (deletingIds.includes(id)) {
-        return;
-      }
+      console.log(`[DELETION DEBUG] EventList: Delete requested for event ${id}`);
       
-      setDeleteError(null);
-      setDeletingIds(prev => [...prev, id]);
+      // Track deletion state for this specific event
+      setIsDeleting(prev => ({ ...prev, [id]: true }));
       
-      console.log(`[DELETION DEBUG] Initiating delete for event: ${id} in module: ${moduleName}`);
-      
-      // Optimistically remove from UI first
-      setEvents(current => current.filter(event => event.id !== id));
+      // Optimistically remove from local state
+      setLocalEvents(current => current.filter(event => event.id !== id));
       
       const success = await deleteEvent(id, moduleName);
       
       if (!success) {
-        setDeleteError(`Failed to delete event. Please try again.`);
-        console.error(`[DELETION DEBUG] Delete operation failed for event: ${id}`);
-        
-        // Refresh to ensure UI matches backend state
-        const refreshedEvents = getFilteredEvents(category);
-        setEvents(refreshedEvents);
-        
-        toast({
-          title: "Delete Failed",
-          description: "The event could not be removed. Please try again.",
-          variant: "destructive"
-        });
+        console.error(`[DELETION DEBUG] EventList: Delete failed for event ${id}`);
+        // If deletion failed, fetch fresh data
+        setLocalEvents(getFilteredEvents(category));
       } else {
-        console.log(`[DELETION DEBUG] Event deleted successfully: ${id}`);
-        // Make sure our local state matches what's in the tracking context
-        setEvents(getFilteredEvents(category));
-        
-        toast({
-          title: "Event Deleted",
-          description: "The event has been successfully removed"
-        });
+        console.log(`[DELETION DEBUG] EventList: Delete succeeded for event ${id}`);
       }
-      
-      // Always refresh events after deletion attempt to ensure UI is in sync with database
-      await refreshEvents();
-      // Update our local events again after refresh
-      setEvents(getFilteredEvents(category));
-      
     } catch (error) {
-      console.error("[DELETION DEBUG] Error in delete handler:", error);
-      setDeleteError(`Error: ${error instanceof Error ? error.message : "Unknown error"}`);
-      
-      // Refresh to ensure UI matches backend state
-      setEvents(getFilteredEvents(category));
+      console.error("[DELETION DEBUG] Error in handleDelete:", error);
     } finally {
-      setDeletingIds(prev => prev.filter(itemId => itemId !== id));
+      setIsDeleting(prev => ({ ...prev, [id]: false }));
     }
   };
-
-  // This ensures we're always showing the latest data
-  useEffect(() => {
-    const refreshData = async () => {
-      await refreshEvents();
-      setEvents(getFilteredEvents(category));
-    };
-    
-    refreshData();
-  }, [category, moduleName]);
-
-  if (events.length === 0) {
+  
+  if (loading) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p>No {category} events recorded yet.</p>
-        <p className="text-sm mt-1">Add your first event to start tracking.</p>
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-4">
+              <Skeleton className="h-5 w-2/3 mb-2" />
+              <Skeleton className="h-4 w-1/3" />
+            </CardContent>
+          </Card>
+        ))}
       </div>
     );
   }
-
+  
+  if (localEvents.length === 0) {
+    return (
+      <Card>
+        <CardContent className="p-4 text-center text-muted-foreground">
+          No {category === "past" ? "past" : category === "present" ? "current" : "future"} events found.
+        </CardContent>
+      </Card>
+    );
+  }
+  
   return (
-    <>
-      {deleteError && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{deleteError}</AlertDescription>
-        </Alert>
-      )}
-      
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Event</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {events.map((event) => (
-            <TableRow key={event.id}>
-              <TableCell className="font-medium">
-                <div>{event.title}</div>
-                {event.notes && (
-                  <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                    {event.notes}
-                  </div>
-                )}
-                {(event.type === "learning" || event.type === "goal") && event.progress !== undefined && (
-                  <div className="mt-2">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>Progress</span>
-                      <span>{event.progress}%</span>
-                    </div>
-                    <div className="w-full bg-muted/20 rounded-full h-1.5">
-                      <div 
-                        className="bg-farm-green h-1.5 rounded-full" 
-                        style={{ width: `${event.progress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              </TableCell>
-              <TableCell>{event.type ? getTypeLabel(event.type) : "General"}</TableCell>
-              <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
-              <TableCell className="text-right">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                  onClick={() => handleDeleteEvent(event.id)}
-                  disabled={deletingIds.includes(event.id)}
-                >
-                  {deletingIds.includes(event.id) ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "Remove"
-                  )}
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </>
+    <div className="space-y-2">
+      {localEvents.map((event) => (
+        <Card key={event.id} className="animate-fade-in">
+          <CardContent className="p-4 flex justify-between items-start">
+            <div className="space-y-1">
+              <h3 className="font-medium">{event.title}</h3>
+              <p className="text-sm text-muted-foreground">
+                {format(new Date(event.date), "PPP")}
+              </p>
+              {event.notes && (
+                <p className="text-sm mt-2">{event.notes}</p>
+              )}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="text-muted-foreground hover:text-destructive"
+              onClick={() => handleDelete(event.id)}
+              disabled={isDeleting[event.id]}
+            >
+              {isDeleting[event.id] ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+              ) : (
+                <TrashIcon className="h-4 w-4" />
+              )}
+              <span className="sr-only">Delete</span>
+            </Button>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
   );
 }
