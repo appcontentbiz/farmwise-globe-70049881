@@ -1,4 +1,6 @@
 
+import { useState, useEffect } from 'react';
+
 /**
  * Utility to check if the browser is currently online
  */
