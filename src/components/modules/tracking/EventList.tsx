@@ -20,7 +20,7 @@ interface EventListProps {
 }
 
 export function EventList({ category, moduleName }: EventListProps) {
-  const { getFilteredEvents, deleteEvent } = useTracking();
+  const { getFilteredEvents, deleteEvent, refreshEvents } = useTracking();
   const filteredEvents = getFilteredEvents(category);
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const [deleteError, setDeleteError] = useState<string | null>(null);
@@ -44,6 +44,8 @@ export function EventList({ category, moduleName }: EventListProps) {
         console.error(`Delete operation failed for event: ${id}`);
       } else {
         console.log(`Event deleted successfully: ${id}`);
+        // Refresh events list after successful deletion to ensure UI is in sync with database
+        await refreshEvents();
       }
     } catch (error) {
       console.error("Error in delete handler:", error);

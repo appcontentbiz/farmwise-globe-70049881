@@ -118,9 +118,14 @@ export function useTrackingSupabase() {
     try {
       console.log(`Attempting to delete event with id: ${id}`);
       
-      // Ensure we have a valid UUID
-      if (!id || id.length < 32) {
-        console.error("Invalid event ID for deletion:", id);
+      // Validate the ID before attempting deletion
+      if (!id) {
+        console.error("Invalid event ID: ID is empty");
+        toast({
+          title: "Error Removing Event",
+          description: "Invalid event ID",
+          variant: "destructive",
+        });
         return false;
       }
       
