@@ -8,6 +8,7 @@ import { useTrackingRealtimeUpdates } from "./useTrackingRealtimeUpdates";
 
 export function useTrackingEvents(moduleName: string) {
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
+  const [events, setEvents] = useState<TrackingEvent[]>([]);
   const { user } = useAuth();
   
   // Event operations (add, delete, filter)
@@ -17,14 +18,12 @@ export function useTrackingEvents(moduleName: string) {
     deleteEvent,
     loadLocalEvents,
     loadSupabaseEvents
-  } = useTrackingEventOperations([], setEvents, user);
+  } = useTrackingEventOperations(events, setEvents, user);
   
   // Initial data loading
   const { 
-    events, 
-    setEvents, 
     loading 
-  } = useTrackingDataLoader(user, moduleName, loadLocalEvents, loadSupabaseEvents, addEvent);
+  } = useTrackingDataLoader(user, moduleName, loadLocalEvents, loadSupabaseEvents, addEvent, events, setEvents);
   
   // Setup real-time updates
   useTrackingRealtimeUpdates(user?.id, moduleName, setEvents, setHasNewUpdates);

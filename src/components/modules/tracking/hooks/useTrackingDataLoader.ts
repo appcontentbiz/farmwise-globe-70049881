@@ -9,9 +9,10 @@ export function useTrackingDataLoader(
   moduleName: string,
   loadLocalEvents: () => TrackingEvent[],
   loadSupabaseEvents: (moduleName: string, userId: string) => Promise<TrackingEvent[]>,
-  addEvent: (event: Omit<TrackingEvent, "id">, moduleName: string) => Promise<TrackingEvent | null>
+  addEvent: (event: Omit<TrackingEvent, "id">, moduleName: string) => Promise<TrackingEvent | null>,
+  events: TrackingEvent[],
+  setEvents: React.Dispatch<React.SetStateAction<TrackingEvent[]>>
 ) {
-  const [events, setEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const initialLoadComplete = useRef(false);
   const { showToast } = useTrackingToasts();
@@ -102,5 +103,5 @@ export function useTrackingDataLoader(
     loadEvents();
   }, [moduleName, user]);
   
-  return { events, setEvents, loading };
+  return { loading };
 }
