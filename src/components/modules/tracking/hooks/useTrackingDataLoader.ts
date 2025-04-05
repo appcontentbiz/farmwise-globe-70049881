@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { TrackingEvent } from "../types";
-import { createDefaultEvent } from "./trackingUtils";
 import { useTrackingToasts } from "./useTrackingToasts";
 
 export function useTrackingDataLoader(
@@ -47,8 +46,7 @@ export function useTrackingDataLoader(
               initialLoadComplete.current = true;
             }
             
-            // Don't automatically create default events anymore
-            // Events should only be created when explicitly added by the user
+            // Removed the automatic event creation logic completely
           } catch (error) {
             console.error("Error loading events from Supabase, falling back to local storage:", error);
             const localEvents = loadLocalEvents();

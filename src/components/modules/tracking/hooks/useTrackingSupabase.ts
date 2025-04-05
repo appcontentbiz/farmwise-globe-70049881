@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
@@ -128,7 +129,7 @@ export function useTrackingSupabase() {
         return false;
       }
       
-      // Use a simpler delete operation without any select/count
+      // Simple delete operation without any select/count - this was causing issues
       const { error } = await supabase
         .from('tracking_events')
         .delete()
