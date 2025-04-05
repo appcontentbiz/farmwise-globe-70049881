@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { TrackingEvent } from "../types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -42,7 +41,6 @@ export function useTrackingEvents(moduleName: string) {
     lastToastIdRef.current = toastId;
     
     toast({
-      id: toastId,
       title,
       description,
       variant,

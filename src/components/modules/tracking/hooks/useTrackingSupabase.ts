@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
@@ -80,7 +81,6 @@ export function useTrackingSupabase() {
       const successMessage = getEventActionMessage("add", event.title, event.category);
       
       toast({
-        id: `add-event-${Date.now()}`,
         title: successMessage.title,
         description: successMessage.description,
       });
@@ -98,7 +98,6 @@ export function useTrackingSupabase() {
           lastErrorToastId = `${now}-${errorId}`;
           
           toast({
-            id: `error-${now}`,
             title: "Error Adding Event",
             description: formattedError.message,
             variant: "destructive",
@@ -128,7 +127,6 @@ export function useTrackingSupabase() {
       const formattedError = handleSupabaseError(error);
       if (formattedError) {
         toast({
-          id: `delete-error-${Date.now()}`,
           title: "Error Removing Event",
           description: formattedError.message,
           variant: "destructive",
