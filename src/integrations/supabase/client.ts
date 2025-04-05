@@ -24,7 +24,10 @@ export const supabase = createClient(
       params: {
         eventsPerSecond: 5, // Reduce from 10 to 5 to avoid rate limits
       },
-      reconnectWithBackOff: true // Improved reconnection strategy
+      // Remove the invalid property
+      // Instead use more standard reconnection settings
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000
     },
     global: {
       // Add some headers to show we're from Lovable
