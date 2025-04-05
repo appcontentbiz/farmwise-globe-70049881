@@ -147,7 +147,8 @@ export function useTrackingSupabase() {
         toast({
           title: "Warning",
           description: "No event found with that ID",
-          variant: "warning",
+          // Fix: Changed "warning" to "default" since "warning" is not a supported variant
+          variant: "default",
         });
         // Return true anyway so UI updates
         return true;
