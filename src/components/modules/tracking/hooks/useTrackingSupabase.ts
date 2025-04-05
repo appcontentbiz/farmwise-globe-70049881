@@ -13,6 +13,8 @@ export function useTrackingSupabase() {
   
   const loadSupabaseEvents = async (moduleName: string, userId: string): Promise<TrackingEvent[]> => {
     try {
+      console.log(`Loading events for module: ${moduleName} and user: ${userId}`);
+      
       const { data, error } = await supabase
         .from('tracking_events')
         .select('*')
@@ -21,9 +23,12 @@ export function useTrackingSupabase() {
         .order('created_at', { ascending: false });
 
       if (error) {
+        console.error("Supabase query error:", error);
         throw error;
       }
 
+      console.log(`Retrieved ${data?.length || 0} events from Supabase`);
+      
       if (data && data.length > 0) {
         return data.map(event => ({
           id: event.id,
@@ -113,6 +118,12 @@ export function useTrackingSupabase() {
     try {
       console.log(`Attempting to delete event with id: ${id}`);
       
+      // Ensure we have a valid UUID
+      if (!id || id.length < 32) {
+        console.error("Invalid event ID for deletion:", id);
+        return false;
+      }
+      
       const { error } = await supabase
         .from('tracking_events')
         .delete()
@@ -124,6 +135,13 @@ export function useTrackingSupabase() {
       }
       
       console.log(`Successfully deleted event with id: ${id}`);
+      
+      // Show success toast
+      toast({
+        title: "Event Deleted",
+        description: "The event has been removed from your tracking"
+      });
+      
       return true;
     } catch (error: any) {
       console.error("Error deleting tracking event from Supabase:", error);

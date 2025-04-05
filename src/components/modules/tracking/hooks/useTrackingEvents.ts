@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { TrackingEvent } from "../types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -29,12 +28,9 @@ export function useTrackingEvents(moduleName: string) {
     deleteSupabaseEvent 
   } = useTrackingSupabase();
 
-  // Show a toast with deduplication
   const showToast = (title: string, description: string, variant?: "default" | "destructive") => {
-    // Create a unique ID for the toast based on content
     const toastId = `${title}-${description}`.replace(/\s+/g, '-').toLowerCase();
     
-    // Don't show the same toast if it was just shown
     if (lastToastIdRef.current === toastId) {
       return;
     }
@@ -47,7 +43,6 @@ export function useTrackingEvents(moduleName: string) {
       variant,
     });
     
-    // Reset toast ID after a delay
     setTimeout(() => {
       if (lastToastIdRef.current === toastId) {
         lastToastIdRef.current = null;
@@ -55,14 +50,12 @@ export function useTrackingEvents(moduleName: string) {
     }, 3000);
   };
 
-  // Load events from Supabase or localStorage
   useEffect(() => {
     const loadEvents = async () => {
       try {
         setLoading(true);
         
         if (!user) {
-          // If user is not logged in, use localStorage
           const localEvents = loadLocalEvents();
           setEvents(localEvents);
           
@@ -74,11 +67,9 @@ export function useTrackingEvents(moduleName: string) {
             initialLoadComplete.current = true;
           }
         } else {
-          // Try to load events from Supabase
           try {
             const supabaseEvents = await loadSupabaseEvents(moduleName, user.id);
             
-            // If there are no events, add the default event
             if (supabaseEvents.length === 0) {
               const defaultEvent = createDefaultEvent();
               const addResult = await addEvent(defaultEvent, moduleName);
@@ -113,7 +104,6 @@ export function useTrackingEvents(moduleName: string) {
               }
             }
           } catch (error) {
-            // On failure, fall back to localStorage
             console.error("Error loading events from Supabase, falling back to local storage:", error);
             const localEvents = loadLocalEvents();
             setEvents(localEvents);
@@ -146,11 +136,9 @@ export function useTrackingEvents(moduleName: string) {
     loadEvents();
   }, [moduleName, user]);
 
-  // Set up real-time subscriptions for tracking events
   useEffect(() => {
     if (!user) return;
     
-    // Subscribe to changes on the tracking_events table for this user and module
     const channel = supabase
       .channel('tracking-events-changes')
       .on(
@@ -165,16 +153,12 @@ export function useTrackingEvents(moduleName: string) {
           console.log('Real-time update received:', payload);
           setHasNewUpdates(true);
           
-          // Handle different types of changes
           if (payload.eventType === 'INSERT') {
             const newEvent = payload.new as any;
-            // Check if this is for our module
             if (newEvent.module_name === moduleName) {
-              // Only add if not already in our events list
               setEvents(currentEvents => {
                 const exists = currentEvents.some(e => e.id === newEvent.id);
                 if (!exists) {
-                  // Convert to our TrackingEvent format
                   const formattedEvent: TrackingEvent = {
                     id: newEvent.id,
                     title: newEvent.title,
@@ -196,7 +180,6 @@ export function useTrackingEvents(moduleName: string) {
               });
             }
           } else if (payload.eventType === 'DELETE') {
-            // For deletion, we need to check against the old record
             setEvents(currentEvents => {
               const newEvents = currentEvents.filter(e => e.id !== payload.old.id);
               if (newEvents.length !== currentEvents.length) {
@@ -214,18 +197,15 @@ export function useTrackingEvents(moduleName: string) {
         console.log('Realtime subscription status:', status);
       });
     
-    // Clean up subscription when component unmounts or user changes
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user, moduleName]);
 
-  // Filter events by category
   const getFilteredEvents = (category: "past" | "present" | "future") => {
     return filterEventsByCategory(events, category);
   };
 
-  // Refresh data from server
   const refreshEvents = async () => {
     if (!user) return;
     
@@ -251,17 +231,14 @@ export function useTrackingEvents(moduleName: string) {
     }
   };
 
-  // Add a new event
   const addEvent = async (event: Omit<TrackingEvent, "id">, moduleName: string): Promise<TrackingEvent | null> => {
     try {
       if (!user) {
-        // Fallback to localStorage if user is not logged in
         const newEvent = addLocalEvent(event, events);
         setEvents(prevEvents => [...prevEvents, newEvent]);
         return newEvent;
       }
 
-      // Add event to Supabase
       const newEvent = await addSupabaseEvent(event, moduleName, user.id);
       
       if (newEvent) {
@@ -284,13 +261,11 @@ export function useTrackingEvents(moduleName: string) {
     }
   };
 
-  // Delete an event
   const deleteEvent = async (id: string, moduleName: string): Promise<boolean> => {
     try {
       console.log(`useTrackingEvents: Deleting event ${id} in module ${moduleName}`);
       
       if (!user) {
-        // Fallback to localStorage if user is not logged in
         console.log("No user found, using local storage for deletion");
         const updatedEvents = deleteLocalEvent(id, events);
         setEvents(updatedEvents);
@@ -303,19 +278,12 @@ export function useTrackingEvents(moduleName: string) {
         return true;
       }
 
-      // Delete event from Supabase
       console.log(`Delegating delete to Supabase for event ${id}`);
       const success = await deleteSupabaseEvent(id);
       
       if (success) {
-        // Update local state
         console.log(`Delete successful, updating local state for event ${id}`);
         setEvents(prevEvents => prevEvents.filter(event => event.id !== id));
-        
-        showToast(
-          "Event Deleted",
-          "The event has been successfully removed from your tracking"
-        );
         
         return true;
       } else {
