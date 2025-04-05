@@ -18,9 +18,9 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
     error: showError && !isOffline
   });
   
-  // Add delay for smoother transitions and prevent flickering
+  // Significantly increased timeouts to prevent flickering
   useEffect(() => {
-    // Only update if there's an actual change
+    // Only update if there's an actual change and the change persists
     if (prevOfflineRef.current !== isOffline || prevErrorRef.current !== showError) {
       // Update refs
       prevOfflineRef.current = isOffline;
@@ -32,15 +32,18 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
         // Immediately show offline state
         setVisible(prev => ({ ...prev, offline: true, error: false }));
       } else if (showError) {
-        // Add a delay before showing error to prevent flickering
+        // Only show error after a much longer delay
         timer = window.setTimeout(() => {
-          setVisible(prev => ({ ...prev, offline: false, error: true }));
-        }, 500);
+          // Double check the error is still present before showing
+          if (prevErrorRef.current) {
+            setVisible(prev => ({ ...prev, offline: false, error: true }));
+          }
+        }, 2000); // Increased from 500ms to 2000ms
       } else {
         // Add a longer delay before hiding notifications
         timer = window.setTimeout(() => {
           setVisible(prev => ({ ...prev, offline: false, error: false }));
-        }, 800);
+        }, 1500); // Increased from 800ms to 1500ms
       }
       
       return () => {
@@ -53,7 +56,7 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
     <div className="space-y-2">
       {visible.offline && (
         <Alert 
-          className="bg-amber-50 border-amber-200 text-amber-800 transition-all duration-500 ease-in-out"
+          className="bg-amber-50 border-amber-200 text-amber-800 transition-opacity duration-1000 ease-in-out"
         >
           <WifiOff className="h-4 w-4" />
           <AlertDescription>
@@ -65,7 +68,7 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
       {visible.error && !visible.offline && (
         <Alert 
           variant="destructive"
-          className="transition-all duration-500 ease-in-out"
+          className="transition-opacity duration-1000 ease-in-out"
         >
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>

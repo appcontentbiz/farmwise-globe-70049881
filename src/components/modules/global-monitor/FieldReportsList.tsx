@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,12 +16,13 @@ export function FieldReportsList() {
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
   
-  // Use a separate state for showing error with proper debounce
+  // Use a separate state for showing error with proper stability checks
   const [showError, setShowError] = useState(false);
   const errorTimerRef = useRef<number | null>(null);
   const networkCheckedRef = useRef(false);
+  const errorStateStableCountRef = useRef(0);
   
-  // Control error visibility with proper debounce
+  // Control error visibility with improved stability
   useEffect(() => {
     // Clear any existing timers
     if (errorTimerRef.current) {
@@ -31,17 +31,26 @@ export function FieldReportsList() {
     }
     
     if (hasError && !isOffline) {
-      // Set error after a longer delay to avoid flickering
-      errorTimerRef.current = window.setTimeout(() => {
-        setShowError(true);
-        errorTimerRef.current = null;
-      }, 800);
+      // Count consecutive error states to ensure stability
+      errorStateStableCountRef.current += 1;
+      
+      // Only set error after multiple consecutive checks show an error
+      if (errorStateStableCountRef.current >= 2) {
+        // Set error after a much longer delay to avoid flickering
+        errorTimerRef.current = window.setTimeout(() => {
+          setShowError(true);
+          errorTimerRef.current = null;
+        }, 2000); // Much longer delay
+      }
     } else {
-      // Clear error with a delay to avoid flickering
+      // Reset the counter if no error or offline
+      errorStateStableCountRef.current = 0;
+      
+      // Only clear error if it's been consistently gone for a while
       errorTimerRef.current = window.setTimeout(() => {
         setShowError(false);
         errorTimerRef.current = null;
-      }, 500);
+      }, 1000);
     }
     
     return () => {
@@ -51,14 +60,14 @@ export function FieldReportsList() {
     };
   }, [hasError, isOffline]);
   
-  // Check real connectivity status on mount and periodically
+  // Improved network checking logic with better debouncing
   useEffect(() => {
     const checkNetwork = async () => {
       try {
         const online = await checkRealConnectivity();
         
         // Only trigger refresh if we detect a change in connectivity 
-        // and we haven't just mounted the component
+        // and we haven't just mounted the component and enough time has passed
         if (networkCheckedRef.current && online !== !isOffline) {
           console.log("Network state changed, triggering refresh");
           refreshReports();
@@ -70,24 +79,28 @@ export function FieldReportsList() {
       }
     };
     
-    // Check network status after component mounts
-    checkNetwork();
+    // Check network status after component mounts, but with a delay
+    const initialCheckTimer = setTimeout(checkNetwork, 1000);
     
-    // Set up periodic checks - every minute but not too frequent to avoid API spam
-    const interval = setInterval(checkNetwork, 60000);
+    // Set up periodic checks with a longer interval
+    const interval = setInterval(checkNetwork, 120000); // Increased to every 2 minutes
     
     return () => {
+      clearTimeout(initialCheckTimer);
       clearInterval(interval);
     };
   }, [isOffline, refreshReports]);
   
-  // Create more robust throttled refresh function
+  // Create more robust throttled refresh function with longer throttle time
   const throttledRefresh = useCallback(
     throttle(async () => {
       if (refreshing) return; // Prevent multiple refreshes
       
       try {
         setRefreshing(true);
+        // Temporarily hide error during refresh
+        setShowError(false);
+        
         await refreshReports();
         
         // Check if we're actually online, as the refresh might have succeeded with cached data
@@ -103,9 +116,9 @@ export function FieldReportsList() {
       } finally {
         // Add a slight delay before resetting the refreshing state
         // to give visual feedback to the user
-        setTimeout(() => setRefreshing(false), 500);
+        setTimeout(() => setRefreshing(false), 800);
       }
-    }, 3000),
+    }, 5000), // Increased from 3000ms to 5000ms
     [refreshReports, refreshing]
   );
   
