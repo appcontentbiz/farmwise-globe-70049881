@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { supabase, handleSupabaseError } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -21,53 +21,106 @@ export const useFieldReportOperations = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [retryCount, setRetryCount] = useState(0);
   const [lastRefreshAttempt, setLastRefreshAttempt] = useState(0);
+  const channelRef = useRef<any>(null);
   const { toast: uiToast } = useToast();
   const { user } = useAuth();
 
-  // Monitor online/offline status
+  // Monitor online/offline status with improved handling
   useEffect(() => {
-    function handleOnline() {
-      setIsOffline(false);
-      refreshReports();
-    }
+    const handleOnlineWithValidation = async () => {
+      // Only update state after confirming we're really online
+      try {
+        // Add a small delay to ensure the network is stable
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Test network connectivity with a real request
+        const response = await fetch('/favicon.ico', { 
+          method: 'HEAD',
+          cache: 'no-store',
+          // Set a reasonable timeout
+          signal: AbortSignal.timeout(5000)
+        });
+        
+        if (response.ok) {
+          console.log("Network connection restored, refreshing data");
+          setIsOffline(false);
+          refreshReports();
+        }
+      } catch (error) {
+        console.log("Browser reports online but network test failed");
+        // We're not really online - do nothing
+      }
+    };
     
     function handleOffline() {
+      console.log("Browser reports offline");
       setIsOffline(true);
     }
     
-    window.addEventListener('online', handleOnline);
+    window.addEventListener('online', handleOnlineWithValidation);
     window.addEventListener('offline', handleOffline);
     
     return () => {
-      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('online', handleOnlineWithValidation);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  // Set up realtime subscription
-  useEffect(() => {
-    if (!user || isOffline) return;
-    
-    const channel = supabase
-      .channel('field-reports-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'field_reports'
-      }, () => {
-        // Refresh reports when any change happens
-        refreshReports();
-      })
-      .subscribe((status) => {
-        if (status !== 'SUBSCRIBED') {
-          console.warn("Realtime subscription not established", status);
-        }
-      });
+  // Cleanup function for realtime subscription
+  const cleanupRealtimeSubscription = useCallback(() => {
+    if (channelRef.current) {
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (error) {
+        console.warn("Error cleaning up realtime subscription:", error);
+      }
+      channelRef.current = null;
+    }
+  }, []);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, isOffline]);
+  // Set up realtime subscription with better error handling and cleanup
+  useEffect(() => {
+    if (!user || isOffline) {
+      cleanupRealtimeSubscription();
+      return;
+    }
+    
+    try {
+      // Clean up any existing subscription first
+      cleanupRealtimeSubscription();
+      
+      const channel = supabase
+        .channel('field-reports-changes')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'field_reports'
+        }, () => {
+          // Refresh reports when any change happens
+          refreshReports();
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log("Realtime subscription established");
+          } else if (status === 'TIMED_OUT') {
+            console.warn("Realtime subscription timed out");
+          } else if (status === 'CHANNEL_ERROR') {
+            console.warn("Realtime subscription error");
+          } else if (status === 'CLOSED') {
+            console.warn("Realtime subscription closed");
+          }
+        });
+
+      channelRef.current = channel;
+      
+      return () => {
+        cleanupRealtimeSubscription();
+      };
+    } catch (error) {
+      console.error("Error setting up realtime subscription:", error);
+      // Don't break the component if this fails
+    }
+  }, [user, isOffline, cleanupRealtimeSubscription]);
 
   // Load reports from Supabase on initial render
   useEffect(() => {
@@ -112,6 +165,9 @@ export const useFieldReportOperations = () => {
         .order('submitted_at', { ascending: false });
       
       if (error) {
+        // Handle based on error type
+        const errorInfo = handleSupabaseError(error);
+        
         if (retryCount < 3) {
           // Add exponential backoff for retries
           const delay = Math.pow(2, retryCount) * 1000;
@@ -131,7 +187,7 @@ export const useFieldReportOperations = () => {
       setHasError(false);
       
       // Transform the data to match our FieldReport interface
-      const transformedReports = transformReportData(data);
+      const transformedReports = transformReportData(data || []);
       
       setReports(transformedReports);
       

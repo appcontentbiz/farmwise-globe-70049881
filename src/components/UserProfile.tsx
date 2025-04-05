@@ -23,6 +23,7 @@ interface FarmProfile {
 export function UserProfile() {
   const { user, signOut, refreshSession } = useAuth();
   const [farmProfile, setFarmProfile] = useState<FarmProfile | null>(null);
+  const [fetchAttempted, setFetchAttempted] = useState(false);
   
   useEffect(() => {
     if (user) {
@@ -49,33 +50,43 @@ export function UserProfile() {
   
   const fetchFarmProfile = async () => {
     try {
-      // First check if the farms table exists
-      const { data: tableExists, error: tableError } = await supabase
-        .from('farms')
-        .select('count(*)', { count: 'exact', head: true });
+      setFetchAttempted(true);
+      
+      // Only attempt if we have a user
+      if (!user) return;
+      
+      // Check if the farms table exists - using a more resilient approach
+      try {
+        const { data, error } = await supabase
+          .from('farms')
+          .select('farm_name, created_at')
+          .eq('user_id', user.id)
+          .maybeSingle();
         
-      if (tableError) {
-        console.error('Error checking farms table:', tableError);
-        return;
+        if (error) {
+          // If it's a "relation does not exist" error, handle gracefully
+          if (error.message && error.message.includes('does not exist')) {
+            console.log('Farms table does not exist yet, will create default profile');
+            // Continue to create default farm below
+          } else {
+            console.error('Error fetching farm profile:', error);
+            return;
+          }
+        }
+        
+        // If we have farm data, use it
+        if (data) {
+          setFarmProfile(data);
+          return;
+        }
+      } catch (err) {
+        console.error('Error in farms table check:', err);
+        // Continue to try creating a default farm
       }
       
-      // Fetch the farm profile
-      const { data, error } = await supabase
-        .from('farms')
-        .select('farm_name, created_at')
-        .eq('user_id', user?.id);
-        
-      if (error) {
-        console.error('Error fetching farm profile:', error);
-        return;
-      }
-      
-      // If we have farm data, use the first entry
-      if (data && data.length > 0) {
-        setFarmProfile(data[0]);
-      } else {
-        // Create a default farm profile if none exists
-        if (user) {
+      // Create a default farm profile if none exists and we have a user
+      if (user) {
+        try {
           const defaultFarmName = `Farm_${user.email?.split('@')[0] || 'Default'}`;
           const { error: insertError } = await supabase
             .from('farms')
@@ -86,7 +97,12 @@ export function UserProfile() {
             }]);
             
           if (insertError) {
-            console.error('Error creating default farm profile:', insertError);
+            // Check if it's a "relation does not exist" error
+            if (insertError.message && insertError.message.includes('does not exist')) {
+              console.log('Farms table does not exist yet. This is expected for new installations.');
+            } else {
+              console.error('Error creating default farm profile:', insertError);
+            }
           } else {
             setFarmProfile({
               farm_name: defaultFarmName,
@@ -94,6 +110,8 @@ export function UserProfile() {
             });
             toast.success("Default farm profile created");
           }
+        } catch (err) {
+          console.warn('Error creating default farm:', err);
         }
       }
     } catch (error) {
@@ -102,8 +120,6 @@ export function UserProfile() {
       if (error instanceof Error && 
           (error.message.includes("JWT") || error.message.includes("token") || error.message.includes("session"))) {
         await handleSessionRecovery();
-        // Retry farm profile fetch after session recovery
-        fetchFarmProfile();
       }
     }
   };
@@ -127,6 +143,9 @@ export function UserProfile() {
           <div className="flex flex-col space-y-1 leading-none">
             {farmProfile && (
               <p className="font-medium">{farmProfile.farm_name}</p>
+            )}
+            {!farmProfile && fetchAttempted && (
+              <p className="font-medium text-sm text-muted-foreground">Default Farm</p>
             )}
             <p className="w-[200px] truncate text-sm text-muted-foreground">
               {user.email}

@@ -13,42 +13,76 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
   const prevOfflineRef = useRef(isOffline);
   const prevErrorRef = useRef(showError);
   
+  // Use refs to track the stability of each state
+  const offlineStabilityCountRef = useRef(0);
+  const errorStabilityCountRef = useRef(0);
+  
   const [visible, setVisible] = useState<{offline: boolean, error: boolean}>({
     offline: isOffline,
     error: showError && !isOffline
   });
   
-  // Significantly increased timeouts to prevent flickering
+  // Use much longer timeouts and stability checks to prevent flickering
   useEffect(() => {
-    // Only update if there's an actual change and the change persists
-    if (prevOfflineRef.current !== isOffline || prevErrorRef.current !== showError) {
-      // Update refs
+    // Only update if there's an actual change
+    if (prevOfflineRef.current !== isOffline) {
+      // Update ref
       prevOfflineRef.current = isOffline;
-      prevErrorRef.current = showError;
-      
-      let timer: number;
       
       if (isOffline) {
-        // Immediately show offline state
-        setVisible(prev => ({ ...prev, offline: true, error: false }));
-      } else if (showError) {
-        // Only show error after a much longer delay
-        timer = window.setTimeout(() => {
-          // Double check the error is still present before showing
-          if (prevErrorRef.current) {
-            setVisible(prev => ({ ...prev, offline: false, error: true }));
-          }
-        }, 2000); // Increased from 500ms to 2000ms
+        // Increment the offline stability counter
+        offlineStabilityCountRef.current++;
+        
+        // Only show offline notification after it's been stable for a while
+        if (offlineStabilityCountRef.current >= 2) {
+          // Immediately show offline state
+          setVisible(prev => ({ ...prev, offline: true, error: false }));
+        }
       } else {
-        // Add a longer delay before hiding notifications
-        timer = window.setTimeout(() => {
-          setVisible(prev => ({ ...prev, offline: false, error: false }));
-        }, 1500); // Increased from 800ms to 1500ms
+        // Reset offline stability counter
+        offlineStabilityCountRef.current = 0;
+        
+        // Add a longer delay before hiding offline notification
+        setTimeout(() => {
+          // Double-check that we're still online before hiding
+          if (!prevOfflineRef.current) {
+            setVisible(prev => ({ ...prev, offline: false }));
+          }
+        }, 2000); // Long delay for better UX
       }
+    }
+    
+    // Handle the error state change
+    if (prevErrorRef.current !== showError) {
+      // Update ref
+      prevErrorRef.current = showError;
       
-      return () => {
-        if (timer) window.clearTimeout(timer);
-      };
+      if (showError && !isOffline) {
+        // Increment the error stability counter
+        errorStabilityCountRef.current++;
+        
+        // Only show error after it's been stable for multiple checks
+        if (errorStabilityCountRef.current >= 3) {
+          // Show error after a delay to avoid quick flashes
+          setTimeout(() => {
+            // Triple check the error is still present before showing
+            if (prevErrorRef.current && !prevOfflineRef.current) {
+              setVisible(prev => ({ ...prev, error: true }));
+            }
+          }, 3000); // Much longer delay for errors
+        }
+      } else {
+        // Reset error stability counter
+        errorStabilityCountRef.current = 0;
+        
+        // Add a longer delay before hiding error notification
+        setTimeout(() => {
+          // Double-check that the error is still gone before hiding
+          if (!prevErrorRef.current || prevOfflineRef.current) {
+            setVisible(prev => ({ ...prev, error: false }));
+          }
+        }, 2000);
+      }
     }
   }, [isOffline, showError]);
   
@@ -56,7 +90,7 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
     <div className="space-y-2">
       {visible.offline && (
         <Alert 
-          className="bg-amber-50 border-amber-200 text-amber-800 transition-opacity duration-1000 ease-in-out"
+          className="bg-amber-50 border-amber-200 text-amber-800 animate-fade-in transition-all duration-1000 ease-in-out"
         >
           <WifiOff className="h-4 w-4" />
           <AlertDescription>
@@ -68,7 +102,7 @@ export function ListStatusNotifications({ isOffline, showError }: ListStatusNoti
       {visible.error && !visible.offline && (
         <Alert 
           variant="destructive"
-          className="transition-opacity duration-1000 ease-in-out"
+          className="animate-fade-in transition-all duration-1000 ease-in-out"
         >
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
