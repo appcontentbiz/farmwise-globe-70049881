@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Globe, RefreshCw, WifiOff } from "lucide-react";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { FilterControls } from "./report-list/FilterControls";
 import { ListStatusNotifications } from "./report-list/ListStatusNotifications";
 import { ReportsListContent } from "./report-list/ReportsListContent";
-import { throttle } from "@/utils/networkUtils";
+import { throttle, checkRealConnectivity } from "@/utils/networkUtils";
 
 export function FieldReportsList() {
   const { reports, loading, refreshReports, hasError, isOffline } = useFieldReports();
@@ -17,18 +17,54 @@ export function FieldReportsList() {
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
   const [showError, setShowError] = useState(false);
+  const [networkChecked, setNetworkChecked] = useState(false);
   
-  // Control error visibility
+  // Control error visibility with proper debounce
   useEffect(() => {
+    let errorTimer: number;
+    
     if (hasError && !isOffline) {
-      setShowError(true);
+      // Set error after a short delay to avoid flickering
+      errorTimer = window.setTimeout(() => {
+        setShowError(true);
+      }, 300);
     } else {
-      setShowError(false);
+      // Clear error with a slightly longer delay to avoid flickering
+      errorTimer = window.setTimeout(() => {
+        setShowError(false);
+      }, 500);
     }
+    
+    return () => {
+      if (errorTimer) window.clearTimeout(errorTimer);
+    };
   }, [hasError, isOffline]);
   
+  // Check real connectivity status on mount
+  useEffect(() => {
+    const checkNetwork = async () => {
+      const online = await checkRealConnectivity();
+      if (online !== !isOffline) {
+        // If our detected status differs from the context status,
+        // trigger a refresh to update the context
+        refreshReports();
+      }
+      setNetworkChecked(true);
+    };
+    
+    // Check network status after component mounts
+    checkNetwork();
+    
+    // Set up periodic checks
+    const interval = setInterval(checkNetwork, 60000); // every minute
+    
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
+  
   // Create throttled refresh function
-  const throttledRefresh = throttle(async () => {
+  const throttledRefresh = useCallback(throttle(async () => {
     try {
       setRefreshing(true);
       await refreshReports();
@@ -37,9 +73,9 @@ export function FieldReportsList() {
       console.error("Failed to refresh reports", error);
       toast.error("Failed to refresh reports");
     } finally {
-      setRefreshing(false);
+      setTimeout(() => setRefreshing(false), 500);
     }
-  }, 3000);
+  }, 3000), [refreshReports]);
   
   const handleRefresh = () => {
     throttledRefresh();
