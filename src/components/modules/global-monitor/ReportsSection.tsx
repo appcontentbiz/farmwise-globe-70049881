@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FieldReportForm } from "./FieldReportForm";
 import { FieldReportsList } from "./FieldReportsList";
-import { FieldReportProvider, useFieldReports } from "@/contexts/FieldReportContext";
+import { useFieldReports } from "@/contexts/FieldReportContext";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { WifiOff } from "lucide-react";
 
@@ -43,9 +43,5 @@ function ReportsTabs() {
 }
 
 export function ReportsSection() {
-  return (
-    <FieldReportProvider>
-      <ReportsTabs />
-    </FieldReportProvider>
-  );
+  return <ReportsTabs />;
 }

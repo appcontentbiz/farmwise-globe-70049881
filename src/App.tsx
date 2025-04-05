@@ -12,7 +12,6 @@ import { Register } from "./pages/auth/Register";
 import { AuthLayout } from "./layouts/AuthLayout";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
-import { FieldReportProvider } from "./contexts/FieldReportContext";
 
 // Create the query client outside of the component
 const queryClient = new QueryClient();
@@ -20,45 +19,43 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AuthProvider>
-            <FieldReportProvider>
-              <Routes>
-                {/* Auth routes */}
-                <Route element={<AuthLayout />}>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                </Route>
-                
-                {/* Protected routes */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/global" element={<Index />} />
-                  <Route path="/climate" element={<Index />} />
-                  <Route path="/economic" element={<Index />} />
-                  <Route path="/tech" element={<Index />} />
-                  <Route path="/pest" element={<Index />} />
-                  <Route path="/blog" element={<Index />} />
-                  <Route path="/markets" element={<Index />} />
-                  <Route path="/regulations" element={<Index />} />
-                  <Route path="/infrastructure" element={<Index />} />
-                  <Route path="/workforce" element={<Index />} />
-                  <Route path="/beginning" element={<Index />} />
-                  <Route path="/types" element={<Index />} />
-                  <Route path="/health" element={<Index />} />
-                  <Route path="/assistant" element={<Index />} />
-                </Route>
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </FieldReportProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              {/* Auth routes */}
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+              </Route>
+              
+              {/* Protected routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/global" element={<Index />} />
+                <Route path="/climate" element={<Index />} />
+                <Route path="/economic" element={<Index />} />
+                <Route path="/tech" element={<Index />} />
+                <Route path="/pest" element={<Index />} />
+                <Route path="/blog" element={<Index />} />
+                <Route path="/markets" element={<Index />} />
+                <Route path="/regulations" element={<Index />} />
+                <Route path="/infrastructure" element={<Index />} />
+                <Route path="/workforce" element={<Index />} />
+                <Route path="/beginning" element={<Index />} />
+                <Route path="/types" element={<Index />} />
+                <Route path="/health" element={<Index />} />
+                <Route path="/assistant" element={<Index />} />
+              </Route>
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };
