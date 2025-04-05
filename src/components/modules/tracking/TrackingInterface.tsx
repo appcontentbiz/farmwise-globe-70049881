@@ -8,6 +8,7 @@ import { TrackingProvider, useTracking } from "./TrackingContext";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/use-mobile";
 
+// Separate the TrackingTabs into its own component that uses the useTracking hook
 const TrackingTabs = ({ moduleName }: { moduleName: string }) => {
   const [activeTab, setActiveTab] = useState<"past" | "present" | "future">("present");
   const { hasNewUpdates, refreshEvents, loading } = useTracking();
@@ -58,6 +59,7 @@ const TrackingTabs = ({ moduleName }: { moduleName: string }) => {
   );
 };
 
+// Main component that properly wraps TrackingTabs with TrackingProvider
 export function TrackingInterface({ moduleName }: { moduleName: string }) {
   return (
     <TrackingProvider moduleName={moduleName}>

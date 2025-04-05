@@ -7,8 +7,11 @@ import { useTrackingDataLoader } from "./useTrackingDataLoader";
 import { useTrackingRealtimeUpdates } from "./useTrackingRealtimeUpdates";
 
 export function useTrackingEvents(moduleName: string) {
+  // State hooks first
   const [hasNewUpdates, setHasNewUpdates] = useState(false);
   const [events, setEvents] = useState<TrackingEvent[]>([]);
+  
+  // Then use other hooks
   const { user } = useAuth();
   
   // Event operations (add, delete, filter)
@@ -28,7 +31,7 @@ export function useTrackingEvents(moduleName: string) {
   // Setup real-time updates
   useTrackingRealtimeUpdates(user?.id, moduleName, setEvents, setHasNewUpdates);
   
-  // Function to refresh events on demand
+  // Function to refresh events on demand - make sure this is memoized with useCallback
   const refreshEvents = useCallback(async () => {
     if (!user) return;
     
