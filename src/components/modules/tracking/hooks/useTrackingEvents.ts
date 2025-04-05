@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from "react";
 import { TrackingEvent } from "../types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -284,34 +285,53 @@ export function useTrackingEvents(moduleName: string) {
   };
 
   // Delete an event
-  const deleteEvent = async (id: string, moduleName: string) => {
+  const deleteEvent = async (id: string, moduleName: string): Promise<boolean> => {
     try {
+      console.log(`useTrackingEvents: Deleting event ${id} in module ${moduleName}`);
+      
       if (!user) {
         // Fallback to localStorage if user is not logged in
+        console.log("No user found, using local storage for deletion");
         const updatedEvents = deleteLocalEvent(id, events);
         setEvents(updatedEvents);
-        return;
+        
+        showToast(
+          "Event Deleted",
+          "The event has been successfully removed from your tracking"
+        );
+        
+        return true;
       }
 
       // Delete event from Supabase
+      console.log(`Delegating delete to Supabase for event ${id}`);
       const success = await deleteSupabaseEvent(id);
       
       if (success) {
         // Update local state
+        console.log(`Delete successful, updating local state for event ${id}`);
         setEvents(prevEvents => prevEvents.filter(event => event.id !== id));
         
         showToast(
           "Event Deleted",
           "The event has been successfully removed from your tracking"
         );
+        
+        return true;
+      } else {
+        console.error(`Delete operation failed for event ${id}`);
+        return false;
       }
     } catch (error) {
       console.error("Error deleting tracking event:", error);
+      
       showToast(
         "Delete Failed",
         "Unable to delete the event. Please try again.",
         "destructive"
       );
+      
+      return false;
     }
   };
 

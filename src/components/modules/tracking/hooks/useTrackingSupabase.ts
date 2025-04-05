@@ -111,15 +111,19 @@ export function useTrackingSupabase() {
 
   const deleteSupabaseEvent = async (id: string): Promise<boolean> => {
     try {
+      console.log(`Attempting to delete event with id: ${id}`);
+      
       const { error } = await supabase
         .from('tracking_events')
         .delete()
         .eq('id', id);
       
       if (error) {
+        console.error("Supabase deletion error:", error);
         throw error;
       }
       
+      console.log(`Successfully deleted event with id: ${id}`);
       return true;
     } catch (error: any) {
       console.error("Error deleting tracking event from Supabase:", error);
