@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
@@ -129,7 +128,7 @@ export function useTrackingSupabase() {
         return false;
       }
       
-      // Fix: Don't use count in the returning clause which causes the aggregate function error
+      // Use a simpler delete operation without any select/count
       const { error } = await supabase
         .from('tracking_events')
         .delete()
@@ -140,7 +139,7 @@ export function useTrackingSupabase() {
         throw error;
       }
       
-      console.log(`Delete operation completed for event ID: ${id}`);
+      console.log(`Delete operation completed successfully for event ID: ${id}`);
       
       // Show success toast
       toast({
@@ -160,7 +159,6 @@ export function useTrackingSupabase() {
           variant: "destructive",
         });
       } else {
-        // Generic error if not caught by handleSupabaseError
         toast({
           title: "Error Removing Event",
           description: error.message || "Failed to delete event. Please try again.",

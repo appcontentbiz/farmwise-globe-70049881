@@ -1,4 +1,3 @@
-
 import { TrackingEvent } from "../types";
 import { useTrackingLocalStorage } from "./useTrackingLocalStorage";
 import { useTrackingSupabase } from "./useTrackingSupabase";
@@ -62,14 +61,10 @@ export function useTrackingEventOperations(
     try {
       console.log(`useTrackingEventOperations: Deleting event ${id} in module ${moduleName}`);
       
-      // Immediately update the UI by filtering out the deleted event
-      // This gives a more responsive feel to users
-      const prevEvents = [...events]; // Save current state for rollback if needed
-      setEvents(currentEvents => currentEvents.filter(event => event.id !== id));
-      
       if (!user) {
         console.log("No user found, using local storage for deletion");
         const updatedEvents = deleteLocalEvent(id, events, moduleName);
+        setEvents(updatedEvents);
         
         showToast(
           "Event Deleted",
@@ -83,12 +78,12 @@ export function useTrackingEventOperations(
       const success = await deleteSupabaseEvent(id);
       
       if (success) {
-        console.log(`Delete successful for event ${id}`);
+        console.log(`Delete successful for event ${id}, updating UI`);
+        // Remove the event from the local state after confirming successful deletion
+        setEvents(currentEvents => currentEvents.filter(event => event.id !== id));
         return true;
       } else {
         console.error(`Delete operation failed for event ${id}`);
-        // Rollback UI state if backend deletion failed
-        setEvents(prevEvents);
         return false;
       }
     } catch (error) {

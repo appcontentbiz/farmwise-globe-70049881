@@ -36,40 +36,19 @@ export function useTrackingDataLoader(
         } else {
           try {
             const supabaseEvents = await loadSupabaseEvents(moduleName, user.id);
+            setEvents(supabaseEvents);
             
-            if (supabaseEvents.length === 0) {
-              const defaultEvent = createDefaultEvent();
-              const addResult = await addEvent(defaultEvent, moduleName);
-              
-              if (addResult) {
-                setEvents([addResult]);
-                if (!initialLoadComplete.current) {
-                  showToast(
-                    "Welcome to Tracking",
-                    "Created your first tracking event to get you started"
-                  );
-                  initialLoadComplete.current = true;
-                }
-              } else {
-                setEvents([defaultEvent]);
-                if (!initialLoadComplete.current) {
-                  showToast(
-                    "Using Default Event",
-                    "We've added a default event to get you started"
-                  );
-                  initialLoadComplete.current = true;
-                }
-              }
-            } else {
-              setEvents(supabaseEvents);
-              if (supabaseEvents.length > 0 && !initialLoadComplete.current) {
-                showToast(
-                  "Events Loaded", 
-                  `Successfully loaded ${supabaseEvents.length} tracking events`
-                );
-                initialLoadComplete.current = true;
-              }
+            // Only show toast on first load
+            if (supabaseEvents.length > 0 && !initialLoadComplete.current) {
+              showToast(
+                "Events Loaded", 
+                `Successfully loaded ${supabaseEvents.length} tracking events`
+              );
+              initialLoadComplete.current = true;
             }
+            
+            // Don't automatically create default events anymore
+            // Events should only be created when explicitly added by the user
           } catch (error) {
             console.error("Error loading events from Supabase, falling back to local storage:", error);
             const localEvents = loadLocalEvents();

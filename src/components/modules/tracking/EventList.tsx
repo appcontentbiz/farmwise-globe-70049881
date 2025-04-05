@@ -32,6 +32,11 @@ export function EventList({ category, moduleName }: EventListProps) {
 
   const handleDeleteEvent = async (id: string) => {
     try {
+      // Skip if already deleting this ID
+      if (deletingIds.includes(id)) {
+        return;
+      }
+      
       setDeleteError(null);
       setDeletingIds(prev => [...prev, id]);
       
