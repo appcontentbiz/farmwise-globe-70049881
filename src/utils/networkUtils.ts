@@ -125,18 +125,39 @@ export const throttle = <T extends (...args: any[]) => any>(
  */
 export function useNetworkStatus(initialState: boolean = navigator.onLine) {
   const [isOnline, setIsOnline] = useState(initialState);
+  const [lastChange, setLastChange] = useState(Date.now());
   
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    // Add a stabilization period to avoid quick state changes
+    const handleOnline = () => {
+      // Only update if we've been in the previous state for at least 2 seconds
+      if (Date.now() - lastChange > 2000) {
+        setIsOnline(true);
+        setLastChange(Date.now());
+      }
+    };
     
-    const cleanup = registerNetworkListeners(handleOnline, handleOffline);
+    const handleOffline = () => {
+      // Only update if we've been in the previous state for at least 2 seconds
+      if (Date.now() - lastChange > 2000) {
+        setIsOnline(false);
+        setLastChange(Date.now());
+      }
+    };
     
-    // Initialize with a check
-    checkRealConnectivity().then(online => setIsOnline(online));
+    const cleanup = registerNetworkListeners(handleOnline, handleOffline, 1500);
+    
+    // Initialize with a check but don't immediately change state
+    checkRealConnectivity().then(online => {
+      if (online !== isOnline) {
+        // Only update if actual connectivity differs from current state
+        setIsOnline(online);
+        setLastChange(Date.now());
+      }
+    });
     
     return cleanup;
-  }, []);
+  }, [lastChange, isOnline]);
   
   return isOnline;
 }

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Globe, RefreshCw, WifiOff } from "lucide-react";
@@ -16,66 +16,98 @@ export function FieldReportsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Use a separate state for showing error with proper debounce
   const [showError, setShowError] = useState(false);
-  const [networkChecked, setNetworkChecked] = useState(false);
+  const errorTimerRef = useRef<number | null>(null);
+  const networkCheckedRef = useRef(false);
   
   // Control error visibility with proper debounce
   useEffect(() => {
-    let errorTimer: number;
+    // Clear any existing timers
+    if (errorTimerRef.current) {
+      window.clearTimeout(errorTimerRef.current);
+      errorTimerRef.current = null;
+    }
     
     if (hasError && !isOffline) {
-      // Set error after a short delay to avoid flickering
-      errorTimer = window.setTimeout(() => {
+      // Set error after a longer delay to avoid flickering
+      errorTimerRef.current = window.setTimeout(() => {
         setShowError(true);
-      }, 300);
+        errorTimerRef.current = null;
+      }, 800);
     } else {
-      // Clear error with a slightly longer delay to avoid flickering
-      errorTimer = window.setTimeout(() => {
+      // Clear error with a delay to avoid flickering
+      errorTimerRef.current = window.setTimeout(() => {
         setShowError(false);
+        errorTimerRef.current = null;
       }, 500);
     }
     
     return () => {
-      if (errorTimer) window.clearTimeout(errorTimer);
+      if (errorTimerRef.current) {
+        window.clearTimeout(errorTimerRef.current);
+      }
     };
   }, [hasError, isOffline]);
   
-  // Check real connectivity status on mount
+  // Check real connectivity status on mount and periodically
   useEffect(() => {
     const checkNetwork = async () => {
-      const online = await checkRealConnectivity();
-      if (online !== !isOffline) {
-        // If our detected status differs from the context status,
-        // trigger a refresh to update the context
-        refreshReports();
+      try {
+        const online = await checkRealConnectivity();
+        
+        // Only trigger refresh if we detect a change in connectivity 
+        // and we haven't just mounted the component
+        if (networkCheckedRef.current && online !== !isOffline) {
+          console.log("Network state changed, triggering refresh");
+          refreshReports();
+        }
+        
+        networkCheckedRef.current = true;
+      } catch (error) {
+        console.error("Error checking network:", error);
       }
-      setNetworkChecked(true);
     };
     
     // Check network status after component mounts
     checkNetwork();
     
-    // Set up periodic checks
-    const interval = setInterval(checkNetwork, 60000); // every minute
+    // Set up periodic checks - every minute but not too frequent to avoid API spam
+    const interval = setInterval(checkNetwork, 60000);
     
     return () => {
       clearInterval(interval);
     };
-  }, []);
+  }, [isOffline, refreshReports]);
   
-  // Create throttled refresh function
-  const throttledRefresh = useCallback(throttle(async () => {
-    try {
-      setRefreshing(true);
-      await refreshReports();
-      toast.success("Field reports refreshed");
-    } catch (error) {
-      console.error("Failed to refresh reports", error);
-      toast.error("Failed to refresh reports");
-    } finally {
-      setTimeout(() => setRefreshing(false), 500);
-    }
-  }, 3000), [refreshReports]);
+  // Create more robust throttled refresh function
+  const throttledRefresh = useCallback(
+    throttle(async () => {
+      if (refreshing) return; // Prevent multiple refreshes
+      
+      try {
+        setRefreshing(true);
+        await refreshReports();
+        
+        // Check if we're actually online, as the refresh might have succeeded with cached data
+        const online = await checkRealConnectivity();
+        if (online) {
+          toast.success("Field reports refreshed");
+        } else {
+          toast.info("Using cached reports (you appear to be offline)");
+        }
+      } catch (error) {
+        console.error("Failed to refresh reports", error);
+        toast.error("Failed to refresh reports");
+      } finally {
+        // Add a slight delay before resetting the refreshing state
+        // to give visual feedback to the user
+        setTimeout(() => setRefreshing(false), 500);
+      }
+    }, 3000),
+    [refreshReports, refreshing]
+  );
   
   const handleRefresh = () => {
     throttledRefresh();
