@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
@@ -24,10 +23,8 @@ export const supabase = createClient(
       params: {
         eventsPerSecond: 5, // Reduce from 10 to 5 to avoid rate limits
       },
-      // Remove the invalid property
-      // Instead use more standard reconnection settings
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000
+      // Use the correct reconnection properties for the Supabase client
+      reconnectAfterMs: attempt => Math.min(1000 * Math.pow(2, attempt), 10000)
     },
     global: {
       // Add some headers to show we're from Lovable
