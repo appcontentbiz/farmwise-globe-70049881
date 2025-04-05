@@ -1,9 +1,15 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 
 // Get environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY;
+
+// Track error notifications to prevent duplicates
+let lastErrorShown = '';
+let lastErrorTime = 0;
+const ERROR_COOLDOWN = 5000; // 5 seconds between similar errors
 
 // Check if environment variables are defined
 if (!supabaseUrl || !supabaseAnonKey) {
@@ -23,7 +29,7 @@ export const supabase = createClient(
       params: {
         eventsPerSecond: 5, // Reduce from 10 to 5 to avoid rate limits
       },
-      // Use the correct reconnection properties for the Supabase client
+      // Use the correct reconnection properties
       reconnectAfterMs: attempt => Math.min(1000 * Math.pow(2, attempt), 10000)
     },
     global: {
@@ -35,7 +41,7 @@ export const supabase = createClient(
   }
 );
 
-// Utility function to check if Supabase is connected properly
+// Improved utility function to check if Supabase is connected properly
 export const isSupabaseConnected = async () => {
   try {
     // Check auth connection first as it doesn't require a table
@@ -72,9 +78,23 @@ export const isSupabaseConnected = async () => {
   }
 };
 
-// Utility function for handling different types of Supabase errors
+// Improved utility function for handling different types of Supabase errors with debouncing
 export const handleSupabaseError = (error: any) => {
   if (!error) return null;
+  
+  // Create error signature for deduplication
+  const errorSignature = `${error.code || ''}-${error.message || ''}`;
+  const now = Date.now();
+  
+  // Skip if the same error was shown recently
+  if (errorSignature === lastErrorShown && now - lastErrorTime < ERROR_COOLDOWN) {
+    console.debug('Suppressing duplicate error notification:', error.message);
+    return null;
+  }
+  
+  // Update last error tracking
+  lastErrorShown = errorSignature;
+  lastErrorTime = now;
   
   // Network errors
   if (error.message?.includes('Failed to fetch') || error.code === 'NETWORK_ERROR') {
@@ -133,7 +153,10 @@ export const initializeSupabaseSchema = async () => {
       // If the farms table doesn't exist (we get a specific error), we should create it
       if (checkError && checkError.message.includes('relation "farms" does not exist')) {
         console.log('Farms table does not exist. You need to create it in the Supabase dashboard.');
-        toast.info('Please connect your Supabase project to create required tables');
+        toast.info('Please connect your Supabase project to create required tables', {
+          id: 'supabase-connect-reminder', // Use an ID to prevent duplicates
+          duration: 5000,
+        });
       }
     } catch (err) {
       // Just log but don't break execution

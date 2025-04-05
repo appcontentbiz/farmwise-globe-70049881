@@ -1,9 +1,11 @@
-
 import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, handleSupabaseError } from "@/integrations/supabase/client";
 import { getEventActionMessage } from "./trackingUtils";
+
+let lastErrorToastId = '';
+const errorCooldown = 5000; // 5 seconds between showing the same error
 
 export function useTrackingSupabase() {
   const { toast } = useToast();
@@ -22,12 +24,6 @@ export function useTrackingSupabase() {
       }
 
       if (data && data.length > 0) {
-        const successMessage = getEventActionMessage("load");
-        toast({
-          title: successMessage.title,
-          description: `Successfully loaded ${data.length} tracking events.`,
-        });
-        
         return data.map(event => ({
           id: event.id,
           title: event.title,
@@ -39,19 +35,10 @@ export function useTrackingSupabase() {
         }));
       }
 
-      // Return empty array if no events found
       return [];
     } catch (error: any) {
       console.error("Error loading tracking events from Supabase:", error);
-      const errorMessage = getEventActionMessage("error", undefined, undefined, 
-        error.message || "There was an issue loading your tracking data. Please try again.");
-      
-      toast({
-        title: errorMessage.title,
-        description: errorMessage.description,
-        variant: "destructive",
-      });
-      return [];
+      throw error;
     }
   };
 
@@ -91,7 +78,9 @@ export function useTrackingSupabase() {
       };
       
       const successMessage = getEventActionMessage("add", event.title, event.category);
+      
       toast({
+        id: `add-event-${Date.now()}`,
         title: successMessage.title,
         description: successMessage.description,
       });
@@ -99,14 +88,24 @@ export function useTrackingSupabase() {
       return newEvent;
     } catch (error: any) {
       console.error("Error adding tracking event to Supabase:", error);
-      const errorMessage = getEventActionMessage("error", undefined, undefined, 
-        error.message || "There was an issue adding your tracking event.");
       
-      toast({
-        title: errorMessage.title,
-        description: errorMessage.description,
-        variant: "destructive",
-      });
+      const formattedError = handleSupabaseError(error);
+      if (formattedError) {
+        const errorId = `${formattedError.type}-${formattedError.message}`;
+        const now = Date.now();
+        
+        if (errorId !== lastErrorToastId || now - parseInt(lastErrorToastId.split('-')[0] || '0') > errorCooldown) {
+          lastErrorToastId = `${now}-${errorId}`;
+          
+          toast({
+            id: `error-${now}`,
+            title: "Error Adding Event",
+            description: formattedError.message,
+            variant: "destructive",
+          });
+        }
+      }
+      
       return null;
     }
   };
@@ -122,23 +121,20 @@ export function useTrackingSupabase() {
         throw error;
       }
       
-      const successMessage = getEventActionMessage("delete");
-      toast({
-        title: successMessage.title,
-        description: successMessage.description,
-      });
-      
       return true;
     } catch (error: any) {
       console.error("Error deleting tracking event from Supabase:", error);
-      const errorMessage = getEventActionMessage("error", undefined, undefined, 
-        error.message || "There was an issue removing your tracking event.");
       
-      toast({
-        title: errorMessage.title,
-        description: errorMessage.description,
-        variant: "destructive",
-      });
+      const formattedError = handleSupabaseError(error);
+      if (formattedError) {
+        toast({
+          id: `delete-error-${Date.now()}`,
+          title: "Error Removing Event",
+          description: formattedError.message,
+          variant: "destructive",
+        });
+      }
+      
       return false;
     }
   };
