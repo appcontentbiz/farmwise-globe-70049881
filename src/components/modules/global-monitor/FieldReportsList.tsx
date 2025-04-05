@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Filter, Globe, Clock, MapPin, Loader2, RefreshCw, WifiOff, AlertTriangle } from "lucide-react";
@@ -22,6 +22,16 @@ export function FieldReportsList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [refreshing, setRefreshing] = useState(false);
+  const [showError, setShowError] = useState(false);
+  
+  // Control error visibility
+  useEffect(() => {
+    if (hasError && !isOffline) {
+      setShowError(true);
+    } else {
+      setShowError(false);
+    }
+  }, [hasError, isOffline]);
   
   const handleRefresh = async () => {
     try {
@@ -104,7 +114,7 @@ export function FieldReportsList() {
           </Alert>
         )}
         
-        {hasError && !isOffline && (
+        {showError && !isOffline && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>

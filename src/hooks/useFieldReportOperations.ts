@@ -20,6 +20,7 @@ export const useFieldReportOperations = () => {
   const [hasError, setHasError] = useState(false);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [retryCount, setRetryCount] = useState(0);
+  const [lastRefreshAttempt, setLastRefreshAttempt] = useState(0);
   const { toast: uiToast } = useToast();
   const { user } = useAuth();
 
@@ -74,6 +75,13 @@ export const useFieldReportOperations = () => {
   }, [user]);
 
   const refreshReports = async () => {
+    // Prevent rapid successive refresh attempts (debounce)
+    const now = Date.now();
+    if (now - lastRefreshAttempt < 2000) {
+      return;
+    }
+    setLastRefreshAttempt(now);
+    
     try {
       setLoading(true);
       

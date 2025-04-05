@@ -1,78 +1,75 @@
 
-// Utility functions for handling network state and offline/online transitions
-
 /**
- * Check if the browser is currently online
+ * Utility to check if the browser is currently online
  */
 export const isOnline = (): boolean => {
   return navigator.onLine;
 };
 
 /**
- * Register callbacks for online and offline events
- * @param onOnline Function to call when the application comes online
- * @param onOffline Function to call when the application goes offline
- * @returns Cleanup function to remove event listeners
+ * Register callbacks for online and offline events with debouncing
  */
 export const registerNetworkListeners = (
   onOnline: () => void,
-  onOffline: () => void
+  onOffline: () => void,
+  debounceMs: number = 1000
 ): (() => void) => {
-  window.addEventListener('online', onOnline);
-  window.addEventListener('offline', onOffline);
+  let onlineTimer: number | null = null;
+  let offlineTimer: number | null = null;
   
-  // Return cleanup function
+  const handleOnline = () => {
+    if (offlineTimer) window.clearTimeout(offlineTimer);
+    if (onlineTimer) window.clearTimeout(onlineTimer);
+    
+    onlineTimer = window.setTimeout(() => {
+      onOnline();
+      onlineTimer = null;
+    }, debounceMs);
+  };
+  
+  const handleOffline = () => {
+    if (onlineTimer) window.clearTimeout(onlineTimer);
+    if (offlineTimer) window.clearTimeout(offlineTimer);
+    
+    offlineTimer = window.setTimeout(() => {
+      onOffline();
+      offlineTimer = null;
+    }, debounceMs);
+  };
+  
+  window.addEventListener('online', handleOnline);
+  window.addEventListener('offline', handleOffline);
+  
   return () => {
-    window.removeEventListener('online', onOnline);
-    window.removeEventListener('offline', onOffline);
+    if (onlineTimer) window.clearTimeout(onlineTimer);
+    if (offlineTimer) window.clearTimeout(offlineTimer);
+    window.removeEventListener('online', handleOnline);
+    window.removeEventListener('offline', handleOffline);
   };
 };
 
 /**
- * Create a debounced version of a function
- * @param func The function to debounce
- * @param delay Delay in milliseconds
+ * Utility to throttle function calls
  */
-export const debounce = <T extends (...args: any[]) => any>(
+export const throttle = <T extends (...args: any[]) => any>(
   func: T,
-  delay: number
+  limit: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeoutId: ReturnType<typeof setTimeout>;
+  let lastFunc: number;
+  let lastRan: number;
   
   return function(...args: Parameters<T>) {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func(...args), delay);
+    if (!lastRan) {
+      func(...args);
+      lastRan = Date.now();
+    } else {
+      clearTimeout(lastFunc);
+      lastFunc = window.setTimeout(() => {
+        if (Date.now() - lastRan >= limit) {
+          func(...args);
+          lastRan = Date.now();
+        }
+      }, limit - (Date.now() - lastRan));
+    }
   };
-};
-
-/**
- * Check if IndexedDB is available in the browser
- */
-export const isIndexedDBAvailable = (): boolean => {
-  try {
-    return !!window.indexedDB;
-  } catch (e) {
-    return false;
-  }
-};
-
-/**
- * Check if localStorage is available in the browser
- */
-export const isLocalStorageAvailable = (): boolean => {
-  try {
-    const testKey = '__storage_test__';
-    localStorage.setItem(testKey, testKey);
-    localStorage.removeItem(testKey);
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
-
-/**
- * Simple function to create a unique ID for offline data
- */
-export const generateOfflineId = (): string => {
-  return `offline-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
