@@ -1,13 +1,12 @@
 
-import { useState } from "react";
 import { TrackingEvent } from "../types";
 import { useToast } from "@/hooks/use-toast";
 import { getEventActionMessage } from "./trackingUtils";
 
-export function useTrackingLocalStorage(moduleName: string) {
+export function useTrackingLocalStorage() {
   const { toast } = useToast();
   
-  const loadLocalEvents = (): TrackingEvent[] => {
+  const loadLocalEvents = (moduleName: string = "default"): TrackingEvent[] => {
     try {
       const savedEvents = localStorage.getItem(`farm-tracking-${moduleName}`);
       if (savedEvents) {
@@ -45,7 +44,7 @@ export function useTrackingLocalStorage(moduleName: string) {
     }];
   };
 
-  const saveLocalEvents = (events: TrackingEvent[]): void => {
+  const saveLocalEvents = (events: TrackingEvent[], moduleName: string = "default"): void => {
     try {
       localStorage.setItem(`farm-tracking-${moduleName}`, JSON.stringify(events));
     } catch (error) {
@@ -61,13 +60,13 @@ export function useTrackingLocalStorage(moduleName: string) {
     }
   };
 
-  const addLocalEvent = (event: Omit<TrackingEvent, "id">, events: TrackingEvent[]): TrackingEvent => {
+  const addLocalEvent = (event: Omit<TrackingEvent, "id">, events: TrackingEvent[], moduleName: string = "default"): TrackingEvent => {
     const newEvent = {
       ...event,
       id: Date.now().toString()
     };
     
-    saveLocalEvents([...events, newEvent]);
+    saveLocalEvents([...events, newEvent], moduleName);
     
     const successMessage = getEventActionMessage("add", event.title, event.category);
     toast({
@@ -78,9 +77,9 @@ export function useTrackingLocalStorage(moduleName: string) {
     return newEvent;
   };
 
-  const deleteLocalEvent = (id: string, events: TrackingEvent[]): TrackingEvent[] => {
+  const deleteLocalEvent = (id: string, events: TrackingEvent[], moduleName: string = "default"): TrackingEvent[] => {
     const updatedEvents = events.filter(event => event.id !== id);
-    saveLocalEvents(updatedEvents);
+    saveLocalEvents(updatedEvents, moduleName);
     
     const message = getEventActionMessage("delete");
     toast({
